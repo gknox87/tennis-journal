@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,23 @@ const AddMatch = () => {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to add matches",
+          variant: "destructive",
+        });
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -33,12 +50,20 @@ const AddMatch = () => {
     setIsSubmitting(true);
     
     try {
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        throw new Error("Not authenticated");
+      }
+
       const { error } = await supabase.from('matches').insert({
         date: date.toISOString().split('T')[0],
         opponent,
         score,
         is_win: isWin,
         notes: notes || null,
+        user_id: session.user.id // Set the user_id to the current user's ID
       });
 
       if (error) throw error;
@@ -49,11 +74,11 @@ const AddMatch = () => {
       });
       
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving match:', error);
       toast({
         title: "Error",
-        description: "Failed to save match. Please try again.",
+        description: error.message || "Failed to save match. Please try again.",
         variant: "destructive",
       });
     } finally {
