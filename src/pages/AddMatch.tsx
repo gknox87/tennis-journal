@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const AddMatch = () => {
   const navigate = useNavigate();
@@ -16,18 +16,49 @@ const AddMatch = () => {
   const [score, setScore] = useState("");
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For now, just show a success message and navigate back
-    // Later this will be connected to Supabase
-    toast({
-      title: "Match recorded",
-      description: "Your match has been successfully saved.",
-    });
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Please select a match date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     
-    navigate("/");
+    try {
+      const { error } = await supabase.from('matches').insert({
+        date: date.toISOString().split('T')[0],
+        opponent,
+        score,
+        is_win: isWin,
+        notes: notes || null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Match recorded",
+        description: "Your match has been successfully saved.",
+      });
+      
+      navigate("/");
+    } catch (error) {
+      console.error('Error saving match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save match. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,11 +123,14 @@ const AddMatch = () => {
         </div>
 
         <div className="flex space-x-4">
-          <Button type="submit">Save Match</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Match"}
+          </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/")}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
