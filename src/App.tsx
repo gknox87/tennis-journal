@@ -3,6 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
 import AddMatch from "@/pages/AddMatch";
 import Login from "@/pages/Login";
+import MatchDetail from "@/pages/MatchDetail";
+import EditMatch from "@/pages/EditMatch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,6 +40,14 @@ function App() {
         <Route
           path="/add-match"
           element={isAuthenticated ? <AddMatch /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/match/:id"
+          element={isAuthenticated ? <MatchDetail /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/edit-match/:id"
+          element={isAuthenticated ? <EditMatch /> : <Navigate to="/login" />}
         />
         <Route
           path="/login"
