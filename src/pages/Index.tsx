@@ -1,8 +1,13 @@
 import { AddMatchButton } from "@/components/AddMatchButton";
 import { MatchCard } from "@/components/MatchCard";
 import { StatsOverview } from "@/components/StatsOverview";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   // Mock data - would be replaced with real data in future iterations
   const recentMatches = [
     {
@@ -19,11 +24,22 @@ const Index = () => {
     },
   ];
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Tennis Match Journal</h1>
-        <AddMatchButton />
+        <div className="flex gap-4">
+          <AddMatchButton />
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </div>
 
       <div className="mb-8">
