@@ -37,7 +37,6 @@ const Index = () => {
     );
     const wins = matches.filter((match) => match.is_win).length;
 
-    // Calculate sets won/lost from score strings (assuming format like "6-4, 7-5")
     let setsWon = 0;
     let setsLost = 0;
     let tiebreaksWon = 0;
@@ -86,7 +85,6 @@ const Index = () => {
   useEffect(() => {
     fetchMatches();
 
-    // Subscribe to real-time changes
     const subscription = supabase
       .channel("matches_channel")
       .on(
@@ -113,8 +111,7 @@ const Index = () => {
   };
 
   const handleEditMatch = (matchId: string) => {
-    // TODO: Implement edit functionality
-    console.log("Edit match:", matchId);
+    navigate(`/edit-match/${matchId}`);
   };
 
   return (

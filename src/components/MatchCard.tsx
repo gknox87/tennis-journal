@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface MatchCardProps {
   id: string;
@@ -25,6 +26,7 @@ export const MatchCard = ({
   onEdit 
 }: MatchCardProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     try {
@@ -51,12 +53,19 @@ export const MatchCard = ({
     }
   };
 
+  const handleCardClick = () => {
+    navigate(`/match/${id}`);
+  };
+
   return (
-    <Card className="match-card hover:shadow-lg transition-shadow cursor-pointer">
+    <Card 
+      className="match-card hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">{opponent}</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <Badge 
               variant={isWin ? "default" : "destructive"}
               className={isWin ? "bg-green-500 hover:bg-green-600" : ""}
