@@ -52,7 +52,7 @@ export const MatchCard = ({
   };
 
   return (
-    <Card className="match-card">
+    <Card className="match-card hover:shadow-lg transition-shadow cursor-pointer">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">{opponent}</CardTitle>
