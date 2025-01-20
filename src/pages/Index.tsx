@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AddMatchButton } from "@/components/AddMatchButton";
 import { MatchCard } from "@/components/MatchCard";
 import { StatsOverview } from "@/components/StatsOverview";
@@ -5,28 +6,115 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+
+interface Match {
+  id: string;
+  date: string;
+  opponent: string;
+  score: string;
+  is_win: boolean;
+  notes?: string;
+}
 
 const Index = () => {
   const navigate = useNavigate();
-  // Mock data - would be replaced with real data in future iterations
-  const recentMatches = [
-    {
-      date: "2024-02-20",
-      opponent: "John Smith",
-      score: "6-4, 7-5",
-      isWin: true,
-    },
-    {
-      date: "2024-02-18",
-      opponent: "Maria Garcia",
-      score: "3-6, 4-6",
-      isWin: false,
-    },
-  ];
+  const { toast } = useToast();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [stats, setStats] = useState({
+    totalMatches: 0,
+    matchesThisYear: 0,
+    winRate: 0,
+    setsWon: 0,
+    setsLost: 0,
+    tiebreaksWon: 0,
+  });
+
+  const calculateStats = (matches: Match[]) => {
+    const currentYear = new Date().getFullYear();
+    const matchesThisYear = matches.filter(
+      (match) => new Date(match.date).getFullYear() === currentYear
+    );
+    const wins = matches.filter((match) => match.is_win).length;
+
+    // Calculate sets won/lost from score strings (assuming format like "6-4, 7-5")
+    let setsWon = 0;
+    let setsLost = 0;
+    let tiebreaksWon = 0;
+
+    matches.forEach((match) => {
+      const sets = match.score.split(", ");
+      sets.forEach((set) => {
+        const [playerScore, opponentScore] = set.split("-").map(Number);
+        if (playerScore > opponentScore) setsWon++;
+        if (opponentScore > playerScore) setsLost++;
+        if (playerScore === 7 || opponentScore === 7) tiebreaksWon++;
+      });
+    });
+
+    setStats({
+      totalMatches: matches.length,
+      matchesThisYear: matchesThisYear.length,
+      winRate: matches.length ? Math.round((wins / matches.length) * 100) : 0,
+      setsWon,
+      setsLost,
+      tiebreaksWon,
+    });
+  };
+
+  const fetchMatches = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("*")
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+
+      setMatches(data || []);
+      calculateStats(data || []);
+    } catch (error) {
+      console.error("Error fetching matches:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch matches. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchMatches();
+
+    // Subscribe to real-time changes
+    const subscription = supabase
+      .channel("matches_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "matches",
+        },
+        () => {
+          fetchMatches();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
+  };
+
+  const handleEditMatch = (matchId: string) => {
+    // TODO: Implement edit functionality
+    console.log("Edit match:", matchId);
   };
 
   return (
@@ -43,13 +131,25 @@ const Index = () => {
       </div>
 
       <div className="mb-8">
-        <StatsOverview totalMatches={10} winRate={60} />
+        <StatsOverview
+          {...stats}
+          onRefresh={fetchMatches}
+        />
       </div>
 
       <h2 className="text-xl font-semibold mb-4">Recent Matches</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {recentMatches.map((match, index) => (
-          <MatchCard key={index} {...match} />
+        {matches.map((match) => (
+          <MatchCard
+            key={match.id}
+            id={match.id}
+            date={match.date}
+            opponent={match.opponent}
+            score={match.score}
+            isWin={match.is_win}
+            onDelete={fetchMatches}
+            onEdit={() => handleEditMatch(match.id)}
+          />
         ))}
       </div>
     </div>
