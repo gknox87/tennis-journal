@@ -36,7 +36,7 @@ const AddMatch = () => {
   const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
-  const [courtType, setCourtType] = useState<CourtType | "">("");
+  const [courtType, setCourtType] = useState<string>("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -71,7 +71,7 @@ const AddMatch = () => {
 
       const score = formatScore();
 
-      // Get or create opponent with key opponent status
+      // Get or create opponent
       const { data: opponentData, error: opponentError } = await supabase
         .from('opponents')
         .insert({
@@ -185,7 +185,7 @@ const AddMatch = () => {
 
           <div className="space-y-2">
             <Label>Court Type</Label>
-            <Select value={courtType} onValueChange={(value) => setCourtType(value as CourtType)}>
+            <Select value={courtType} onValueChange={setCourtType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select court type" />
               </SelectTrigger>
