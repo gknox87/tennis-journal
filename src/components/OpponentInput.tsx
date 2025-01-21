@@ -49,6 +49,10 @@ export const OpponentInput = ({
     fetchKeyOpponents();
   }, []);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  };
+
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-2">
@@ -57,7 +61,7 @@ export const OpponentInput = ({
           <Input
             type="text"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Enter opponent name"
             className="w-full"
           />
@@ -78,7 +82,7 @@ export const OpponentInput = ({
                 </SelectTrigger>
                 <SelectContent>
                   {keyOpponents.map((opponent) => (
-                    <SelectItem key={opponent.id} value={opponent.name || 'unnamed'}>
+                    <SelectItem key={opponent.id} value={opponent.name}>
                       {opponent.name}
                     </SelectItem>
                   ))}
