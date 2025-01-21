@@ -31,20 +31,31 @@ export const OpponentInput = ({
     const fetchOpponents = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        // First check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError("Please log in to access opponents");
+          return;
+        }
+
+        const { data, error: fetchError } = await supabase
           .from('opponents')
           .select('id, name, is_key_opponent')
+          .eq('user_id', session.user.id)
           .order('name');
         
-        if (error) throw error;
+        if (fetchError) throw fetchError;
         
         if (data) {
           const validOpponents = data.filter(opponent => opponent.name && opponent.name.trim() !== '');
           setOpponents(validOpponents);
+        } else {
+          setOpponents([]);
         }
       } catch (err: any) {
         console.error('Error fetching opponents:', err);
         setError(err.message);
+        setOpponents([]);
       } finally {
         setIsLoading(false);
       }
@@ -93,27 +104,28 @@ export const OpponentInput = ({
               <CommandInput placeholder="Search opponents..." />
               {isLoading ? (
                 <CommandEmpty>Loading...</CommandEmpty>
+              ) : error ? (
+                <CommandEmpty>{error}</CommandEmpty>
+              ) : filteredOpponents.length === 0 ? (
+                <CommandEmpty>No opponent found.</CommandEmpty>
               ) : (
-                <>
-                  <CommandEmpty>No opponent found.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredOpponents.map((opponent) => (
-                      <CommandItem
-                        key={opponent.id}
-                        value={opponent.name}
-                        onSelect={handleSelect}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value === opponent.name ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {opponent.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </>
+                <CommandGroup>
+                  {filteredOpponents.map((opponent) => (
+                    <CommandItem
+                      key={opponent.id}
+                      value={opponent.name}
+                      onSelect={handleSelect}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === opponent.name ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {opponent.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               )}
             </Command>
           </PopoverContent>
