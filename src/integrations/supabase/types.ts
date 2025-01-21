@@ -39,40 +39,43 @@ export type Database = {
           },
         ]
       }
-      matches: {
-        Row: {
-          created_at: string
-          date: string
-          final_set_tiebreak: boolean | null
-          id: string
-          is_win: boolean
-          notes: string | null
-          opponent_id: string | null
-          score: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          date: string
-          final_set_tiebreak?: boolean | null
-          id?: string
-          is_win?: boolean
-          notes?: string | null
-          opponent_id?: string | null
-          score: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          date?: string
-          final_set_tiebreak?: boolean | null
-          id?: string
-          is_win?: boolean
-          notes?: string | null
-          opponent_id?: string | null
-          score?: string
-          user_id?: string | null
-        }
+matches: {
+  Row: {
+    created_at: string
+    date: string
+    final_set_tiebreak: boolean | null
+    id: string
+    is_win: boolean
+    notes: string | null
+    opponent_id: string | null
+    score: string
+    user_id: string | null
+    court_type: string | null
+  }
+  Insert: {
+    created_at?: string
+    date: string
+    final_set_tiebreak?: boolean | null
+    id?: string
+    is_win?: boolean
+    notes?: string | null
+    opponent_id?: string | null
+    score: string
+    user_id?: string | null
+    court_type?: string | null
+  }
+  Update: {
+    created_at?: string
+    date?: string
+    final_set_tiebreak?: boolean | null
+    id?: string
+    is_win?: boolean
+    notes?: string | null
+    opponent_id?: string | null
+    score?: string
+    user_id?: string | null
+    court_type?: string | null
+  }
         Relationships: [
           {
             foreignKeyName: "matches_opponent_id_fkey"
@@ -246,3 +249,4 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
