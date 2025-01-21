@@ -64,7 +64,7 @@ export const OpponentInput = ({
           {keyOpponents.length > 0 && (
             <div className="space-y-2">
               <Label>Or select a key opponent</Label>
-              <Select onValueChange={onChange}>
+              <Select onValueChange={onChange} value={value}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a key opponent" />
                 </SelectTrigger>
