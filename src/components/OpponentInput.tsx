@@ -59,6 +59,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     );
   }
 
+  // Show input field if there's an error or no opponents
   if (error || opponents.length === 0) {
     return (
       <div className="flex flex-col space-y-2">
@@ -97,28 +98,30 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
               onValueChange={onChange}
             />
             <CommandEmpty>
-              No opponents found. Type to add a new one.
+              Type to add a new opponent
             </CommandEmpty>
-            <CommandGroup>
-              {opponents.map((opponent) => (
-                <CommandItem
-                  key={opponent.id}
-                  value={opponent.name}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === opponent.name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {opponent.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {opponents && opponents.length > 0 && (
+              <CommandGroup>
+                {opponents.map((opponent) => (
+                  <CommandItem
+                    key={opponent.id}
+                    value={opponent.name}
+                    onSelect={(currentValue) => {
+                      onChange(currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === opponent.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {opponent.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </Command>
         </PopoverContent>
       </Popover>
