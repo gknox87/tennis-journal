@@ -2,12 +2,16 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client";
 
 interface Opponent {
   id: string;
   name: string;
+  is_key_opponent: boolean;
 }
 
 interface OpponentInputProps {
@@ -23,51 +27,110 @@ export const OpponentInput = ({
   isKeyOpponent = false,
   onKeyOpponentChange
 }: OpponentInputProps) => {
-  const [keyOpponents, setKeyOpponents] = useState<Opponent[]>([]);
+  const [open, setOpen] = useState(false);
+  const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isExistingOpponent, setIsExistingOpponent] = useState(false);
 
   useEffect(() => {
-    const fetchKeyOpponents = async () => {
+    const fetchOpponents = async () => {
       try {
         const { data, error } = await supabase
           .from('opponents')
-          .select('id, name')
-          .eq('is_key_opponent', true)
+          .select('id, name, is_key_opponent')
           .order('name');
         
         if (error) throw error;
         
         if (data) {
-          // Filter out any opponents with empty names
           const validOpponents = data.filter(opponent => opponent.name && opponent.name.trim() !== '');
-          setKeyOpponents(validOpponents);
+          setOpponents(validOpponents);
+          
+          // Check if current value matches an existing opponent
+          const existingOpponent = validOpponents.find(
+            opp => opp.name.toLowerCase() === value.toLowerCase()
+          );
+          setIsExistingOpponent(!!existingOpponent);
+          
+          if (existingOpponent && onKeyOpponentChange) {
+            onKeyOpponentChange(existingOpponent.is_key_opponent || false);
+          }
         }
       } catch (err: any) {
-        console.error('Error fetching key opponents:', err);
+        console.error('Error fetching opponents:', err);
         setError(err.message);
       }
     };
 
-    fetchKeyOpponents();
-  }, []);
+    fetchOpponents();
+  }, [value]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+  const handleSelect = (currentValue: string) => {
+    onChange(currentValue);
+    setOpen(false);
   };
+
+  const filteredOpponents = opponents.filter(opponent =>
+    opponent.name.toLowerCase().includes(value.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-2">
         <Label>Opponent Name</Label>
-        <div className="space-y-4">
-          <Input
-            type="text"
-            value={value}
-            onChange={handleInputChange}
-            placeholder="Enter opponent name"
-            className="w-full"
-          />
-          <div className="flex items-center space-x-2">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <div className="flex w-full items-center">
+              <Input
+                value={value}
+                onChange={(e) => {
+                  onChange(e.target.value);
+                  setOpen(true);
+                }}
+                placeholder="Enter opponent name"
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="ml-2 p-2 hover:bg-accent rounded-md"
+              >
+                <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+              </button>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search opponents..." />
+              <CommandEmpty>No opponent found.</CommandEmpty>
+              <CommandGroup>
+                {filteredOpponents.map((opponent) => (
+                  <CommandItem
+                    key={opponent.id}
+                    value={opponent.name}
+                    onSelect={handleSelect}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === opponent.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {opponent.name}
+                    {opponent.is_key_opponent && (
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        (Key Opponent)
+                      </span>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {!isExistingOpponent && value.trim() !== '' && (
+          <div className="flex items-center space-x-2 mt-2">
             <Switch
               id="key-opponent"
               checked={isKeyOpponent}
@@ -75,30 +138,9 @@ export const OpponentInput = ({
             />
             <Label htmlFor="key-opponent">Add as a key opponent</Label>
           </div>
-          {keyOpponents.length > 0 && (
-            <div className="space-y-2">
-              <Label>Or select a key opponent</Label>
-              <Select onValueChange={onChange} value={value}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a key opponent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {keyOpponents.map((opponent) => (
-                    opponent.name && (
-                      <SelectItem 
-                        key={opponent.id} 
-                        value={opponent.name}
-                      >
-                        {opponent.name}
-                      </SelectItem>
-                    )
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {error && <p className="text-sm text-red-500">{error}</p>}
-        </div>
+        )}
+        
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     </div>
   );
