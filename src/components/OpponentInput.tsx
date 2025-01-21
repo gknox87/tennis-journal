@@ -21,7 +21,6 @@ interface OpponentInputProps {
 export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
   const [open, setOpen] = useState(false);
   const [opponents, setOpponents] = useState<Opponent[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,13 +29,13 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
       try {
         setLoading(true);
         setError(null);
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
           .from("opponents")
           .select("*")
           .order("name");
           
-        if (error) {
-          throw error;
+        if (fetchError) {
+          throw fetchError;
         }
         
         setOpponents(data || []);
@@ -51,6 +50,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     fetchOpponents();
   }, []);
 
+  // Show loading state
   if (loading) {
     return (
       <div className="flex flex-col space-y-2">
@@ -60,21 +60,8 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     );
   }
 
+  // Show error state with fallback to input
   if (error) {
-    return (
-      <div className="flex flex-col space-y-2">
-        <Label htmlFor="opponent">Opponent Name</Label>
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter opponent name"
-        />
-      </div>
-    );
-  }
-
-  // If no opponents exist, show a simple input field
-  if (!opponents || opponents.length === 0) {
     return (
       <div className="flex flex-col space-y-2">
         <Label htmlFor="opponent">Opponent Name</Label>
@@ -88,7 +75,22 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     );
   }
 
-  // Show dropdown with existing opponents if there are any
+  // If no opponents exist, show a simple input field
+  if (opponents.length === 0) {
+    return (
+      <div className="flex flex-col space-y-2">
+        <Label htmlFor="opponent">Opponent Name</Label>
+        <Input
+          id="opponent"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter opponent name"
+        />
+      </div>
+    );
+  }
+
+  // Show dropdown with existing opponents
   return (
     <div className="flex flex-col space-y-2">
       <Label htmlFor="opponent">Opponent Name</Label>
@@ -108,35 +110,32 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
           <Command>
             <CommandInput 
               placeholder="Search opponent..." 
-              value={searchTerm}
-              onValueChange={(value) => {
-                setSearchTerm(value);
-                onChange(value);
-              }}
+              value={value}
+              onValueChange={onChange}
             />
-            <CommandEmpty>
-              Continue typing to add a new opponent
-            </CommandEmpty>
-            <CommandGroup>
-              {opponents.map((opponent) => (
-                <CommandItem
-                  key={opponent.id}
-                  value={opponent.name}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === opponent.name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {opponent.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            <CommandEmpty>No opponents found</CommandEmpty>
+            {opponents.length > 0 && (
+              <CommandGroup>
+                {opponents.map((opponent) => (
+                  <CommandItem
+                    key={opponent.id}
+                    value={opponent.name}
+                    onSelect={(currentValue) => {
+                      onChange(currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === opponent.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {opponent.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </Command>
         </PopoverContent>
       </Popover>
