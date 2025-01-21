@@ -9,13 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TagInput } from "@/components/TagInput";
 
 interface SetScore {
   playerScore: string;
   opponentScore: string;
+}
+
+interface Tag {
+  id: string;
+  name: string;
 }
 
 const AddMatch = () => {
@@ -26,6 +32,7 @@ const AddMatch = () => {
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [sets, setSets] = useState<SetScore[]>([
     { playerScore: "", opponentScore: "" },
     { playerScore: "", opponentScore: "" },
@@ -61,21 +68,46 @@ const AddMatch = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
-        throw new Error("Not authenticated");
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add matches.",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
       }
 
       const score = formatScore();
 
-      const { error } = await supabase.from('matches').insert({
-        date: date.toISOString().split('T')[0],
-        opponent,
-        score,
-        is_win: isWin,
-        notes: notes || null,
-        user_id: session.user.id
-      });
+      // Insert match
+      const { data: matchData, error: matchError } = await supabase
+        .from('matches')
+        .insert({
+          date: date.toISOString().split('T')[0],
+          opponent,
+          score,
+          is_win: isWin,
+          notes: notes || null,
+          user_id: session.user.id
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (matchError) throw matchError;
+
+      // Insert tags if any exist
+      if (selectedTags.length > 0 && matchData) {
+        const { error: tagError } = await supabase
+          .from("match_tags")
+          .insert(
+            selectedTags.map((tag) => ({
+              match_id: matchData.id,
+              tag_id: tag.id,
+            }))
+          );
+
+        if (tagError) throw tagError;
+      }
 
       toast({
         title: "Match recorded",
@@ -96,7 +128,17 @@ const AddMatch = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Record Match</h1>
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="mr-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-3xl font-bold">Record Match</h1>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -193,6 +235,14 @@ const AddMatch = () => {
               onCheckedChange={setIsWin}
             />
             <Label htmlFor="isWin">Won the match</Label>
+          </div>
+
+          <div>
+            <Label>Tags</Label>
+            <TagInput
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
           </div>
 
           <div>
