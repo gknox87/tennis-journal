@@ -11,8 +11,8 @@ import OpponentDetail from "@/pages/OpponentDetail";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/matches" element={<Matches />} />
@@ -23,8 +23,8 @@ function App() {
           <Route path="/opponent/:id" element={<OpponentDetail />} />
         </Routes>
         <Toaster />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
