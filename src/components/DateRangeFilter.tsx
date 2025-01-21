@@ -11,34 +11,35 @@ interface DateRangeFilterProps {
 
 export const DateRangeFilter = ({ currentRange, onRangeChange }: DateRangeFilterProps) => {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex flex-wrap gap-2 mb-6">
       <Button
         variant={currentRange === "week" ? "default" : "outline"}
         onClick={() => onRangeChange("week")}
-        className="flex items-center gap-2"
+        className="flex-1 sm:flex-none items-center gap-2 text-sm"
       >
-        <Calendar className="h-4 w-4" />
+        <Calendar className="h-4 w-4 hidden sm:inline" />
         Last Week
       </Button>
       <Button
         variant={currentRange === "month" ? "default" : "outline"}
         onClick={() => onRangeChange("month")}
-        className="flex items-center gap-2"
+        className="flex-1 sm:flex-none items-center gap-2 text-sm"
       >
-        <Calendar className="h-4 w-4" />
+        <Calendar className="h-4 w-4 hidden sm:inline" />
         Last Month
       </Button>
       <Button
         variant={currentRange === "year" ? "default" : "outline"}
         onClick={() => onRangeChange("year")}
-        className="flex items-center gap-2"
+        className="flex-1 sm:flex-none items-center gap-2 text-sm"
       >
-        <Calendar className="h-4 w-4" />
+        <Calendar className="h-4 w-4 hidden sm:inline" />
         Last Year
       </Button>
       <Button
         variant={currentRange === "all" ? "default" : "outline"}
         onClick={() => onRangeChange("all")}
+        className="flex-1 sm:flex-none text-sm"
       >
         All Time
       </Button>

@@ -198,19 +198,19 @@ const Index = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Tennis Match Journal</h1>
-        <div className="flex gap-4">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Tennis Match Journal</h1>
+        <div className="flex gap-2 sm:gap-4">
           <AddMatchButton />
-          <Button variant="outline" onClick={handleLogout}>
+          <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <StatsOverview {...stats} onRefresh={fetchMatches} />
       </div>
 
