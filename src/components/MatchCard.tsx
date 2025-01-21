@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Tag as TagIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -17,12 +17,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
 interface MatchCardProps {
   id: string;
   date: string;
   opponent: string;
   score: string;
   isWin: boolean;
+  finalSetTiebreak?: boolean;
+  tags?: Tag[];
   onDelete: () => void;
   onEdit: () => void;
 }
@@ -33,13 +40,16 @@ export const MatchCard = ({
   opponent, 
   score, 
   isWin,
+  finalSetTiebreak,
+  tags = [],
   onDelete,
   onEdit 
 }: MatchCardProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       const { error } = await supabase
         .from('matches')
@@ -95,7 +105,7 @@ export const MatchCard = ({
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent onClick={e => e.stopPropagation()}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Match</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -114,6 +124,21 @@ export const MatchCard = ({
       <CardContent>
         <p className="text-sm text-muted-foreground">{date}</p>
         <p className="mt-2 text-lg font-semibold">{score}</p>
+        {finalSetTiebreak && (
+          <Badge variant="secondary" className="mt-2">
+            Final Set Tiebreak
+          </Badge>
+        )}
+        {tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <Badge key={tag.id} variant="outline" className="flex items-center gap-1">
+                <TagIcon className="h-3 w-3" />
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

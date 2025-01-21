@@ -8,13 +8,20 @@ import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
 interface Match {
   id: string;
   date: string;
   opponent: string;
   score: string;
   is_win: boolean;
+  final_set_tiebreak?: boolean;
   notes?: string;
+  tags?: Tag[];
 }
 
 const Index = () => {
@@ -63,15 +70,38 @@ const Index = () => {
 
   const fetchMatches = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch matches with their associated tags
+      const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select("*")
         .order("date", { ascending: false });
 
-      if (error) throw error;
+      if (matchesError) throw matchesError;
 
-      setMatches(data || []);
-      calculateStats(data || []);
+      // Fetch all tags for these matches
+      const { data: tagsData, error: tagsError } = await supabase
+        .from("match_tags")
+        .select(`
+          match_id,
+          tags:tag_id(id, name)
+        `)
+        .in(
+          "match_id",
+          matchesData.map((match) => match.id)
+        );
+
+      if (tagsError) throw tagsError;
+
+      // Combine matches with their tags
+      const matchesWithTags = matchesData.map((match) => ({
+        ...match,
+        tags: tagsData
+          ?.filter((tag) => tag.match_id === match.id)
+          .map((tag) => tag.tags),
+      }));
+
+      setMatches(matchesWithTags);
+      calculateStats(matchesWithTags);
     } catch (error) {
       console.error("Error fetching matches:", error);
       toast({
@@ -144,6 +174,8 @@ const Index = () => {
             opponent={match.opponent}
             score={match.score}
             isWin={match.is_win}
+            finalSetTiebreak={match.final_set_tiebreak}
+            tags={match.tags}
             onDelete={fetchMatches}
             onEdit={() => handleEditMatch(match.id)}
           />

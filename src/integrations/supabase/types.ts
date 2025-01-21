@@ -9,10 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      match_tags: {
+        Row: {
+          match_id: string
+          tag_id: string
+        }
+        Insert: {
+          match_id: string
+          tag_id: string
+        }
+        Update: {
+          match_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_tags_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           created_at: string
           date: string
+          final_set_tiebreak: boolean | null
           id: string
           is_win: boolean
           notes: string | null
@@ -23,6 +54,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date: string
+          final_set_tiebreak?: boolean | null
           id?: string
           is_win?: boolean
           notes?: string | null
@@ -33,11 +65,33 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          final_set_tiebreak?: boolean | null
           id?: string
           is_win?: boolean
           notes?: string | null
           opponent?: string
           score?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
           user_id?: string | null
         }
         Relationships: []
