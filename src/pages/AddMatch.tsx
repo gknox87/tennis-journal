@@ -32,6 +32,7 @@ const AddMatch = () => {
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
+  const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [sets, setSets] = useState<SetScore[]>([
     { playerScore: "", opponentScore: "" },
@@ -88,7 +89,8 @@ const AddMatch = () => {
           score,
           is_win: isWin,
           notes: notes || null,
-          user_id: session.user.id
+          user_id: session.user.id,
+          final_set_tiebreak: finalSetTiebreak
         })
         .select()
         .single();
@@ -185,13 +187,25 @@ const AddMatch = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <Label>Score</Label>
-              <div className="flex items-center space-x-2">
-                <Label htmlFor="best-of-five">Best of 5</Label>
-                <Switch
-                  id="best-of-five"
-                  checked={isBestOfFive}
-                  onCheckedChange={toggleBestOfFive}
-                />
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="best-of-five">Best of 5</Label>
+                  <Switch
+                    id="best-of-five"
+                    checked={isBestOfFive}
+                    onCheckedChange={toggleBestOfFive}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="final-set-tiebreak">
+                    {isBestOfFive ? "5th" : "3rd"} Set Tiebreak
+                  </Label>
+                  <Switch
+                    id="final-set-tiebreak"
+                    checked={finalSetTiebreak}
+                    onCheckedChange={setFinalSetTiebreak}
+                  />
+                </div>
               </div>
             </div>
             
