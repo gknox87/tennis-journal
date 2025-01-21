@@ -21,6 +21,7 @@ export const OpponentInput = ({
   const [suggestions, setSuggestions] = useState<Opponent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const fetchOpponents = async () => {
@@ -38,6 +39,7 @@ export const OpponentInput = ({
           .from('opponents')
           .select('id, name, is_key_opponent')
           .eq('user_id', session.user.id)
+          .eq('is_key_opponent', true) // Only fetch key opponents
           .order('name');
         
         if (fetchError) {
@@ -67,11 +69,26 @@ export const OpponentInput = ({
     fetchOpponents();
   }, []);
 
-  const filteredSuggestions = value 
+  const filteredSuggestions = value && showSuggestions
     ? suggestions.filter(opponent =>
         opponent.name.toLowerCase().includes(value.toLowerCase())
       )
     : [];
+
+  const handleInputChange = (newValue: string) => {
+    onChange(newValue);
+    setShowSuggestions(true);
+  };
+
+  const handleSelectOpponent = (opponentName: string) => {
+    onChange(opponentName);
+    setShowSuggestions(false);
+  };
+
+  const handleInputBlur = () => {
+    // Small delay to allow click events on suggestions to fire
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -80,17 +97,19 @@ export const OpponentInput = ({
         <div className="relative">
           <Input
             value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={handleInputBlur}
             placeholder="Enter opponent name"
             className="w-full"
           />
-          {value && filteredSuggestions.length > 0 && (
+          {showSuggestions && filteredSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
               {filteredSuggestions.map((opponent) => (
                 <div
                   key={opponent.id}
                   className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => onChange(opponent.name)}
+                  onClick={() => handleSelectOpponent(opponent.name)}
                 >
                   {opponent.name}
                 </div>
