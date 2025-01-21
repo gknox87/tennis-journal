@@ -5,6 +5,7 @@ import AddMatch from "@/pages/AddMatch";
 import Login from "@/pages/Login";
 import MatchDetail from "@/pages/MatchDetail";
 import EditMatch from "@/pages/EditMatch";
+import ViewAllMatches from "@/pages/ViewAllMatches";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,6 +49,10 @@ function App() {
         <Route
           path="/edit-match/:id"
           element={isAuthenticated ? <EditMatch /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/matches"
+          element={isAuthenticated ? <ViewAllMatches /> : <Navigate to="/login" />}
         />
         <Route
           path="/login"
