@@ -38,7 +38,9 @@ export const OpponentInput = ({
         if (error) throw error;
         
         if (data) {
-          setKeyOpponents(data);
+          // Filter out any opponents with empty names
+          const validOpponents = data.filter(opponent => opponent.name && opponent.name.trim() !== '');
+          setKeyOpponents(validOpponents);
         }
       } catch (err: any) {
         console.error('Error fetching key opponents:', err);
@@ -82,9 +84,14 @@ export const OpponentInput = ({
                 </SelectTrigger>
                 <SelectContent>
                   {keyOpponents.map((opponent) => (
-                    <SelectItem key={opponent.id} value={opponent.name}>
-                      {opponent.name}
-                    </SelectItem>
+                    opponent.name && (
+                      <SelectItem 
+                        key={opponent.id} 
+                        value={opponent.name}
+                      >
+                        {opponent.name}
+                      </SelectItem>
+                    )
                   ))}
                 </SelectContent>
               </Select>
