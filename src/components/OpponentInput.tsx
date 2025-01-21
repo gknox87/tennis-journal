@@ -53,19 +53,17 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
   if (loading) {
     return (
       <div className="flex flex-col space-y-2">
-        <Label htmlFor="opponent">Opponent Name</Label>
+        <Label>Opponent Name</Label>
         <Input disabled placeholder="Loading opponents..." />
       </div>
     );
   }
 
-  // Show input field if there's an error or no opponents
-  if (error || opponents.length === 0) {
+  if (error || !opponents || opponents.length === 0) {
     return (
       <div className="flex flex-col space-y-2">
-        <Label htmlFor="opponent">Opponent Name</Label>
+        <Label>Opponent Name</Label>
         <Input
-          id="opponent"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter opponent name"
@@ -77,7 +75,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
 
   return (
     <div className="flex flex-col space-y-2">
-      <Label htmlFor="opponent">Opponent Name</Label>
+      <Label>Opponent Name</Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -97,31 +95,27 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
               value={value}
               onValueChange={onChange}
             />
-            <CommandEmpty>
-              Type to add a new opponent
-            </CommandEmpty>
-            {opponents && opponents.length > 0 && (
-              <CommandGroup>
-                {opponents.map((opponent) => (
-                  <CommandItem
-                    key={opponent.id}
-                    value={opponent.name}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === opponent.name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {opponent.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+            <CommandEmpty>Type to add a new opponent</CommandEmpty>
+            <CommandGroup>
+              {opponents.map((opponent) => (
+                <CommandItem
+                  key={opponent.id}
+                  value={opponent.name}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === opponent.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {opponent.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
           </Command>
         </PopoverContent>
       </Popover>
