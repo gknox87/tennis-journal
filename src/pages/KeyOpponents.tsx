@@ -6,7 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Opponent {
   id: string;
@@ -22,51 +30,94 @@ const KeyOpponents = () => {
   const navigate = useNavigate();
   const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [newOpponentName, setNewOpponentName] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchOpponents = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to view key opponents.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const { data: opponentsData, error } = await supabase
-          .from("opponents")
-          .select(`
-            id,
-            name,
-            matches (
-              is_win,
-              date,
-              score
-            )
-          `)
-          .eq("is_key_opponent", true)
-          .eq("user_id", session.user.id)
-          .order('name');
-
-        if (error) throw error;
-
-        setOpponents(opponentsData || []);
-      } catch (error) {
-        console.error("Error fetching opponents:", error);
+  const fetchOpponents = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
-          title: "Error",
-          description: "Failed to fetch key opponents.",
+          title: "Authentication required",
+          description: "Please log in to view key opponents.",
           variant: "destructive",
         });
+        return;
       }
-    };
 
+      const { data: opponentsData, error } = await supabase
+        .from("opponents")
+        .select(`
+          id,
+          name,
+          matches (
+            is_win,
+            date,
+            score
+          )
+        `)
+        .eq("is_key_opponent", true)
+        .eq("user_id", session.user.id)
+        .order('name');
+
+      if (error) throw error;
+
+      setOpponents(opponentsData || []);
+    } catch (error) {
+      console.error("Error fetching opponents:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch key opponents.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddOpponent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add key opponents.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("opponents")
+        .insert({
+          name: newOpponentName,
+          user_id: session.user.id,
+          is_key_opponent: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Key opponent added successfully.",
+      });
+
+      setNewOpponentName("");
+      setIsDialogOpen(false);
+      fetchOpponents();
+    } catch (error) {
+      console.error("Error adding opponent:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add key opponent.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchOpponents();
-  }, [toast]);
+  }, []);
 
   const getOpponentStats = (matches: Opponent["matches"]) => {
     const wins = matches.filter(match => match.is_win).length;
@@ -101,14 +152,42 @@ const KeyOpponents = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">Key Opponents</h1>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search opponents..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search opponents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Key Opponent
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Key Opponent</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddOpponent} className="space-y-4">
+              <div>
+                <Label htmlFor="opponentName">Opponent Name</Label>
+                <Input
+                  id="opponentName"
+                  value={newOpponentName}
+                  onChange={(e) => setNewOpponentName(e.target.value)}
+                  placeholder="Enter opponent name"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">Add Opponent</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
