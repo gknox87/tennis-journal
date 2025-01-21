@@ -23,19 +23,31 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
   const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOpponents = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("opponents")
-        .select("*")
-        .order("name");
-      if (data) {
-        setOpponents(data);
+      try {
+        setLoading(true);
+        setError(null);
+        const { data, error } = await supabase
+          .from("opponents")
+          .select("*")
+          .order("name");
+          
+        if (error) {
+          throw error;
+        }
+        
+        setOpponents(data || []);
+      } catch (err) {
+        console.error("Error fetching opponents:", err);
+        setError("Failed to load opponents");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchOpponents();
   }, []);
 
@@ -48,8 +60,21 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col space-y-2">
+        <Label htmlFor="opponent">Opponent Name</Label>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter opponent name"
+        />
+      </div>
+    );
+  }
+
   // If no opponents exist, show a simple input field
-  if (opponents.length === 0) {
+  if (!opponents || opponents.length === 0) {
     return (
       <div className="flex flex-col space-y-2">
         <Label htmlFor="opponent">Opponent Name</Label>
@@ -75,9 +100,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {value
-              ? opponents.find((opponent) => opponent.name === value)?.name ?? value
-              : "Select or enter opponent name..."}
+            {value || "Select or enter opponent name..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -95,28 +118,24 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
               Continue typing to add a new opponent
             </CommandEmpty>
             <CommandGroup>
-              {opponents
-                .filter(opponent => 
-                  opponent.name.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((opponent) => (
-                  <CommandItem
-                    key={opponent.id}
-                    value={opponent.name}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === opponent.name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {opponent.name}
-                  </CommandItem>
-                ))}
+              {opponents.map((opponent) => (
+                <CommandItem
+                  key={opponent.id}
+                  value={opponent.name}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === opponent.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {opponent.name}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </Command>
         </PopoverContent>
