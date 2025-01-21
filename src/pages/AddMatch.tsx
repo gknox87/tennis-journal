@@ -33,7 +33,6 @@ const AddMatch = () => {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [opponent, setOpponent] = useState("");
-  const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
   const [courtType, setCourtType] = useState<string>("");
@@ -71,7 +70,7 @@ const AddMatch = () => {
 
       const score = formatScore();
 
-      // First check if opponent exists
+      // Get or create opponent with is_key_opponent always true for new opponents
       const { data: existingOpponent, error: searchError } = await supabase
         .from('opponents')
         .select('id')
@@ -82,22 +81,15 @@ const AddMatch = () => {
       let opponentId;
 
       if (existingOpponent) {
-        // Update existing opponent's key opponent status if needed
-        if (isKeyOpponent) {
-          await supabase
-            .from('opponents')
-            .update({ is_key_opponent: true })
-            .eq('id', existingOpponent.id);
-        }
         opponentId = existingOpponent.id;
       } else {
-        // Create new opponent
+        // Create new opponent as key opponent
         const { data: newOpponent, error: createError } = await supabase
           .from('opponents')
           .insert({
             name: opponent,
             user_id: session.user.id,
-            is_key_opponent: isKeyOpponent
+            is_key_opponent: true
           })
           .select('id')
           .single();
@@ -201,8 +193,6 @@ const AddMatch = () => {
           <OpponentInput
             value={opponent}
             onChange={setOpponent}
-            isKeyOpponent={isKeyOpponent}
-            onKeyOpponentChange={setIsKeyOpponent}
           />
 
           <div className="space-y-2">
