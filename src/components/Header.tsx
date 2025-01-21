@@ -18,9 +18,9 @@ export const Header = () => {
       <div className="flex gap-2 sm:gap-4">
         <AddMatchButton />
         <Button 
-          variant="outline"
+          variant="secondary"
           onClick={() => navigate("/key-opponents")}
-          className="bg-accent hover:bg-accent/90 text-white"
+          className="text-white hover:bg-secondary/90"
         >
           <Users className="mr-2 h-4 w-4" />
           Key Opponents

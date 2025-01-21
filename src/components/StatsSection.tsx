@@ -39,8 +39,10 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
   // Calculate tiebreaks won (assuming sets with 7-6 score are tiebreaks won)
   const tiebreaksWon = matches.reduce((acc, match) => {
     const sets = match.score.split(" ");
-    const tiebreaksWonInMatch = sets.filter((set) => set === "7-6").length;
-    return acc + tiebreaksWonInMatch;
+    return acc + sets.filter(set => {
+      const [playerScore, opponentScore] = set.split("-").map(Number);
+      return playerScore === 7 && opponentScore === 6;
+    }).length;
   }, 0);
 
   return (
