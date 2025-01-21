@@ -27,14 +27,18 @@ export const MatchList = ({ matches, onMatchDelete }: MatchListProps) => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <h2 className="text-lg sm:text-xl font-semibold">Recent Matches</h2>
-        <Button variant="link" onClick={() => navigate("/matches")} className="text-sm">
+        <Button 
+          variant="link" 
+          onClick={() => navigate("/matches")} 
+          className="text-sm px-0 sm:px-4"
+        >
           View All
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {matches.map((match) => (
           <MatchCard
             key={match.id}

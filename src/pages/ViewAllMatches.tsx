@@ -83,19 +83,25 @@ const ViewAllMatches = () => {
   }, [matches, searchTerm, sortOption, dateRange]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <Button variant="outline" onClick={() => navigate("/")} className="flex items-center gap-2">
+    <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/")} 
+          className="w-full sm:w-auto flex items-center gap-2"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Button>
-        <h1 className="text-3xl font-bold">All Matches</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">All Matches</h1>
       </div>
 
       <div className="space-y-6">
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         
-        <SortControls currentSort={sortOption} onSortChange={setSortOption} />
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <SortControls currentSort={sortOption} onSortChange={setSortOption} />
+        </div>
         
         <DateRangeFilter currentRange={dateRange} onRangeChange={setDateRange} />
 
