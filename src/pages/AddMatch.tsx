@@ -10,9 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, ArrowLeft } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TagInput } from "@/components/TagInput";
+import { ScoreInput } from "@/components/ScoreInput";
+import { MatchSettings } from "@/components/MatchSettings";
 
 interface SetScore {
   playerScore: string;
@@ -39,21 +38,6 @@ const AddMatch = () => {
     { playerScore: "", opponentScore: "" },
     { playerScore: "", opponentScore: "" },
   ]);
-
-  const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
-    const newSets = [...sets];
-    newSets[index] = { ...newSets[index], [field]: value };
-    setSets(newSets);
-  };
-
-  const toggleBestOfFive = () => {
-    setIsBestOfFive(!isBestOfFive);
-    if (!isBestOfFive) {
-      setSets([...sets, { playerScore: "", opponentScore: "" }, { playerScore: "", opponentScore: "" }]);
-    } else {
-      setSets(sets.slice(0, 3));
-    }
-  };
 
   const formatScore = () => {
     return sets
@@ -184,91 +168,23 @@ const AddMatch = () => {
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <Label>Score</Label>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="best-of-five">Best of 5</Label>
-                  <Switch
-                    id="best-of-five"
-                    checked={isBestOfFive}
-                    onCheckedChange={toggleBestOfFive}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="final-set-tiebreak">
-                    {isBestOfFive ? "5th" : "3rd"} Set Tiebreak
-                  </Label>
-                  <Switch
-                    id="final-set-tiebreak"
-                    checked={finalSetTiebreak}
-                    onCheckedChange={setFinalSetTiebreak}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <Tabs defaultValue="sets" className="w-full">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="sets">Sets</TabsTrigger>
-              </TabsList>
-              <TabsContent value="sets">
-                <div className="space-y-4">
-                  {sets.map((set, index) => (
-                    <div key={index} className="flex gap-4">
-                      <div className="flex-1">
-                        <Label>Set {index + 1} - Your Score</Label>
-                        <Input
-                          type="number"
-                          value={set.playerScore}
-                          onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <Label>Opponent Score</Label>
-                        <Input
-                          type="number"
-                          value={set.opponentScore}
-                          onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <ScoreInput
+            sets={sets}
+            onSetsChange={setSets}
+            isBestOfFive={isBestOfFive}
+            onBestOfFiveChange={setIsBestOfFive}
+            finalSetTiebreak={finalSetTiebreak}
+            onFinalSetTiebreakChange={setFinalSetTiebreak}
+          />
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isWin"
-              checked={isWin}
-              onCheckedChange={setIsWin}
-            />
-            <Label htmlFor="isWin">Won the match</Label>
-          </div>
-
-          <div>
-            <Label>Tags</Label>
-            <TagInput
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Match Notes</Label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="What went well? What could be improved?"
-              className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <MatchSettings
+            isWin={isWin}
+            onIsWinChange={setIsWin}
+            notes={notes}
+            onNotesChange={setNotes}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+          />
         </div>
 
         <div className="flex space-x-4">
