@@ -63,16 +63,17 @@ export const OpponentInput = ({
     };
 
     fetchOpponents();
-  }, [value]);
+  }, [value, onKeyOpponentChange]);
 
   const handleSelect = (currentValue: string) => {
     onChange(currentValue);
     setOpen(false);
   };
 
-  const filteredOpponents = opponents.filter(opponent =>
+  // Ensure we always have a valid array to work with
+  const filteredOpponents = opponents ? opponents.filter(opponent =>
     opponent.name.toLowerCase().includes(value.toLowerCase())
-  ) || [];
+  ) : [];
 
   return (
     <div className="flex flex-col space-y-4">
