@@ -12,6 +12,9 @@ interface OpponentDetails {
   id: string;
   name: string;
   matches: Match[];
+  is_key_opponent: boolean;
+  created_at: string;
+  user_id: string;
 }
 
 const OpponentDetail = () => {
@@ -24,17 +27,27 @@ const OpponentDetail = () => {
   useEffect(() => {
     const fetchOpponentDetails = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: opponentData, error: opponentError } = await supabase
           .from('opponents')
           .select(`
             *,
-            matches (*)
+            matches:matches(*)
           `)
           .eq('id', id)
           .single();
 
-        if (error) throw error;
-        setOpponent(data);
+        if (opponentError) throw opponentError;
+
+        // Transform the data to match the OpponentDetails type
+        const transformedData: OpponentDetails = {
+          ...opponentData,
+          matches: opponentData.matches.map((match: any) => ({
+            ...match,
+            opponent_name: opponentData.name // Add the required opponent_name field
+          }))
+        };
+
+        setOpponent(transformedData);
       } catch (error: any) {
         toast({
           title: "Error",
