@@ -50,7 +50,6 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     fetchOpponents();
   }, []);
 
-  // Show loading state
   if (loading) {
     return (
       <div className="flex flex-col space-y-2">
@@ -60,8 +59,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
     );
   }
 
-  // Show error state with fallback to input
-  if (error) {
+  if (error || opponents.length === 0) {
     return (
       <div className="flex flex-col space-y-2">
         <Label htmlFor="opponent">Opponent Name</Label>
@@ -71,26 +69,11 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter opponent name"
         />
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
   }
 
-  // If no opponents exist, show a simple input field
-  if (opponents.length === 0) {
-    return (
-      <div className="flex flex-col space-y-2">
-        <Label htmlFor="opponent">Opponent Name</Label>
-        <Input
-          id="opponent"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter opponent name"
-        />
-      </div>
-    );
-  }
-
-  // Show dropdown with existing opponents
   return (
     <div className="flex flex-col space-y-2">
       <Label htmlFor="opponent">Opponent Name</Label>
@@ -109,33 +92,33 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
         <PopoverContent className="w-full p-0">
           <Command>
             <CommandInput 
-              placeholder="Search opponent..." 
+              placeholder="Search opponent..."
               value={value}
               onValueChange={onChange}
             />
-            <CommandEmpty>No opponents found</CommandEmpty>
-            {opponents.length > 0 && (
-              <CommandGroup>
-                {opponents.map((opponent) => (
-                  <CommandItem
-                    key={opponent.id}
-                    value={opponent.name}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === opponent.name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {opponent.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+            <CommandEmpty>
+              No opponents found. Type to add a new one.
+            </CommandEmpty>
+            <CommandGroup>
+              {opponents.map((opponent) => (
+                <CommandItem
+                  key={opponent.id}
+                  value={opponent.name}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === opponent.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {opponent.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
           </Command>
         </PopoverContent>
       </Popover>
