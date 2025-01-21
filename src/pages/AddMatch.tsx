@@ -36,7 +36,7 @@ const AddMatch = () => {
   const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
-  const [courtType, setCourtType] = useState<CourtType | ''>('');
+  const [courtType, setCourtType] = useState<string>("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -71,25 +71,47 @@ const AddMatch = () => {
 
       const score = formatScore();
 
-      // Get or create opponent
-      const { data: opponentData, error: opponentError } = await supabase
+      // First check if opponent exists
+      const { data: existingOpponent, error: searchError } = await supabase
         .from('opponents')
-        .insert({
-          name: opponent,
-          user_id: session.user.id,
-          is_key_opponent: isKeyOpponent
-        })
         .select('id')
+        .eq('name', opponent)
+        .eq('user_id', session.user.id)
         .single();
 
-      if (opponentError) throw opponentError;
+      let opponentId;
 
-      // Insert match with court type
+      if (existingOpponent) {
+        // Update existing opponent's key opponent status if needed
+        if (isKeyOpponent) {
+          await supabase
+            .from('opponents')
+            .update({ is_key_opponent: true })
+            .eq('id', existingOpponent.id);
+        }
+        opponentId = existingOpponent.id;
+      } else {
+        // Create new opponent
+        const { data: newOpponent, error: createError } = await supabase
+          .from('opponents')
+          .insert({
+            name: opponent,
+            user_id: session.user.id,
+            is_key_opponent: isKeyOpponent
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        opponentId = newOpponent.id;
+      }
+
+      // Insert match
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
           date: date.toISOString().split('T')[0],
-          opponent_id: opponentData.id,
+          opponent_id: opponentId,
           score,
           is_win: isWin,
           notes: notes || null,
@@ -185,7 +207,7 @@ const AddMatch = () => {
 
           <div className="space-y-2">
             <Label>Court Type</Label>
-            <Select value={courtType} onValueChange={(value: CourtType) => setCourtType(value)}>
+            <Select value={courtType} onValueChange={setCourtType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select court type" />
               </SelectTrigger>
