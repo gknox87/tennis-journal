@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { AddMatchButton } from "@/components/AddMatchButton";
-import { MatchCard } from "@/components/MatchCard";
 import { StatsOverview } from "@/components/StatsOverview";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Tag as TagIcon, Search } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { TagCloud } from "@/components/TagCloud";
+import { SearchBar } from "@/components/SearchBar";
+import { MatchList } from "@/components/MatchList";
 
 interface Tag {
   id: string;
@@ -112,21 +112,21 @@ const Index = () => {
         `)
         .in(
           "match_id",
-          matchesData.map((match) => match.id)
+          matchesData?.map((match) => match.id) || []
         );
 
       if (tagsError) throw tagsError;
 
-      const matchesWithTags = matchesData.map((match) => ({
+      const matchesWithTags = matchesData?.map((match) => ({
         ...match,
         tags: tagsData
           ?.filter((tag) => tag.match_id === match.id)
           .map((tag) => tag.tags),
       }));
 
-      setMatches(matchesWithTags);
-      setFilteredMatches(matchesWithTags);
-      calculateStats(matchesWithTags);
+      setMatches(matchesWithTags || []);
+      setFilteredMatches(matchesWithTags || []);
+      calculateStats(matchesWithTags || []);
     } catch (error) {
       console.error("Error fetching matches:", error);
       toast({
@@ -164,7 +164,6 @@ const Index = () => {
   useEffect(() => {
     let filtered = matches;
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (match) =>
@@ -174,7 +173,6 @@ const Index = () => {
       );
     }
 
-    // Apply tag filters
     if (selectedTags.length > 0) {
       filtered = filtered.filter((match) =>
         selectedTags.every((tagId) =>
@@ -189,10 +187,6 @@ const Index = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
-  };
-
-  const handleEditMatch = (matchId: string) => {
-    navigate(`/edit-match/${matchId}`);
   };
 
   const toggleTag = (tagId: string) => {
@@ -220,64 +214,21 @@ const Index = () => {
         <StatsOverview {...stats} onRefresh={fetchMatches} />
       </div>
 
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2 mb-4">
-          {availableTags.map((tag) => (
-            <Badge
-              key={tag.id}
-              variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-              className={`cursor-pointer flex items-center gap-1 ${
-                selectedTags.includes(tag.id) ? "bg-primary" : ""
-              }`}
-              onClick={() => toggleTag(tag.id)}
-            >
-              <TagIcon className="h-3 w-3" />
-              {tag.name}
-            </Badge>
-          ))}
-        </div>
-      </div>
+      <TagCloud
+        availableTags={availableTags}
+        selectedTags={selectedTags}
+        onTagToggle={toggleTag}
+      />
 
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search matches..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
+      <SearchBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Recent Matches</h2>
-        <Button variant="link" onClick={() => navigate("/matches")}>
-          View All Matches
-        </Button>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredMatches.map((match) => (
-          <MatchCard
-            key={match.id}
-            id={match.id}
-            date={match.date}
-            opponent={match.opponent}
-            score={match.score}
-            isWin={match.is_win}
-            finalSetTiebreak={match.final_set_tiebreak}
-            tags={match.tags}
-            onDelete={fetchMatches}
-            onEdit={() => handleEditMatch(match.id)}
-          />
-        ))}
-        {filteredMatches.length === 0 && (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
-            No matches found. Try adjusting your search or filters.
-          </div>
-        )}
-      </div>
+      <MatchList
+        matches={filteredMatches}
+        onMatchDelete={fetchMatches}
+      />
     </div>
   );
 };
