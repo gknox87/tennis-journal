@@ -10,16 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TagInput } from "@/components/TagInput";
 import { Switch } from "@/components/ui/switch";
-
-interface Match {
-  id: string;
-  date: string;
-  opponent: string;
-  score: string;
-  is_win: boolean;
-  notes?: string;
-  final_set_tiebreak?: boolean;
-}
+import { Match } from "@/types/match";
 
 interface Tag {
   id: string;
@@ -63,12 +54,17 @@ const EditMatch = () => {
         const isAuthenticated = await checkAuth();
         if (!isAuthenticated) return;
 
-        // Fetch match data with error handling
+        // Fetch match data with opponent name
         const { data: matchData, error: matchError } = await supabase
           .from("matches")
-          .select("*")
+          .select(`
+            *,
+            opponents (
+              name
+            )
+          `)
           .eq("id", id)
-          .maybeSingle();
+          .single();
 
         if (matchError) {
           console.error("Error fetching match:", matchError);
@@ -85,7 +81,22 @@ const EditMatch = () => {
           return;
         }
 
-        // Fetch associated tags with error handling
+        const matchWithOpponent: Match = {
+          ...matchData,
+          opponent_name: matchData.opponents?.name || "Unknown Opponent"
+        };
+
+        setMatch(matchWithOpponent);
+        setFormData({
+          date: matchData.date,
+          opponent: matchData.opponents?.name || "",
+          score: matchData.score,
+          is_win: matchData.is_win,
+          notes: matchData.notes || "",
+          final_set_tiebreak: matchData.final_set_tiebreak || false,
+        });
+
+        // Fetch associated tags
         const { data: tagData, error: tagError } = await supabase
           .from("match_tags")
           .select(`
@@ -102,15 +113,6 @@ const EditMatch = () => {
           throw tagError;
         }
 
-        setMatch(matchData);
-        setFormData({
-          date: matchData.date,
-          opponent: matchData.opponent,
-          score: matchData.score,
-          is_win: matchData.is_win,
-          notes: matchData.notes || "",
-          final_set_tiebreak: matchData.final_set_tiebreak || false,
-        });
         setSelectedTags(tagData.map(t => t.tags));
       } catch (error) {
         console.error("Error in fetchMatch:", error);

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Match } from "@/types/match";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,15 +19,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface Match {
-  id: string;
-  date: string;
-  opponent: string;
-  score: string;
-  is_win: boolean;
-  notes?: string;
-}
-
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,12 +30,24 @@ const MatchDetail = () => {
       try {
         const { data, error } = await supabase
           .from("matches")
-          .select("*")
+          .select(`
+            *,
+            opponents (
+              name
+            )
+          `)
           .eq("id", id)
-          .maybeSingle();
+          .single();
 
         if (error) throw error;
-        setMatch(data);
+
+        if (data) {
+          const matchWithOpponent: Match = {
+            ...data,
+            opponent_name: data.opponents?.name || "Unknown Opponent"
+          };
+          setMatch(matchWithOpponent);
+        }
       } catch (error) {
         console.error("Error fetching match:", error);
         toast({
@@ -56,7 +60,7 @@ const MatchDetail = () => {
     };
 
     fetchMatch();
-  }, [id]);
+  }, [id, navigate, toast]);
 
   const handleDelete = async () => {
     try {
@@ -171,7 +175,7 @@ const MatchDetail = () => {
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
-              {match.opponent}
+              {match.opponent_name}
             </CardTitle>
             <Badge 
               variant={match.is_win ? "default" : "destructive"}
