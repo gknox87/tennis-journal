@@ -47,7 +47,7 @@ export type Database = {
           id: string
           is_win: boolean
           notes: string | null
-          opponent: string
+          opponent_id: string | null
           score: string
           user_id: string | null
         }
@@ -58,7 +58,7 @@ export type Database = {
           id?: string
           is_win?: boolean
           notes?: string | null
-          opponent: string
+          opponent_id?: string | null
           score: string
           user_id?: string | null
         }
@@ -69,8 +69,37 @@ export type Database = {
           id?: string
           is_win?: boolean
           notes?: string | null
-          opponent?: string
+          opponent_id?: string | null
           score?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "opponents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opponents: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
           user_id?: string | null
         }
         Relationships: []
@@ -101,7 +130,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_or_create_opponent: {
+        Args: {
+          p_name: string
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

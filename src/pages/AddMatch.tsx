@@ -13,6 +13,7 @@ import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
+import { OpponentInput } from "@/components/OpponentInput";
 
 interface SetScore {
   playerScore: string;
@@ -65,12 +66,21 @@ const AddMatch = () => {
 
       const score = formatScore();
 
+      // Get or create opponent
+      const { data: opponentData, error: opponentError } = await supabase
+        .rpc('get_or_create_opponent', {
+          p_name: opponent,
+          p_user_id: session.user.id
+        });
+
+      if (opponentError) throw opponentError;
+
       // Insert match
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
           date: date.toISOString().split('T')[0],
-          opponent,
+          opponent_id: opponentData,
           score,
           is_win: isWin,
           notes: notes || null,
@@ -156,16 +166,10 @@ const AddMatch = () => {
             </Popover>
           </div>
 
-          <div>
-            <Label htmlFor="opponent">Opponent Name</Label>
-            <Input
-              id="opponent"
-              value={opponent}
-              onChange={(e) => setOpponent(e.target.value)}
-              placeholder="Enter opponent's name"
-              required
-            />
-          </div>
+          <OpponentInput
+            value={opponent}
+            onChange={setOpponent}
+          />
 
           <ScoreInput
             sets={sets}
