@@ -72,7 +72,7 @@ export const OpponentInput = ({
 
   const filteredOpponents = opponents.filter(opponent =>
     opponent.name.toLowerCase().includes(value.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="flex flex-col space-y-4">
