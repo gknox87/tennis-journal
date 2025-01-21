@@ -5,11 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface Opponent {
   id: string;
   name: string;
   created_at: string;
+  matches: {
+    id: string;
+    date: string;
+    is_win: boolean;
+  }[];
 }
 
 const KeyOpponents = () => {
@@ -23,7 +29,14 @@ const KeyOpponents = () => {
       try {
         const { data, error } = await supabase
           .from('opponents')
-          .select('*')
+          .select(`
+            *,
+            matches (
+              id,
+              date,
+              is_win
+            )
+          `)
           .eq('is_key_opponent', true)
           .order('name');
 
@@ -42,6 +55,21 @@ const KeyOpponents = () => {
 
     fetchKeyOpponents();
   }, [toast]);
+
+  const getOpponentStats = (matches: Opponent['matches']) => {
+    const totalMatches = matches.length;
+    const wins = matches.filter(match => match.is_win).length;
+    const lastMatch = matches.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+
+    return {
+      totalMatches,
+      wins,
+      losses: totalMatches - wins,
+      lastMatch: lastMatch ? new Date(lastMatch.date).toLocaleDateString() : 'No matches'
+    };
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -65,18 +93,39 @@ const KeyOpponents = () => {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {opponents.map((opponent) => (
-            <Card key={opponent.id}>
-              <CardHeader>
-                <CardTitle>{opponent.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Added on {new Date(opponent.created_at).toLocaleDateString()}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {opponents.map((opponent) => {
+            const stats = getOpponentStats(opponent.matches);
+            return (
+              <Card 
+                key={opponent.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/opponent/${opponent.id}`)}
+              >
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    <span>{opponent.name}</span>
+                    <Badge variant="outline">
+                      {stats.totalMatches} {stats.totalMatches === 1 ? 'match' : 'matches'}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Record:</span>
+                      <span className="font-medium">
+                        {stats.wins}W - {stats.losses}L
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Last Match:</span>
+                      <span className="font-medium">{stats.lastMatch}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
