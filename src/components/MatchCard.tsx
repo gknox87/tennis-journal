@@ -48,9 +48,7 @@ export const MatchCard = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -102,17 +100,12 @@ export const MatchCard = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Check if the click is from the delete dialog or its children
-    if (
-      target.closest('[role="dialog"]') ||
-      target.closest('button[aria-haspopup="dialog"]') ||
-      target.closest('button[data-state="open"]')
-    ) {
-      return;
-    }
-    
-    // Check if click is from edit button
-    if (target.closest('button[aria-label="edit"]')) {
+    const isDeleteDialog = target.closest('[role="dialog"]');
+    const isDeleteButton = target.closest('button[data-delete-button="true"]');
+    const isEditButton = target.closest('button[data-edit-button="true"]');
+
+    if (isDeleteDialog || isDeleteButton || isEditButton) {
+      e.stopPropagation();
       return;
     }
 
@@ -137,9 +130,8 @@ export const MatchCard = ({
             <Button 
               variant="ghost" 
               size="icon"
-              aria-label="edit"
+              data-edit-button="true"
               onClick={(e) => {
-                e.preventDefault();
                 e.stopPropagation();
                 onEdit();
               }}
@@ -151,12 +143,13 @@ export const MatchCard = ({
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  aria-haspopup="dialog"
+                  data-delete-button="true"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Match</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -164,10 +157,13 @@ export const MatchCard = ({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>
+                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
                     Cancel
                   </AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
+                  <AlertDialogAction onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
