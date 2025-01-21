@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,22 +31,6 @@ const AddMatch = () => {
     { playerScore: "", opponentScore: "" },
     { playerScore: "", opponentScore: "" },
   ]);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to add matches",
-          variant: "destructive",
-        });
-        navigate("/login");
-      }
-    };
-    
-    checkAuth();
-  }, [navigate, toast]);
 
   const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
     const newSets = [...sets];
@@ -146,7 +129,7 @@ const AddMatch = () => {
                   {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={date}
@@ -211,10 +194,10 @@ const AddMatch = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox
+            <Switch
               id="isWin"
               checked={isWin}
-              onCheckedChange={(checked) => setIsWin(checked as boolean)}
+              onCheckedChange={setIsWin}
             />
             <Label htmlFor="isWin">Won the match</Label>
           </div>
