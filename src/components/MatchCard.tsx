@@ -49,7 +49,8 @@ export const MatchCard = ({
   const navigate = useNavigate();
 
   const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -129,6 +130,7 @@ export const MatchCard = ({
               variant="ghost" 
               size="icon" 
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onEdit();
               }}
@@ -140,12 +142,20 @@ export const MatchCard = ({
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent onClick={e => e.stopPropagation()}>
+              <AlertDialogContent 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Match</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -153,7 +163,12 @@ export const MatchCard = ({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={e => e.stopPropagation()}>
+                  <AlertDialogCancel 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete}>
