@@ -53,6 +53,14 @@ export const OpponentInput = ({
             placeholder="Enter opponent name"
             className="w-full"
           />
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="key-opponent"
+              checked={isKeyOpponent}
+              onCheckedChange={onKeyOpponentChange}
+            />
+            <Label htmlFor="key-opponent">Add as a key opponent</Label>
+          </div>
           {keyOpponents.length > 0 && (
             <div className="space-y-2">
               <Label>Or select a key opponent</Label>
@@ -71,14 +79,6 @@ export const OpponentInput = ({
             </div>
           )}
         </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="key-opponent"
-          checked={isKeyOpponent}
-          onCheckedChange={onKeyOpponentChange}
-        />
-        <Label htmlFor="key-opponent">Key Opponent</Label>
       </div>
     </div>
   );
