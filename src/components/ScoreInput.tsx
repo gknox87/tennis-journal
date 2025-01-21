@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 
 interface SetScore {
@@ -15,8 +14,6 @@ interface ScoreInputProps {
   onSetsChange: (sets: SetScore[]) => void;
   isBestOfFive: boolean;
   onBestOfFiveChange: (value: boolean) => void;
-  finalSetTiebreak: boolean;
-  onFinalSetTiebreakChange: (value: boolean) => void;
 }
 
 export const ScoreInput = ({
