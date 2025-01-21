@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { TagInput } from "@/components/TagInput";
 import { Switch } from "@/components/ui/switch";
 
@@ -114,6 +114,7 @@ const EditMatch = () => {
           description: "Failed to load match details. Please try again.",
           variant: "destructive",
         });
+        navigate('/');
       } finally {
         setIsLoading(false);
       }
@@ -125,6 +126,18 @@ const EditMatch = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to update matches.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
       // Update match
       const { error: matchError } = await supabase
         .from("matches")
@@ -235,14 +248,12 @@ const EditMatch = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+              <Switch
                 id="is_win"
                 checked={formData.is_win}
-                onChange={(e) =>
-                  setFormData({ ...formData, is_win: e.target.checked })
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_win: checked })
                 }
-                className="h-4 w-4"
               />
               <Label htmlFor="is_win">Win</Label>
             </div>

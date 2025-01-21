@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Tag as TagIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
@@ -48,8 +48,19 @@ export const MatchCard = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to delete matches.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // First delete associated tags
       const { error: tagError } = await supabase
         .from('match_tags')
@@ -145,12 +156,7 @@ export const MatchCard = ({
                   <AlertDialogCancel onClick={e => e.stopPropagation()}>
                     Cancel
                   </AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete();
-                    }}
-                  >
+                  <AlertDialogAction onClick={handleDelete}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
