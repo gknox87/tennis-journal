@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddMatchButton } from "@/components/AddMatchButton";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,14 @@ export const Header = () => {
       <h1 className="text-2xl sm:text-3xl font-bold">Tennis Match Journal</h1>
       <div className="flex gap-2 sm:gap-4">
         <AddMatchButton />
+        <Button 
+          variant="outline"
+          onClick={() => navigate("/key-opponents")}
+          className="bg-accent hover:bg-accent/90 text-white"
+        >
+          <Users className="mr-2 h-4 w-4" />
+          Key Opponents
+        </Button>
         <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
           <LogOut className="mr-2 h-4 w-4" />
           Logout
