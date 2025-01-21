@@ -40,6 +40,7 @@ const MatchDetail = () => {
           description: "Failed to fetch match details.",
           variant: "destructive",
         });
+        navigate('/');
       }
     };
 
@@ -49,7 +50,7 @@ const MatchDetail = () => {
   if (!match) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
@@ -61,7 +62,7 @@ const MatchDetail = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" onClick={() => navigate('/')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>

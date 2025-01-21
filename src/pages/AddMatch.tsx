@@ -7,18 +7,32 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+
+interface SetScore {
+  playerScore: string;
+  opponentScore: string;
+}
 
 const AddMatch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date>(new Date());
   const [opponent, setOpponent] = useState("");
-  const [score, setScore] = useState("");
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBestOfFive, setIsBestOfFive] = useState(false);
+  const [sets, setSets] = useState<SetScore[]>([
+    { playerScore: "", opponentScore: "" },
+    { playerScore: "", opponentScore: "" },
+    { playerScore: "", opponentScore: "" },
+  ]);
 
-  // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -35,6 +49,28 @@ const AddMatch = () => {
     checkAuth();
   }, [navigate, toast]);
 
+  const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
+    const newSets = [...sets];
+    newSets[index] = { ...newSets[index], [field]: value };
+    setSets(newSets);
+  };
+
+  const toggleBestOfFive = () => {
+    setIsBestOfFive(!isBestOfFive);
+    if (!isBestOfFive) {
+      setSets([...sets, { playerScore: "", opponentScore: "" }, { playerScore: "", opponentScore: "" }]);
+    } else {
+      setSets(sets.slice(0, 3));
+    }
+  };
+
+  const formatScore = () => {
+    return sets
+      .filter(set => set.playerScore !== "" && set.opponentScore !== "")
+      .map(set => `${set.playerScore}-${set.opponentScore}`)
+      .join(", ");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -50,12 +86,13 @@ const AddMatch = () => {
     setIsSubmitting(true);
     
     try {
-      // Get current user
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
         throw new Error("Not authenticated");
       }
+
+      const score = formatScore();
 
       const { error } = await supabase.from('matches').insert({
         date: date.toISOString().split('T')[0],
@@ -63,7 +100,7 @@ const AddMatch = () => {
         score,
         is_win: isWin,
         notes: notes || null,
-        user_id: session.user.id // Set the user_id to the current user's ID
+        user_id: session.user.id
       });
 
       if (error) throw error;
@@ -96,12 +133,28 @@ const AddMatch = () => {
         <div className="space-y-4">
           <div>
             <Label>Date</Label>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(date) => date && setDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
@@ -116,14 +169,45 @@ const AddMatch = () => {
           </div>
 
           <div>
-            <Label htmlFor="score">Score</Label>
-            <Input
-              id="score"
-              value={score}
-              onChange={(e) => setScore(e.target.value)}
-              placeholder="e.g. 6-4, 7-5"
-              required
-            />
+            <div className="flex items-center justify-between mb-4">
+              <Label>Score</Label>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="best-of-five">Best of 5</Label>
+                <Switch
+                  id="best-of-five"
+                  checked={isBestOfFive}
+                  onCheckedChange={toggleBestOfFive}
+                />
+              </div>
+            </div>
+            <div className="space-y-4">
+              {sets.map((set, index) => (
+                <div key={index} className="flex gap-4">
+                  <div className="flex-1">
+                    <Label>Set {index + 1} - Your Score</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="7"
+                      value={set.playerScore}
+                      onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label>Opponent Score</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="7"
+                      value={set.opponentScore}
+                      onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
