@@ -17,6 +17,12 @@ const Index = () => {
 
   const fetchTags = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        console.log("No session found, skipping tag fetch");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("tags")
         .select("*")
@@ -38,6 +44,12 @@ const Index = () => {
 
   const fetchMatches = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        console.log("No session found, skipping match fetch");
+        return;
+      }
+
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
