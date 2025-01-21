@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search, Plus } from "lucide-react";
+import { ArrowLeft, Search, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 
 interface Opponent {
@@ -32,6 +42,7 @@ const KeyOpponents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newOpponentName, setNewOpponentName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteOpponentId, setDeleteOpponentId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchOpponents = async () => {
@@ -69,6 +80,34 @@ const KeyOpponents = () => {
       toast({
         title: "Error",
         description: "Failed to fetch key opponents.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteOpponent = async () => {
+    if (!deleteOpponentId) return;
+
+    try {
+      const { error } = await supabase
+        .from("opponents")
+        .delete()
+        .eq("id", deleteOpponentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Key opponent deleted successfully.",
+      });
+
+      setDeleteOpponentId(null);
+      fetchOpponents();
+    } catch (error) {
+      console.error("Error deleting opponent:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete key opponent.",
         variant: "destructive",
       });
     }
@@ -196,7 +235,17 @@ const KeyOpponents = () => {
           return (
             <Card key={opponent.id} className="w-full">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">{opponent.name}</h2>
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-xl font-semibold">{opponent.name}</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteOpponentId(opponent.id)}
+                    className="text-destructive hover:text-destructive/90"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <Badge variant="default" className="bg-green-500">
@@ -229,6 +278,23 @@ const KeyOpponents = () => {
           );
         })}
       </div>
+
+      <AlertDialog open={!!deleteOpponentId} onOpenChange={(open) => !open && setDeleteOpponentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this opponent and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteOpponent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
