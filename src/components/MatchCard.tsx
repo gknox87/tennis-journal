@@ -25,7 +25,7 @@ interface Tag {
 interface MatchCardProps {
   id: string;
   date: string;
-  opponent: string;
+  opponent_name?: string;
   score: string;
   isWin: boolean;
   finalSetTiebreak?: boolean;
@@ -37,7 +37,7 @@ interface MatchCardProps {
 export const MatchCard = ({ 
   id, 
   date, 
-  opponent, 
+  opponent_name = "Unknown Opponent", 
   score, 
   isWin,
   finalSetTiebreak,
@@ -119,7 +119,7 @@ export const MatchCard = ({
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium">{opponent}</CardTitle>
+          <CardTitle className="text-lg font-medium">{opponent_name}</CardTitle>
           <div className="flex items-center gap-2">
             <Badge 
               variant={isWin ? "default" : "destructive"}

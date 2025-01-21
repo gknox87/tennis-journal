@@ -1,17 +1,7 @@
 import { MatchCard } from "@/components/MatchCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
-interface Match {
-  id: string;
-  date: string;
-  opponent: string;
-  score: string;
-  is_win: boolean;
-  final_set_tiebreak?: boolean;
-  notes?: string;
-  tags?: { id: string; name: string; }[];
-}
+import { Match } from "@/types/match";
 
 interface MatchListProps {
   matches: Match[];
@@ -44,7 +34,7 @@ export const MatchList = ({ matches, onMatchDelete }: MatchListProps) => {
             key={match.id}
             id={match.id}
             date={match.date}
-            opponent={match.opponent}
+            opponent_name={match.opponent_name}
             score={match.score}
             isWin={match.is_win}
             finalSetTiebreak={match.final_set_tiebreak}

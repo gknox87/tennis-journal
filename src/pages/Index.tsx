@@ -5,22 +5,7 @@ import { MatchList } from "@/components/MatchList";
 import { Header } from "@/components/Header";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
-
-interface Tag {
-  id: string;
-  name: string;
-}
-
-interface Match {
-  id: string;
-  date: string;
-  opponent: string;
-  score: string;
-  is_win: boolean;
-  final_set_tiebreak?: boolean;
-  notes?: string;
-  tags?: Tag[];
-}
+import { Match } from "@/types/match";
 
 const Index = () => {
   const { toast } = useToast();
@@ -28,7 +13,7 @@ const Index = () => {
   const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
 
   const fetchTags = async () => {
     try {
@@ -55,33 +40,28 @@ const Index = () => {
     try {
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
-        .select("*")
+        .select(`
+          *,
+          opponents (
+            name
+          ),
+          tags!match_tags (
+            id,
+            name
+          )
+        `)
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
 
-      const { data: tagsData, error: tagsError } = await supabase
-        .from("match_tags")
-        .select(`
-          match_id,
-          tags:tag_id(id, name)
-        `)
-        .in(
-          "match_id",
-          matchesData?.map((match) => match.id) || []
-        );
-
-      if (tagsError) throw tagsError;
-
-      const matchesWithTags = matchesData?.map((match) => ({
+      const processedMatches: Match[] = matchesData?.map(match => ({
         ...match,
-        tags: tagsData
-          ?.filter((tag) => tag.match_id === match.id)
-          .map((tag) => tag.tags),
-      }));
+        opponent_name: match.opponents?.name,
+        tags: match.tags
+      })) || [];
 
-      setMatches(matchesWithTags || []);
-      setFilteredMatches(matchesWithTags || []);
+      setMatches(processedMatches);
+      setFilteredMatches(processedMatches);
     } catch (error) {
       console.error("Error fetching matches:", error);
       toast({
@@ -122,7 +102,7 @@ const Index = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (match) =>
-          match.opponent.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          match.opponent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.score.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.notes?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -150,7 +130,7 @@ const Index = () => {
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <Header />
-      <StatsSection matches={matches} onRefresh={fetchMatches} />
+      <StatsSection matches={matches} />
       <SearchSection
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
