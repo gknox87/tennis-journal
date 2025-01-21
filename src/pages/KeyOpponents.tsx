@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Search } from "lucide-react";
 
 interface Opponent {
   id: string;
@@ -15,7 +19,9 @@ interface Opponent {
 }
 
 const KeyOpponents = () => {
+  const navigate = useNavigate();
   const [opponents, setOpponents] = useState<Opponent[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,7 +49,8 @@ const KeyOpponents = () => {
             )
           `)
           .eq("is_key_opponent", true)
-          .eq("user_id", session.user.id);
+          .eq("user_id", session.user.id)
+          .order('name');
 
         if (error) throw error;
 
@@ -76,11 +83,36 @@ const KeyOpponents = () => {
     };
   };
 
+  const filteredOpponents = opponents.filter(opponent =>
+    opponent.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Key Opponents</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/")} 
+          className="w-full sm:w-auto flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">Key Opponents</h1>
+      </div>
+
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search opponents..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {opponents.map((opponent) => {
+        {filteredOpponents.map((opponent) => {
           const stats = getOpponentStats(opponent.matches);
           return (
             <Card key={opponent.id} className="w-full">
