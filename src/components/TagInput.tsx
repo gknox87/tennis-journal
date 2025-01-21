@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tag as TagIcon, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 
 interface Tag {
   id: string;
@@ -12,118 +10,91 @@ interface Tag {
 }
 
 interface TagInputProps {
-  matchId: string;
   selectedTags: Tag[];
   onTagsChange: (tags: Tag[]) => void;
 }
 
-export const TagInput = ({ matchId, selectedTags, onTagsChange }: TagInputProps) => {
-  const [newTag, setNewTag] = useState("");
-  const { toast } = useToast();
+export const TagInput = ({ selectedTags, onTagsChange }: TagInputProps) => {
+  const [input, setInput] = useState("");
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
-  const handleAddTag = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTag.trim()) return;
+  useEffect(() => {
+    fetchTags();
+  }, []);
 
-    try {
-      // First, try to create the tag if it doesn't exist
-      const { data: existingTag } = await supabase
-        .from("tags")
-        .select("*")
-        .eq("name", newTag.trim())
-        .single();
-
-      let tagId;
-      if (!existingTag) {
-        const { data: newTagData, error: createError } = await supabase
-          .from("tags")
-          .insert({ name: newTag.trim() })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        tagId = newTagData.id;
-      } else {
-        tagId = existingTag.id;
-      }
-
-      // Add the tag to the match
-      const { error: linkError } = await supabase
-        .from("match_tags")
-        .insert({ match_id: matchId, tag_id: tagId });
-
-      if (linkError) throw linkError;
-
-      // Update the UI
-      onTagsChange([...selectedTags, { id: tagId, name: newTag.trim() }]);
-      setNewTag("");
-    } catch (error) {
-      console.error("Error adding tag:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add tag. Please try again.",
-        variant: "destructive",
-      });
+  const fetchTags = async () => {
+    const { data } = await supabase
+      .from("tags")
+      .select("*")
+      .order("name");
+    if (data) {
+      setAvailableTags(data);
     }
   };
 
-  const handleRemoveTag = async (tagId: string) => {
-    try {
-      const { error } = await supabase
-        .from("match_tags")
-        .delete()
-        .eq("match_id", matchId)
-        .eq("tag_id", tagId);
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && input.trim()) {
+      e.preventDefault();
+      
+      // Check if tag already exists
+      let tag = availableTags.find(
+        (t) => t.name.toLowerCase() === input.trim().toLowerCase()
+      );
 
-      if (error) throw error;
+      if (!tag) {
+        // Create new tag
+        const { data } = await supabase
+          .from("tags")
+          .insert({ name: input.trim() })
+          .select()
+          .single();
+        
+        if (data) {
+          tag = data;
+          setAvailableTags([...availableTags, data]);
+        }
+      }
 
-      onTagsChange(selectedTags.filter(tag => tag.id !== tagId));
-    } catch (error) {
-      console.error("Error removing tag:", error);
-      toast({
-        title: "Error",
-        description: "Failed to remove tag. Please try again.",
-        variant: "destructive",
-      });
+      if (tag && !selectedTags.some((t) => t.id === tag!.id)) {
+        onTagsChange([...selectedTags, tag]);
+      }
+      
+      setInput("");
     }
+  };
+
+  const removeTag = (tagToRemove: Tag) => {
+    onTagsChange(selectedTags.filter((tag) => tag.id !== tagToRemove.id));
   };
 
   return (
     <div className="space-y-2">
-      <form onSubmit={handleAddTag} className="flex gap-2">
-        <div className="relative flex-1">
-          <TagIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Add a tag..."
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Button type="submit" variant="outline" size="sm">
-          Add
-        </Button>
-      </form>
       <div className="flex flex-wrap gap-2">
         {selectedTags.map((tag) => (
           <Badge
             key={tag.id}
-            variant="secondary"
-            className="flex items-center gap-1"
+            variant="outline"
+            className="flex items-center gap-1 pr-1"
           >
+            <TagIcon className="h-3 w-3" />
             {tag.name}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-transparent"
-              onClick={() => handleRemoveTag(tag.id)}
+            <button
+              onClick={() => removeTag(tag)}
+              className="ml-1 rounded-full hover:bg-muted p-0.5"
             >
               <X className="h-3 w-3" />
-            </Button>
+            </button>
           </Badge>
         ))}
       </div>
+      <Input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type a tag and press Enter"
+        className="mt-2"
+      />
     </div>
   );
 };
