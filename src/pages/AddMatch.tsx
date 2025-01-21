@@ -172,8 +172,6 @@ const AddMatch = () => {
             onSetsChange={setSets}
             isBestOfFive={isBestOfFive}
             onBestOfFiveChange={setIsBestOfFive}
-            finalSetTiebreak={finalSetTiebreak}
-            onFinalSetTiebreakChange={setFinalSetTiebreak}
           />
 
           <MatchSettings
