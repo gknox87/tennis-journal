@@ -48,15 +48,29 @@ export const MatchCard = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = async () => {
     try {
-      const { error } = await supabase
+      // First delete associated tags
+      const { error: tagError } = await supabase
+        .from('match_tags')
+        .delete()
+        .eq('match_id', id);
+
+      if (tagError) {
+        console.error('Error deleting match tags:', tagError);
+        throw new Error('Failed to delete match tags');
+      }
+
+      // Then delete the match
+      const { error: matchError } = await supabase
         .from('matches')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (matchError) {
+        console.error('Error deleting match:', matchError);
+        throw new Error('Failed to delete match');
+      }
 
       toast({
         title: "Match deleted",
@@ -65,7 +79,7 @@ export const MatchCard = ({
 
       onDelete();
     } catch (error) {
-      console.error('Error deleting match:', error);
+      console.error('Error in delete operation:', error);
       toast({
         title: "Error",
         description: "Failed to delete the match. Please try again.",
@@ -74,7 +88,14 @@ export const MatchCard = ({
     }
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons or alert dialog
+    if (
+      e.target instanceof HTMLElement && 
+      (e.target.closest('button') || e.target.closest('[role="dialog"]'))
+    ) {
+      return;
+    }
     navigate(`/match/${id}`);
   };
 
@@ -86,22 +107,30 @@ export const MatchCard = ({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">{opponent}</CardTitle>
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
             <Badge 
               variant={isWin ? "default" : "destructive"}
               className={isWin ? "bg-green-500 hover:bg-green-600" : ""}
             >
               {isWin ? "Win" : "Loss"}
             </Badge>
-            <Button variant="ghost" size="icon" onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+            >
               <Edit className="h-4 w-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -113,8 +142,17 @@ export const MatchCard = ({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  <AlertDialogCancel onClick={e => e.stopPropagation()}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
+                  >
+                    Delete
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
