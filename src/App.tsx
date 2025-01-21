@@ -6,6 +6,7 @@ import Login from "@/pages/Login";
 import MatchDetail from "@/pages/MatchDetail";
 import EditMatch from "@/pages/EditMatch";
 import ViewAllMatches from "@/pages/ViewAllMatches";
+import KeyOpponents from "@/pages/KeyOpponents";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,6 +54,10 @@ function App() {
         <Route
           path="/matches"
           element={isAuthenticated ? <ViewAllMatches /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/key-opponents"
+          element={isAuthenticated ? <KeyOpponents /> : <Navigate to="/login" />}
         />
         <Route
           path="/login"

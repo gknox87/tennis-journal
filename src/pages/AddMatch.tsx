@@ -30,6 +30,7 @@ const AddMatch = () => {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [opponent, setOpponent] = useState("");
+  const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
@@ -66,12 +67,16 @@ const AddMatch = () => {
 
       const score = formatScore();
 
-      // Get or create opponent
+      // Get or create opponent with key opponent status
       const { data: opponentData, error: opponentError } = await supabase
-        .rpc('get_or_create_opponent', {
-          p_name: opponent,
-          p_user_id: session.user.id
-        });
+        .from('opponents')
+        .insert({
+          name: opponent,
+          user_id: session.user.id,
+          is_key_opponent: isKeyOpponent
+        })
+        .select('id')
+        .single();
 
       if (opponentError) throw opponentError;
 
@@ -80,7 +85,7 @@ const AddMatch = () => {
         .from('matches')
         .insert({
           date: date.toISOString().split('T')[0],
-          opponent_id: opponentData,
+          opponent_id: opponentData.id,
           score,
           is_win: isWin,
           notes: notes || null,
@@ -169,6 +174,8 @@ const AddMatch = () => {
           <OpponentInput
             value={opponent}
             onChange={setOpponent}
+            isKeyOpponent={isKeyOpponent}
+            onKeyOpponentChange={setIsKeyOpponent}
           />
 
           <ScoreInput
