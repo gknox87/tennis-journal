@@ -31,9 +31,11 @@ export const OpponentInput = ({
   const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isExistingOpponent, setIsExistingOpponent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchOpponents = async () => {
+      setIsLoading(true);
       try {
         const { data, error } = await supabase
           .from('opponents')
@@ -59,6 +61,8 @@ export const OpponentInput = ({
       } catch (err: any) {
         console.error('Error fetching opponents:', err);
         setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -71,9 +75,9 @@ export const OpponentInput = ({
   };
 
   // Ensure we always have a valid array to work with
-  const filteredOpponents = opponents ? opponents.filter(opponent =>
+  const filteredOpponents = opponents.filter(opponent =>
     opponent.name.toLowerCase().includes(value.toLowerCase())
-  ) : [];
+  );
 
   return (
     <div className="flex flex-col space-y-4">
@@ -103,29 +107,35 @@ export const OpponentInput = ({
           <PopoverContent className="w-full p-0" align="start">
             <Command>
               <CommandInput placeholder="Search opponents..." />
-              <CommandEmpty>No opponent found.</CommandEmpty>
-              <CommandGroup>
-                {filteredOpponents.map((opponent) => (
-                  <CommandItem
-                    key={opponent.id}
-                    value={opponent.name}
-                    onSelect={handleSelect}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === opponent.name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {opponent.name}
-                    {opponent.is_key_opponent && (
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        (Key Opponent)
-                      </span>
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              {isLoading ? (
+                <CommandEmpty>Loading...</CommandEmpty>
+              ) : (
+                <>
+                  <CommandEmpty>No opponent found.</CommandEmpty>
+                  <CommandGroup>
+                    {filteredOpponents.map((opponent) => (
+                      <CommandItem
+                        key={opponent.id}
+                        value={opponent.name}
+                        onSelect={handleSelect}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === opponent.name ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {opponent.name}
+                        {opponent.is_key_opponent && (
+                          <span className="ml-2 text-sm text-muted-foreground">
+                            (Key Opponent)
+                          </span>
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </>
+              )}
             </Command>
           </PopoverContent>
         </Popover>
