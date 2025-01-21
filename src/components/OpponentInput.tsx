@@ -5,13 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Opponent {
-  id: string;
-  name: string;
-}
 
 interface OpponentInputProps {
   value: string;
@@ -20,58 +15,20 @@ interface OpponentInputProps {
 
 export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
   const [open, setOpen] = useState(false);
-  const [opponents, setOpponents] = useState<Opponent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [opponents, setOpponents] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const fetchOpponents = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const { data, error: fetchError } = await supabase
-          .from("opponents")
-          .select("*")
-          .order("name");
-          
-        if (fetchError) {
-          throw fetchError;
-        }
-        
-        setOpponents(data || []);
-      } catch (err) {
-        console.error("Error fetching opponents:", err);
-        setError("Failed to load opponents");
-      } finally {
-        setLoading(false);
-      }
+      const { data } = await supabase
+        .from("opponents")
+        .select("id, name")
+        .order("name");
+      
+      setOpponents(data || []);
     };
 
     fetchOpponents();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col space-y-2">
-        <Label>Opponent Name</Label>
-        <Input disabled placeholder="Loading opponents..." />
-      </div>
-    );
-  }
-
-  if (error || !opponents || opponents.length === 0) {
-    return (
-      <div className="flex flex-col space-y-2">
-        <Label>Opponent Name</Label>
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter opponent name"
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col space-y-2">
@@ -85,7 +42,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
             className="w-full justify-between"
           >
             {value || "Select or enter opponent name..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <Check className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
@@ -95,7 +52,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
               value={value}
               onValueChange={onChange}
             />
-            <CommandEmpty>Type to add a new opponent</CommandEmpty>
+            <CommandEmpty>Enter new opponent name</CommandEmpty>
             <CommandGroup>
               {opponents.map((opponent) => (
                 <CommandItem
@@ -106,12 +63,6 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === opponent.name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
                   {opponent.name}
                 </CommandItem>
               ))}
