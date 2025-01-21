@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { TagInput } from "@/components/TagInput";
+import { Switch } from "@/components/ui/switch";
 
 interface Match {
   id: string;
@@ -16,6 +18,12 @@ interface Match {
   score: string;
   is_win: boolean;
   notes?: string;
+  final_set_tiebreak?: boolean;
+}
+
+interface Tag {
+  id: string;
+  name: string;
 }
 
 const EditMatch = () => {
@@ -23,56 +31,129 @@ const EditMatch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [match, setMatch] = useState<Match | null>(null);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     date: "",
     opponent: "",
     score: "",
     is_win: false,
     notes: "",
+    final_set_tiebreak: false,
   });
 
   useEffect(() => {
     const fetchMatch = async () => {
       try {
-        const { data, error } = await supabase
+        setIsLoading(true);
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to edit matches.",
+            variant: "destructive",
+          });
+          navigate('/login');
+          return;
+        }
+
+        // Fetch match data
+        const { data: matchData, error: matchError } = await supabase
           .from("matches")
           .select("*")
           .eq("id", id)
           .maybeSingle();
 
-        if (error) throw error;
-        if (data) {
-          setMatch(data);
-          setFormData({
-            date: data.date,
-            opponent: data.opponent,
-            score: data.score,
-            is_win: data.is_win,
-            notes: data.notes || "",
-          });
+        if (matchError) {
+          console.error("Error fetching match:", matchError);
+          throw matchError;
         }
+
+        if (!matchData) {
+          toast({
+            title: "Match not found",
+            description: "The requested match could not be found.",
+            variant: "destructive",
+          });
+          navigate('/');
+          return;
+        }
+
+        // Fetch associated tags
+        const { data: tagData, error: tagError } = await supabase
+          .from("match_tags")
+          .select(`
+            tag_id,
+            tags:tag_id (
+              id,
+              name
+            )
+          `)
+          .eq("match_id", id);
+
+        if (tagError) {
+          console.error("Error fetching tags:", tagError);
+          throw tagError;
+        }
+
+        setMatch(matchData);
+        setFormData({
+          date: matchData.date,
+          opponent: matchData.opponent,
+          score: matchData.score,
+          is_win: matchData.is_win,
+          notes: matchData.notes || "",
+          final_set_tiebreak: matchData.final_set_tiebreak || false,
+        });
+        setSelectedTags(tagData.map(t => t.tags));
       } catch (error) {
-        console.error("Error fetching match:", error);
+        console.error("Error in fetchMatch:", error);
         toast({
           title: "Error",
-          description: "Failed to fetch match details.",
+          description: "Failed to load match details. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchMatch();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
+      // Update match
+      const { error: matchError } = await supabase
         .from("matches")
         .update(formData)
         .eq("id", id);
 
-      if (error) throw error;
+      if (matchError) throw matchError;
+
+      // Delete existing tags
+      const { error: deleteError } = await supabase
+        .from("match_tags")
+        .delete()
+        .eq("match_id", id);
+
+      if (deleteError) throw deleteError;
+
+      // Insert new tags
+      if (selectedTags.length > 0) {
+        const { error: tagError } = await supabase
+          .from("match_tags")
+          .insert(
+            selectedTags.map(tag => ({
+              match_id: id,
+              tag_id: tag.id
+            }))
+          );
+
+        if (tagError) throw tagError;
+      }
 
       toast({
         title: "Success",
@@ -83,13 +164,13 @@ const EditMatch = () => {
       console.error("Error updating match:", error);
       toast({
         title: "Error",
-        description: "Failed to update match.",
+        description: "Failed to update match. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  if (!match) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -164,6 +245,25 @@ const EditMatch = () => {
                 className="h-4 w-4"
               />
               <Label htmlFor="is_win">Win</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="final_set_tiebreak"
+                checked={formData.final_set_tiebreak}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, final_set_tiebreak: checked })
+                }
+              />
+              <Label htmlFor="final_set_tiebreak">Final Set Tiebreak</Label>
+            </div>
+
+            <div>
+              <Label>Tags</Label>
+              <TagInput
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+              />
             </div>
 
             <div>
