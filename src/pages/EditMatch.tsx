@@ -43,22 +43,27 @@ const EditMatch = () => {
   });
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to edit matches.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return false;
+      }
+      return true;
+    };
+
     const fetchMatch = async () => {
       try {
         setIsLoading(true);
-        // Check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to edit matches.",
-            variant: "destructive",
-          });
-          navigate('/login');
-          return;
-        }
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) return;
 
-        // Fetch match data
+        // Fetch match data with error handling
         const { data: matchData, error: matchError } = await supabase
           .from("matches")
           .select("*")
@@ -80,7 +85,7 @@ const EditMatch = () => {
           return;
         }
 
-        // Fetch associated tags
+        // Fetch associated tags with error handling
         const { data: tagData, error: tagError } = await supabase
           .from("match_tags")
           .select(`
@@ -121,12 +126,11 @@ const EditMatch = () => {
     };
 
     fetchMatch();
-  }, [id, navigate]);
+  }, [id, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Check authentication
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -138,15 +142,16 @@ const EditMatch = () => {
         return;
       }
 
-      // Update match
+      // Update match with error handling
       const { error: matchError } = await supabase
         .from("matches")
         .update(formData)
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", session.user.id);
 
       if (matchError) throw matchError;
 
-      // Delete existing tags
+      // Delete existing tags with error handling
       const { error: deleteError } = await supabase
         .from("match_tags")
         .delete()
@@ -154,7 +159,7 @@ const EditMatch = () => {
 
       if (deleteError) throw deleteError;
 
-      // Insert new tags
+      // Insert new tags if any exist
       if (selectedTags.length > 0) {
         const { error: tagError } = await supabase
           .from("match_tags")
@@ -190,7 +195,9 @@ const EditMatch = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <p>Loading match details...</p>
+        <div className="flex items-center justify-center">
+          <p>Loading match details...</p>
+        </div>
       </div>
     );
   }
