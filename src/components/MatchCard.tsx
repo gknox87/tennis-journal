@@ -83,7 +83,10 @@ export const MatchCard = ({
             >
               {isWin ? "Win" : "Loss"}
             </Badge>
-            <Button variant="ghost" size="icon" onClick={onEdit}>
+            <Button variant="ghost" size="icon" onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}>
               <Edit className="h-4 w-4" />
             </Button>
             <AlertDialog>

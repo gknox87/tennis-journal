@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SetScore {
   playerScore: string;
@@ -24,7 +25,6 @@ const AddMatch = () => {
   const [opponent, setOpponent] = useState("");
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [sets, setSets] = useState<SetScore[]>([
     { playerScore: "", opponentScore: "" },
@@ -49,24 +49,13 @@ const AddMatch = () => {
 
   const formatScore = () => {
     return sets
-      .filter(set => set.playerScore !== "" && set.opponentScore !== "")
+      .filter(set => set.playerScore !== "" || set.opponentScore !== "")
       .map(set => `${set.playerScore}-${set.opponentScore}`)
       .join(", ");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!date) {
-      toast({
-        title: "Error",
-        description: "Please select a match date",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -101,8 +90,6 @@ const AddMatch = () => {
         description: error.message || "Failed to save match. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -114,41 +101,43 @@ const AddMatch = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <div>
-            <Label>Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(date) => date && setDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          <div className="flex space-x-4">
+            <div className="flex-1">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(date) => date && setDate(date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div>
-            <Label htmlFor="opponent">Opponent Name</Label>
-            <Input
-              id="opponent"
-              value={opponent}
-              onChange={(e) => setOpponent(e.target.value)}
-              placeholder="Enter opponent's name"
-              required
-            />
+            <div className="flex-1">
+              <Label htmlFor="opponent">Opponent Name</Label>
+              <Input
+                id="opponent"
+                value={opponent}
+                onChange={(e) => setOpponent(e.target.value)}
+                placeholder="Enter opponent's name"
+                required
+              />
+            </div>
           </div>
 
           <div>
@@ -163,34 +152,38 @@ const AddMatch = () => {
                 />
               </div>
             </div>
-            <div className="space-y-4">
-              {sets.map((set, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex-1">
-                    <Label>Set {index + 1} - Your Score</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="7"
-                      value={set.playerScore}
-                      onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label>Opponent Score</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="7"
-                      value={set.opponentScore}
-                      onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
+            
+            <Tabs defaultValue="sets" className="w-full">
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="sets">Sets</TabsTrigger>
+              </TabsList>
+              <TabsContent value="sets">
+                <div className="space-y-4">
+                  {sets.map((set, index) => (
+                    <div key={index} className="flex gap-4">
+                      <div className="flex-1">
+                        <Label>Set {index + 1} - Your Score</Label>
+                        <Input
+                          type="number"
+                          value={set.playerScore}
+                          onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Label>Opponent Score</Label>
+                        <Input
+                          type="number"
+                          value={set.opponentScore}
+                          onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -215,14 +208,13 @@ const AddMatch = () => {
         </div>
 
         <div className="flex space-x-4">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save Match"}
+          <Button type="submit">
+            Save Match
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/")}
-            disabled={isSubmitting}
           >
             Cancel
           </Button>
