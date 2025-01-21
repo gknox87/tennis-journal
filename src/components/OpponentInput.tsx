@@ -22,9 +22,11 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
   const [open, setOpen] = useState(false);
   const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOpponents = async () => {
+      setLoading(true);
       const { data } = await supabase
         .from("opponents")
         .select("*")
@@ -32,10 +34,36 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
       if (data) {
         setOpponents(data);
       }
+      setLoading(false);
     };
     fetchOpponents();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex flex-col space-y-2">
+        <Label htmlFor="opponent">Opponent Name</Label>
+        <Input disabled placeholder="Loading opponents..." />
+      </div>
+    );
+  }
+
+  // If no opponents exist, show a simple input field
+  if (opponents.length === 0) {
+    return (
+      <div className="flex flex-col space-y-2">
+        <Label htmlFor="opponent">Opponent Name</Label>
+        <Input
+          id="opponent"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter opponent name"
+        />
+      </div>
+    );
+  }
+
+  // Show dropdown with existing opponents if there are any
   return (
     <div className="flex flex-col space-y-2">
       <Label htmlFor="opponent">Opponent Name</Label>
@@ -49,7 +77,7 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
           >
             {value
               ? opponents.find((opponent) => opponent.name === value)?.name ?? value
-              : "Select opponent..."}
+              : "Select or enter opponent name..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -58,9 +86,14 @@ export const OpponentInput = ({ value, onChange }: OpponentInputProps) => {
             <CommandInput 
               placeholder="Search opponent..." 
               value={searchTerm}
-              onValueChange={setSearchTerm}
+              onValueChange={(value) => {
+                setSearchTerm(value);
+                onChange(value);
+              }}
             />
-            <CommandEmpty>No opponent found.</CommandEmpty>
+            <CommandEmpty>
+              Continue typing to add a new opponent
+            </CommandEmpty>
             <CommandGroup>
               {opponents
                 .filter(opponent => 
