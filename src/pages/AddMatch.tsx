@@ -14,6 +14,7 @@ import { ScoreInput } from "@/components/ScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SetScore {
   playerScore: string;
@@ -25,6 +26,9 @@ interface Tag {
   name: string;
 }
 
+const courtTypes = ["Hard", "Artificial Grass", "Clay", "Grass", "Carpet"] as const;
+type CourtType = typeof courtTypes[number];
+
 const AddMatch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,6 +37,7 @@ const AddMatch = () => {
   const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
+  const [courtType, setCourtType] = useState<CourtType | "">("");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -80,7 +85,7 @@ const AddMatch = () => {
 
       if (opponentError) throw opponentError;
 
-      // Insert match
+      // Insert match with court type
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
@@ -90,7 +95,8 @@ const AddMatch = () => {
           is_win: isWin,
           notes: notes || null,
           user_id: session.user.id,
-          final_set_tiebreak: finalSetTiebreak
+          final_set_tiebreak: finalSetTiebreak,
+          court_type: courtType || null
         })
         .select()
         .single();
@@ -177,6 +183,22 @@ const AddMatch = () => {
             isKeyOpponent={isKeyOpponent}
             onKeyOpponentChange={setIsKeyOpponent}
           />
+
+          <div className="space-y-2">
+            <Label>Court Type</Label>
+            <Select value={courtType} onValueChange={(value) => setCourtType(value as CourtType)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select court type" />
+              </SelectTrigger>
+              <SelectContent>
+                {courtTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <ScoreInput
             sets={sets}
