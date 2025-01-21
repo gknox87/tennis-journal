@@ -3,10 +3,9 @@ import { StatsOverview } from "./StatsOverview";
 
 interface StatsSectionProps {
   matches: Match[];
-  onRefresh: () => void;
 }
 
-export const StatsSection = ({ matches, onRefresh }: StatsSectionProps) => {
+export const StatsSection = ({ matches }: StatsSectionProps) => {
   const totalMatches = matches.length;
   const currentYear = new Date().getFullYear();
   const matchesThisYear = matches.filter(
@@ -52,7 +51,6 @@ export const StatsSection = ({ matches, onRefresh }: StatsSectionProps) => {
       setsWon={setStats.setsWon}
       setsLost={setStats.setsLost}
       tiebreaksWon={tiebreaksWon}
-      onRefresh={onRefresh}
     />
   );
 };
