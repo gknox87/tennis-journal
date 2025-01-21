@@ -101,13 +101,21 @@ export const MatchCard = ({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on buttons or alert dialog
+    const target = e.target as HTMLElement;
+    // Check if the click is from the delete dialog or its children
     if (
-      e.target instanceof HTMLElement && 
-      (e.target.closest('button') || e.target.closest('[role="dialog"]'))
+      target.closest('[role="dialog"]') ||
+      target.closest('button[aria-haspopup="dialog"]') ||
+      target.closest('button[data-state="open"]')
     ) {
       return;
     }
+    
+    // Check if click is from edit button
+    if (target.closest('button[aria-label="edit"]')) {
+      return;
+    }
+
     navigate(`/match/${id}`);
   };
 
@@ -128,7 +136,8 @@ export const MatchCard = ({
             </Badge>
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="icon"
+              aria-label="edit"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -142,20 +151,12 @@ export const MatchCard = ({
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
+                  aria-haspopup="dialog"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
+              <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Match</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -163,12 +164,7 @@ export const MatchCard = ({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
+                  <AlertDialogCancel>
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete}>
