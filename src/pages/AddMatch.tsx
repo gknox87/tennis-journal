@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
+import { Card } from "@/components/ui/card";
 
 interface SetScore {
   playerScore: string;
@@ -128,44 +129,42 @@ const AddMatch = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(date) => date && setDate(date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+        <Card className="p-6 space-y-6">
+          <div>
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(date) => date && setDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-            <div className="flex-1">
-              <Label htmlFor="opponent">Opponent Name</Label>
-              <Input
-                id="opponent"
-                value={opponent}
-                onChange={(e) => setOpponent(e.target.value)}
-                placeholder="Enter opponent's name"
-                required
-              />
-            </div>
+          <div>
+            <Label htmlFor="opponent">Opponent Name</Label>
+            <Input
+              id="opponent"
+              value={opponent}
+              onChange={(e) => setOpponent(e.target.value)}
+              placeholder="Enter opponent's name"
+              required
+            />
           </div>
 
           <ScoreInput
@@ -184,8 +183,10 @@ const AddMatch = () => {
             onNotesChange={setNotes}
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
+            finalSetTiebreak={finalSetTiebreak}
+            onFinalSetTiebreakChange={setFinalSetTiebreak}
           />
-        </div>
+        </Card>
 
         <div className="flex space-x-4">
           <Button type="submit">

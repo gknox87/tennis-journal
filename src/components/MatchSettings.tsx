@@ -15,6 +15,8 @@ interface MatchSettingsProps {
   onNotesChange: (value: string) => void;
   selectedTags: Tag[];
   onTagsChange: (tags: Tag[]) => void;
+  finalSetTiebreak: boolean;
+  onFinalSetTiebreakChange: (value: boolean) => void;
 }
 
 export const MatchSettings = ({
@@ -24,16 +26,29 @@ export const MatchSettings = ({
   onNotesChange,
   selectedTags,
   onTagsChange,
+  finalSetTiebreak,
+  onFinalSetTiebreakChange,
 }: MatchSettingsProps) => {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="isWin"
-          checked={isWin}
-          onCheckedChange={onIsWinChange}
-        />
-        <Label htmlFor="isWin">Won the match</Label>
+      <div className="flex items-center gap-6">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isWin"
+            checked={isWin}
+            onCheckedChange={onIsWinChange}
+          />
+          <Label htmlFor="isWin">Won the match</Label>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="finalSetTiebreak"
+            checked={finalSetTiebreak}
+            onCheckedChange={onFinalSetTiebreakChange}
+          />
+          <Label htmlFor="finalSetTiebreak">Tiebreak final set</Label>
+        </div>
       </div>
 
       <div>
