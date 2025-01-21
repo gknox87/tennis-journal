@@ -30,11 +30,12 @@ export const OpponentInput = ({
   useEffect(() => {
     const fetchOpponents = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        // First check if user is authenticated
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           setError("Please log in to access opponents");
+          setOpponents([]);
           return;
         }
 
@@ -44,17 +45,24 @@ export const OpponentInput = ({
           .eq('user_id', session.user.id)
           .order('name');
         
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+          console.error('Error fetching opponents:', fetchError);
+          setError(fetchError.message);
+          setOpponents([]);
+          return;
+        }
         
         if (data) {
-          const validOpponents = data.filter(opponent => opponent.name && opponent.name.trim() !== '');
+          const validOpponents = data.filter(opponent => 
+            opponent && opponent.name && opponent.name.trim() !== ''
+          );
           setOpponents(validOpponents);
         } else {
           setOpponents([]);
         }
       } catch (err: any) {
-        console.error('Error fetching opponents:', err);
-        setError(err.message);
+        console.error('Error in fetchOpponents:', err);
+        setError(err.message || 'An error occurred while fetching opponents');
         setOpponents([]);
       } finally {
         setIsLoading(false);
@@ -71,7 +79,7 @@ export const OpponentInput = ({
 
   // Ensure we always have a valid array to work with
   const filteredOpponents = opponents.filter(opponent =>
-    opponent.name.toLowerCase().includes(value.toLowerCase())
+    opponent.name.toLowerCase().includes((value || '').toLowerCase())
   );
 
   return (
@@ -82,7 +90,7 @@ export const OpponentInput = ({
           <PopoverTrigger asChild>
             <div className="flex w-full items-center">
               <Input
-                value={value}
+                value={value || ''}
                 onChange={(e) => {
                   onChange(e.target.value);
                   setOpen(true);
@@ -101,9 +109,13 @@ export const OpponentInput = ({
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search opponents..." />
+              <CommandInput 
+                placeholder="Search opponents..." 
+                value={value || ''}
+                onValueChange={onChange}
+              />
               {isLoading ? (
-                <CommandEmpty>Loading...</CommandEmpty>
+                <CommandEmpty>Loading opponents...</CommandEmpty>
               ) : error ? (
                 <CommandEmpty>{error}</CommandEmpty>
               ) : filteredOpponents.length === 0 ? (
