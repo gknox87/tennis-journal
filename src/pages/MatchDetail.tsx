@@ -110,7 +110,7 @@ const MatchDetail = () => {
 
   if (!match) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -121,25 +121,37 @@ const MatchDetail = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <Button variant="ghost" onClick={() => navigate('/')}>
+    <div className="container mx-auto px-4 py-6 sm:py-8 max-w-3xl">
+      <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="w-full sm:w-auto flex items-center justify-center sm:justify-start"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          Back to Dashboard
         </Button>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate(`/edit-match/${id}`)}>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+          <Button 
+            onClick={() => navigate(`/edit-match/${id}`)}
+            className="w-full sm:w-auto"
+          >
             <Edit className="mr-2 h-4 w-4" />
             Edit Match
           </Button>
+          
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">
+              <Button 
+                variant="destructive"
+                className="w-full sm:w-auto"
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Match
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="sm:max-w-[425px]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Match</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -155,31 +167,35 @@ const MatchDetail = () => {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">{match.opponent}</CardTitle>
+      <Card className="w-full">
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
+              {match.opponent}
+            </CardTitle>
             <Badge 
               variant={match.is_win ? "default" : "destructive"}
-              className={match.is_win ? "bg-green-500 hover:bg-green-600" : ""}
+              className={`${match.is_win ? "bg-green-500 hover:bg-green-600" : ""} text-center px-4 py-1`}
             >
               {match.is_win ? "Win" : "Loss"}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">Date</h3>
-            <p>{new Date(match.date).toLocaleDateString()}</p>
+            <p className="text-base sm:text-lg">
+              {new Date(match.date).toLocaleDateString()}
+            </p>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Score</h3>
-            <p className="text-xl">{match.score}</p>
+            <p className="text-xl sm:text-2xl">{match.score}</p>
           </div>
           {match.notes && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Notes</h3>
-              <p className="whitespace-pre-wrap">{match.notes}</p>
+              <p className="text-base sm:text-lg whitespace-pre-wrap">{match.notes}</p>
             </div>
           )}
         </CardContent>
