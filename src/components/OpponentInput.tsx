@@ -24,17 +24,25 @@ export const OpponentInput = ({
   onKeyOpponentChange
 }: OpponentInputProps) => {
   const [keyOpponents, setKeyOpponents] = useState<Opponent[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchKeyOpponents = async () => {
-      const { data } = await supabase
-        .from('opponents')
-        .select('id, name')
-        .eq('is_key_opponent', true)
-        .order('name');
-      
-      if (data) {
-        setKeyOpponents(data);
+      try {
+        const { data, error } = await supabase
+          .from('opponents')
+          .select('id, name')
+          .eq('is_key_opponent', true)
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setKeyOpponents(data);
+        }
+      } catch (err: any) {
+        console.error('Error fetching key opponents:', err);
+        setError(err.message);
       }
     };
 
@@ -70,7 +78,7 @@ export const OpponentInput = ({
                 </SelectTrigger>
                 <SelectContent>
                   {keyOpponents.map((opponent) => (
-                    <SelectItem key={opponent.id} value={opponent.name}>
+                    <SelectItem key={opponent.id} value={opponent.name || 'unnamed'}>
                       {opponent.name}
                     </SelectItem>
                   ))}
@@ -78,6 +86,7 @@ export const OpponentInput = ({
               </Select>
             </div>
           )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
       </div>
     </div>

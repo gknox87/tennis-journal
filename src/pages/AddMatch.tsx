@@ -36,7 +36,7 @@ const AddMatch = () => {
   const [isKeyOpponent, setIsKeyOpponent] = useState(false);
   const [isWin, setIsWin] = useState(false);
   const [notes, setNotes] = useState("");
-  const [courtType, setCourtType] = useState<string>("");
+  const [courtType, setCourtType] = useState<CourtType | ''>('');
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -185,7 +185,7 @@ const AddMatch = () => {
 
           <div className="space-y-2">
             <Label>Court Type</Label>
-            <Select value={courtType} onValueChange={setCourtType}>
+            <Select value={courtType} onValueChange={(value: CourtType) => setCourtType(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select court type" />
               </SelectTrigger>
