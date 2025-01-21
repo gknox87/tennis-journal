@@ -8,10 +8,11 @@ export const AddMatchButton = () => {
   return (
     <Button 
       onClick={() => navigate("/add-match")}
-      className="bg-accent hover:bg-accent/90 text-white"
+      className="flex-1 sm:flex-none bg-accent hover:bg-accent/90 text-white"
     >
       <Plus className="mr-2 h-4 w-4" />
-      Record Match
+      <span className="hidden sm:inline">Record Match</span>
+      <span className="sm:hidden">Add</span>
     </Button>
   );
 };

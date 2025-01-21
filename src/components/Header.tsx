@@ -13,21 +13,27 @@ export const Header = () => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-      <h1 className="text-2xl sm:text-3xl font-bold">Tennis Match Journal</h1>
-      <div className="flex gap-2 sm:gap-4">
+    <div className="flex flex-col gap-4 mb-6">
+      <h1 className="text-2xl font-bold">Tennis Match Journal</h1>
+      <div className="flex flex-wrap gap-2">
         <AddMatchButton />
         <Button 
           variant="secondary"
           onClick={() => navigate("/key-opponents")}
-          className="text-white hover:bg-secondary/90"
+          className="flex-1 sm:flex-none text-white hover:bg-secondary/90"
         >
           <Users className="mr-2 h-4 w-4" />
-          Key Opponents
+          <span className="hidden sm:inline">Key Opponents</span>
+          <span className="sm:hidden">Opponents</span>
         </Button>
-        <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
+        <Button 
+          variant="outline" 
+          onClick={handleLogout} 
+          className="flex-1 sm:flex-none"
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          Logout
+          <span className="hidden sm:inline">Logout</span>
+          <span className="sm:hidden">Exit</span>
         </Button>
       </div>
     </div>

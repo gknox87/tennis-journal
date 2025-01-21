@@ -22,7 +22,7 @@ export const SearchSection = ({
   onTagToggle,
 }: SearchSectionProps) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-0 sm:px-2">
       <TagCloud
         availableTags={availableTags}
         selectedTags={selectedTags}

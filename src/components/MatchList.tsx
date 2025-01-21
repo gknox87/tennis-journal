@@ -18,17 +18,17 @@ export const MatchList = ({ matches, onMatchDelete }: MatchListProps) => {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg sm:text-xl font-semibold">Recent Matches</h2>
+        <h2 className="text-lg font-semibold">Recent Matches</h2>
         <Button 
           variant="link" 
           onClick={() => navigate("/matches")} 
-          className="text-sm -mr-4"
+          className="text-sm -mr-2"
         >
           View All
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {matches.map((match) => (
           <MatchCard
             key={match.id}
