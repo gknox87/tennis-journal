@@ -114,39 +114,43 @@ export const MatchCard = ({
 
   return (
     <Card 
-      className="match-card hover:shadow-lg transition-shadow cursor-pointer"
+      className="match-card hover:shadow-lg transition-shadow cursor-pointer touch-manipulation"
       onClick={handleCardClick}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium">{opponent_name}</CardTitle>
-          <div className="flex items-center gap-2">
+          <CardTitle className="text-base sm:text-lg font-medium line-clamp-1">
+            {opponent_name}
+          </CardTitle>
+          <div className="flex items-center gap-1 sm:gap-2">
             <Badge 
               variant={isWin ? "default" : "destructive"}
-              className={isWin ? "bg-green-500 hover:bg-green-600" : ""}
+              className={`text-xs sm:text-sm ${isWin ? "bg-green-500 hover:bg-green-600" : ""}`}
             >
               {isWin ? "Win" : "Loss"}
             </Badge>
             <Button 
               variant="ghost" 
-              size="icon"
+              size="sm"
               data-edit-button="true"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit();
               }}
+              className="h-8 w-8 p-0"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  size="icon"
+                  size="sm"
                   data-delete-button="true"
                   onClick={(e) => e.stopPropagation()}
+                  className="h-8 w-8 p-0"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent onClick={(e) => e.stopPropagation()}>
@@ -173,18 +177,22 @@ export const MatchCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{date}</p>
-        <p className="mt-2 text-lg font-semibold">{score}</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">{date}</p>
+        <p className="mt-2 text-base sm:text-lg font-semibold">{score}</p>
         {finalSetTiebreak && (
-          <Badge variant="secondary" className="mt-2">
+          <Badge variant="secondary" className="mt-2 text-xs">
             Final Set Tiebreak
           </Badge>
         )}
         {tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {tags.map((tag) => (
-              <Badge key={tag.id} variant="outline" className="flex items-center gap-1">
-                <TagIcon className="h-3 w-3" />
+              <Badge 
+                key={tag.id} 
+                variant="outline" 
+                className="text-xs flex items-center gap-1"
+              >
+                <TagIcon className="h-2.5 w-2.5" />
                 {tag.name}
               </Badge>
             ))}

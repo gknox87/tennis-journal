@@ -140,17 +140,21 @@ const Index = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-8">
+    <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
       <Header />
-      <StatsSection matches={matches} />
-      <SearchSection
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        availableTags={availableTags}
-        selectedTags={selectedTags}
-        onTagToggle={toggleTag}
-      />
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-8">
+        <StatsSection matches={matches} />
+      </div>
+      <div className="mt-6 sm:mt-8">
+        <SearchSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          availableTags={availableTags}
+          selectedTags={selectedTags}
+          onTagToggle={toggleTag}
+        />
+      </div>
+      <div className="mt-4 sm:mt-6">
         <MatchList
           matches={filteredMatches}
           onMatchDelete={fetchMatches}
