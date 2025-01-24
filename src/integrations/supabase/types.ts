@@ -110,6 +110,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          club: string | null
+          full_name: string | null
+          id: string
+          preferred_surface: string | null
+          ranking: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          club?: string | null
+          full_name?: string | null
+          id: string
+          preferred_surface?: string | null
+          ranking?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          club?: string | null
+          full_name?: string | null
+          id?: string
+          preferred_surface?: string | null
+          ranking?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string
