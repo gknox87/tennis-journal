@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDownAZ, ArrowUpDown, CalendarDays } from "lucide-react";
+import { ArrowDownAZ, ArrowUpDown, CalendarDays, Calendar } from "lucide-react";
 
-type SortOption = "newest" | "oldest" | "alphabetical";
+type SortOption = "newest" | "oldest" | "alphabetical" | "lastMonth" | "lastYear";
 
 interface SortControlsProps {
   currentSort: SortOption;
@@ -10,7 +10,7 @@ interface SortControlsProps {
 
 export const SortControls = ({ currentSort, onSortChange }: SortControlsProps) => {
   return (
-    <div className="flex flex-nowrap gap-2 mb-4 min-w-max">
+    <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
       <Button
         variant={currentSort === "newest" ? "default" : "outline"}
         onClick={() => onSortChange("newest")}
@@ -40,6 +40,26 @@ export const SortControls = ({ currentSort, onSortChange }: SortControlsProps) =
         <ArrowDownAZ className="h-4 w-4" />
         <span className="hidden sm:inline">Alphabetical</span>
         <span className="sm:hidden">A-Z</span>
+      </Button>
+      <Button
+        variant={currentSort === "lastMonth" ? "default" : "outline"}
+        onClick={() => onSortChange("lastMonth")}
+        className="flex items-center gap-2 text-sm whitespace-nowrap"
+        size="sm"
+      >
+        <Calendar className="h-4 w-4" />
+        <span className="hidden sm:inline">Last Month</span>
+        <span className="sm:hidden">Month</span>
+      </Button>
+      <Button
+        variant={currentSort === "lastYear" ? "default" : "outline"}
+        onClick={() => onSortChange("lastYear")}
+        className="flex items-center gap-2 text-sm whitespace-nowrap"
+        size="sm"
+      >
+        <Calendar className="h-4 w-4" />
+        <span className="hidden sm:inline">Last Year</span>
+        <span className="sm:hidden">Year</span>
       </Button>
     </div>
   );

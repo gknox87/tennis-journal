@@ -6,11 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { MatchList } from "@/components/MatchList";
 import { SortControls } from "@/components/SortControls";
-import { DateRangeFilter, getDateRangeStart } from "@/components/DateRangeFilter";
+import { addMonths, addYears, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
-type SortOption = "newest" | "oldest" | "alphabetical";
-type DateRange = "week" | "month" | "year" | "all";
+type SortOption = "newest" | "oldest" | "alphabetical" | "lastMonth" | "lastYear";
 
 const ViewAllMatches = () => {
   const navigate = useNavigate();
@@ -19,7 +18,6 @@ const ViewAllMatches = () => {
   const [filteredMatches, setFilteredMatches] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
-  const [dateRange, setDateRange] = useState<DateRange>("all");
 
   const fetchMatches = async () => {
     try {
@@ -48,18 +46,22 @@ const ViewAllMatches = () => {
 
   useEffect(() => {
     let filtered = [...matches];
-    const rangeStart = getDateRangeStart(dateRange);
+    const now = new Date();
 
-    // Apply date range filter
-    if (rangeStart) {
-      filtered = filtered.filter(match => new Date(match.date) >= rangeStart);
+    // Apply date filters based on sort option
+    if (sortOption === "lastMonth") {
+      const monthAgo = startOfDay(addMonths(now, -1));
+      filtered = filtered.filter(match => new Date(match.date) >= monthAgo);
+    } else if (sortOption === "lastYear") {
+      const yearAgo = startOfDay(addYears(now, -1));
+      filtered = filtered.filter(match => new Date(match.date) >= yearAgo);
     }
 
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         match =>
-          match.opponent.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          match.opponent?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.score.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.notes?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -73,14 +75,14 @@ const ViewAllMatches = () => {
         case "oldest":
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         case "alphabetical":
-          return a.opponent.localeCompare(b.opponent);
+          return (a.opponent || "").localeCompare(b.opponent || "");
         default:
           return 0;
       }
     });
 
     setFilteredMatches(filtered);
-  }, [matches, searchTerm, sortOption, dateRange]);
+  }, [matches, searchTerm, sortOption]);
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
@@ -102,8 +104,6 @@ const ViewAllMatches = () => {
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <SortControls currentSort={sortOption} onSortChange={setSortOption} />
         </div>
-        
-        <DateRangeFilter currentRange={dateRange} onRangeChange={setDateRange} />
 
         <MatchList matches={filteredMatches} onMatchDelete={fetchMatches} />
       </div>
