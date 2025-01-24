@@ -68,7 +68,7 @@ const Index = () => {
 
       const processedMatches: Match[] = matchesData?.map(match => ({
         ...match,
-        opponent_name: match.opponents?.name,
+        opponent_name: match.opponents?.name || "Unknown Opponent",
         tags: match.tags
       })) || [];
 

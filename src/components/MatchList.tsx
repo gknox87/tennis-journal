@@ -34,7 +34,7 @@ export const MatchList = ({ matches, onMatchDelete }: MatchListProps) => {
             key={match.id}
             id={match.id}
             date={match.date}
-            opponent_name={match.opponent_name}
+            opponent_name={match.opponent_name || "Unknown Opponent"}
             score={match.score}
             isWin={match.is_win}
             finalSetTiebreak={match.final_set_tiebreak}

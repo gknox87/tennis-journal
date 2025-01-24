@@ -23,13 +23,28 @@ const ViewAllMatches = () => {
     try {
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
-        .select("*, tags!match_tags(id, name)")
+        .select(`
+          *,
+          opponents (
+            name
+          ),
+          tags!match_tags (
+            id,
+            name
+          )
+        `)
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
 
-      setMatches(matchesData || []);
-      setFilteredMatches(matchesData || []);
+      const processedMatches = matchesData?.map(match => ({
+        ...match,
+        opponent_name: match.opponents?.name || "Unknown Opponent",
+        tags: match.tags
+      })) || [];
+
+      setMatches(processedMatches);
+      setFilteredMatches(processedMatches);
     } catch (error) {
       console.error("Error fetching matches:", error);
       toast({
@@ -61,7 +76,7 @@ const ViewAllMatches = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         match =>
-          match.opponent?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          match.opponent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.score.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.notes?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -75,7 +90,7 @@ const ViewAllMatches = () => {
         case "oldest":
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         case "alphabetical":
-          return (a.opponent || "").localeCompare(b.opponent || "");
+          return (a.opponent_name || "").localeCompare(b.opponent_name || "");
         default:
           return 0;
       }
