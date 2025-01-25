@@ -70,13 +70,13 @@ const AddMatch = () => {
 
       const score = formatScore();
 
-      // Get or create opponent with is_key_opponent always true for new opponents
+      // Get or create opponent
       const { data: existingOpponent, error: searchError } = await supabase
         .from('opponents')
         .select('id')
         .eq('name', opponent)
         .eq('user_id', session.user.id)
-        .maybeSingle();  // Changed from .single() to .maybeSingle()
+        .maybeSingle();
 
       let opponentId;
 

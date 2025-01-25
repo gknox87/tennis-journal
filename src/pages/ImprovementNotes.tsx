@@ -16,6 +16,7 @@ interface ImprovementPoint {
   matches?: {
     date: string;
     score: string;
+    opponent_id: string | null;
     opponents?: {
       name: string;
     };
@@ -39,6 +40,7 @@ const ImprovementNotes = () => {
           matches (
             date,
             score,
+            opponent_id,
             opponents (
               name
             )
