@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { TagInput } from "@/components/TagInput";
-import { Switch } from "@/components/ui/switch";
 import { Match } from "@/types/match";
+import { OpponentInput } from "@/components/OpponentInput";
+import { ScoreInput } from "@/components/ScoreInput";
+import { MatchSettings } from "@/components/MatchSettings";
 
 interface Tag {
   id: string;
   name: string;
+}
+
+interface SetScore {
+  playerScore: string;
+  opponentScore: string;
 }
 
 const EditMatch = () => {
@@ -24,10 +27,15 @@ const EditMatch = () => {
   const [match, setMatch] = useState<Match | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [opponentName, setOpponentName] = useState("");
+  const [sets, setSets] = useState<SetScore[]>([
+    { playerScore: "", opponentScore: "" },
+    { playerScore: "", opponentScore: "" },
+    { playerScore: "", opponentScore: "" },
+  ]);
+  const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
-    opponent: "",
-    score: "",
     is_win: false,
     notes: "",
     final_set_tiebreak: false,
@@ -54,22 +62,22 @@ const EditMatch = () => {
         const isAuthenticated = await checkAuth();
         if (!isAuthenticated) return;
 
-        // Fetch match data with opponent name
         const { data: matchData, error: matchError } = await supabase
           .from("matches")
           .select(`
             *,
             opponents (
               name
+            ),
+            tags!match_tags (
+              id,
+              name
             )
           `)
           .eq("id", id)
           .single();
 
-        if (matchError) {
-          console.error("Error fetching match:", matchError);
-          throw matchError;
-        }
+        if (matchError) throw matchError;
 
         if (!matchData) {
           toast({
@@ -81,40 +89,32 @@ const EditMatch = () => {
           return;
         }
 
-        const matchWithOpponent: Match = {
-          ...matchData,
-          opponent_name: matchData.opponents?.name || "Unknown Opponent"
-        };
+        // Parse score into sets
+        const scoreArray = matchData.score.split(' ');
+        const parsedSets = scoreArray.map(set => {
+          const [playerScore, opponentScore] = set.split('-');
+          return { playerScore, opponentScore };
+        });
 
-        setMatch(matchWithOpponent);
+        // Initialize sets state
+        if (parsedSets.length === 5) {
+          setIsBestOfFive(true);
+          setSets(parsedSets);
+        } else {
+          setSets([...parsedSets, ...Array(5 - parsedSets.length).fill({ playerScore: "", opponentScore: "" })]);
+        }
+
+        setMatch(matchData);
+        setOpponentName(matchData.opponents?.name || "");
         setFormData({
           date: matchData.date,
-          opponent: matchData.opponents?.name || "",
-          score: matchData.score,
           is_win: matchData.is_win,
           notes: matchData.notes || "",
           final_set_tiebreak: matchData.final_set_tiebreak || false,
         });
+        setSelectedTags(matchData.tags || []);
 
-        // Fetch associated tags
-        const { data: tagData, error: tagError } = await supabase
-          .from("match_tags")
-          .select(`
-            tag_id,
-            tags:tag_id (
-              id,
-              name
-            )
-          `)
-          .eq("match_id", id);
-
-        if (tagError) {
-          console.error("Error fetching tags:", tagError);
-          throw tagError;
-        }
-
-        setSelectedTags(tagData.map(t => t.tags));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error in fetchMatch:", error);
         toast({
           title: "Error",
@@ -144,16 +144,38 @@ const EditMatch = () => {
         return;
       }
 
-      // Update match with error handling
+      // Format score string from sets
+      const validSets = sets.filter(set => set.playerScore !== "" && set.opponentScore !== "");
+      const scoreString = validSets
+        .map(set => `${set.playerScore}-${set.opponentScore}`)
+        .join(' ');
+
+      // Get or create opponent
+      const { data: opponentId } = await supabase
+        .rpc('get_or_create_opponent', {
+          p_name: opponentName,
+          p_user_id: session.user.id
+        });
+
+      if (!opponentId) {
+        throw new Error("Failed to get or create opponent");
+      }
+
+      // Update match
       const { error: matchError } = await supabase
         .from("matches")
-        .update(formData)
+        .update({
+          ...formData,
+          score: scoreString,
+          opponent_id: opponentId,
+          user_id: session.user.id
+        })
         .eq("id", id)
         .eq("user_id", session.user.id);
 
       if (matchError) throw matchError;
 
-      // Delete existing tags with error handling
+      // Delete existing tags
       const { error: deleteError } = await supabase
         .from("match_tags")
         .delete()
@@ -180,7 +202,7 @@ const EditMatch = () => {
         description: "Match updated successfully.",
       });
       navigate(`/match/${id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating match:", error);
       toast({
         title: "Error",
@@ -218,85 +240,42 @@ const EditMatch = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="date">Date</Label>
-              <Input
+              <OpponentInput
+                value={opponentName}
+                onChange={setOpponentName}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input
                 type="date"
-                id="date"
                 value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
                 required
               />
             </div>
 
-            <div>
-              <Label htmlFor="opponent">Opponent</Label>
-              <Input
-                type="text"
-                id="opponent"
-                value={formData.opponent}
-                onChange={(e) =>
-                  setFormData({ ...formData, opponent: e.target.value })
-                }
-                required
-              />
-            </div>
+            <ScoreInput
+              sets={sets}
+              onSetsChange={setSets}
+              isBestOfFive={isBestOfFive}
+              onBestOfFiveChange={setIsBestOfFive}
+            />
 
-            <div>
-              <Label htmlFor="score">Score</Label>
-              <Input
-                type="text"
-                id="score"
-                value={formData.score}
-                onChange={(e) =>
-                  setFormData({ ...formData, score: e.target.value })
-                }
-                required
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_win"
-                checked={formData.is_win}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, is_win: checked })
-                }
-              />
-              <Label htmlFor="is_win">Win</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="final_set_tiebreak"
-                checked={formData.final_set_tiebreak}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, final_set_tiebreak: checked })
-                }
-              />
-              <Label htmlFor="final_set_tiebreak">Final Set Tiebreak</Label>
-            </div>
-
-            <div>
-              <Label>Tags</Label>
-              <TagInput
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                rows={4}
-              />
-            </div>
+            <MatchSettings
+              isWin={formData.is_win}
+              onIsWinChange={(value) => setFormData({ ...formData, is_win: value })}
+              notes={formData.notes}
+              onNotesChange={(value) => setFormData({ ...formData, notes: value })}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              finalSetTiebreak={formData.final_set_tiebreak}
+              onFinalSetTiebreakChange={(value) => 
+                setFormData({ ...formData, final_set_tiebreak: value })
+              }
+            />
 
             <div className="flex justify-end space-x-4">
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>
