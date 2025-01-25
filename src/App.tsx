@@ -7,6 +7,7 @@ import MatchDetail from "@/pages/MatchDetail";
 import EditMatch from "@/pages/EditMatch";
 import ViewAllMatches from "@/pages/ViewAllMatches";
 import KeyOpponents from "@/pages/KeyOpponents";
+import ImprovementNotes from "@/pages/ImprovementNotes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,6 +59,10 @@ function App() {
         <Route
           path="/key-opponents"
           element={isAuthenticated ? <KeyOpponents /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/improvement-notes"
+          element={isAuthenticated ? <ImprovementNotes /> : <Navigate to="/login" />}
         />
         <Route
           path="/login"

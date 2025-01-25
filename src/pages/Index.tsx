@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { MatchList } from "@/components/MatchList";
 import { Header } from "@/components/Header";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
 import { Card } from "@/components/ui/card";
 import { Match } from "@/types/match";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface ImprovementPoint {
   id: string;
@@ -19,6 +20,7 @@ interface ImprovementPoint {
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Match[]>([]);
   const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -224,9 +226,19 @@ const Index = () => {
       
       {improvementPoints.length > 0 && (
         <Card className="mt-6 p-6">
-          <h2 className="text-xl font-semibold mb-4">AI-Generated Improvement Points</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">AI-Generated Improvement Points</h2>
+            <Button
+              variant="ghost"
+              className="text-sm"
+              onClick={() => navigate('/improvement-notes')}
+            >
+              View all
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
           <div className="space-y-3">
-            {improvementPoints.map((point) => (
+            {improvementPoints.slice(0, 3).map((point) => (
               <div key={point.id} className="flex items-start gap-3">
                 <Button
                   variant="ghost"
