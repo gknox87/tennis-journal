@@ -38,9 +38,10 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       .from("profiles")
       .select("*")
       .eq("id", session.user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
+      console.error("Error fetching profile:", error);
       toast({
         title: "Error",
         description: "Failed to fetch profile data",
@@ -64,6 +65,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       .eq("id", session.user.id);
 
     if (error) {
+      console.error("Error updating profile:", error);
       toast({
         title: "Error",
         description: "Failed to update profile",
