@@ -89,6 +89,12 @@ const EditMatch = () => {
           return;
         }
 
+        // Create a proper Match object with opponent_name
+        const matchWithOpponent: Match = {
+          ...matchData,
+          opponent_name: matchData.opponents?.name || "Unknown Opponent"
+        };
+
         // Parse score into sets
         const scoreArray = matchData.score.split(' ');
         const parsedSets = scoreArray.map(set => {
@@ -104,7 +110,7 @@ const EditMatch = () => {
           setSets([...parsedSets, ...Array(5 - parsedSets.length).fill({ playerScore: "", opponentScore: "" })]);
         }
 
-        setMatch(matchData);
+        setMatch(matchWithOpponent);
         setOpponentName(matchData.opponents?.name || "");
         setFormData({
           date: matchData.date,
