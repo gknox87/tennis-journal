@@ -130,6 +130,30 @@ const AddMatch = () => {
         if (tagError) throw tagError;
       }
 
+      // Analyze notes with AI if present
+      if (notes) {
+        const { data: aiResponse, error: aiError } = await supabase.functions.invoke('analyze-match-notes', {
+          body: { notes }
+        });
+
+        if (!aiError && aiResponse.suggestions) {
+          // Insert improvement points
+          const { error: pointsError } = await supabase
+            .from('improvement_points')
+            .insert(
+              aiResponse.suggestions.map((point: string) => ({
+                user_id: session.user.id,
+                point,
+                source_match_id: matchData.id
+              }))
+            );
+
+          if (pointsError) {
+            console.error('Error saving improvement points:', pointsError);
+          }
+        }
+      }
+
       toast({
         title: "Match recorded",
         description: "Your match has been successfully saved.",
