@@ -5,8 +5,17 @@ import { MatchList } from "@/components/MatchList";
 import { Header } from "@/components/Header";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
-import { ImprovementChecklist } from "@/components/ImprovementChecklist";
+import { Card } from "@/components/ui/card";
 import { Match } from "@/types/match";
+import { CheckCircle2, Circle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface ImprovementPoint {
+  id: string;
+  point: string;
+  is_completed: boolean;
+  source_match_id: string | null;
+}
 
 const Index = () => {
   const { toast } = useToast();
@@ -15,6 +24,55 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
+  const [improvementPoints, setImprovementPoints] = useState<ImprovementPoint[]>([]);
+
+  const fetchImprovementPoints = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) return;
+
+      const { data, error } = await supabase
+        .from('improvement_points')
+        .select('*')
+        .eq('user_id', session.session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setImprovementPoints(data || []);
+    } catch (error) {
+      console.error('Error fetching improvement points:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch improvement points",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleImprovementPoint = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('improvement_points')
+        .update({ is_completed: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await fetchImprovementPoints();
+      
+      toast({
+        title: !currentStatus ? "Point completed!" : "Point uncompleted",
+        description: "Your progress has been updated",
+      });
+    } catch (error) {
+      console.error('Error updating improvement point:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update improvement point",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchTags = async () => {
     try {
@@ -88,6 +146,7 @@ const Index = () => {
   useEffect(() => {
     fetchMatches();
     fetchTags();
+    fetchImprovementPoints();
 
     const subscription = supabase
       .channel("matches_channel")
@@ -104,8 +163,24 @@ const Index = () => {
       )
       .subscribe();
 
+    const improvementSubscription = supabase
+      .channel("improvement_points_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "improvement_points",
+        },
+        () => {
+          fetchImprovementPoints();
+        }
+      )
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
+      improvementSubscription.unsubscribe();
     };
   }, []);
 
@@ -146,9 +221,34 @@ const Index = () => {
       <div className="mt-4 sm:mt-8">
         <StatsSection matches={matches} />
       </div>
-      <div className="mt-6">
-        <ImprovementChecklist />
-      </div>
+      
+      {improvementPoints.length > 0 && (
+        <Card className="mt-6 p-6">
+          <h2 className="text-xl font-semibold mb-4">AI-Generated Improvement Points</h2>
+          <div className="space-y-3">
+            {improvementPoints.map((point) => (
+              <div key={point.id} className="flex items-start gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="mt-0.5"
+                  onClick={() => toggleImprovementPoint(point.id, point.is_completed)}
+                >
+                  {point.is_completed ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-gray-400" />
+                  )}
+                </Button>
+                <p className={`flex-1 ${point.is_completed ? 'line-through text-gray-500' : ''}`}>
+                  {point.point}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <div className="mt-6 sm:mt-8">
         <SearchSection
           searchTerm={searchTerm}
