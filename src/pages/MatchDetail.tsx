@@ -74,7 +74,18 @@ const MatchDetail = () => {
         return;
       }
 
-      // First delete associated tags
+      // First delete associated improvement points
+      const { error: improvementPointsError } = await supabase
+        .from('improvement_points')
+        .delete()
+        .eq('source_match_id', id);
+
+      if (improvementPointsError) {
+        console.error('Error deleting improvement points:', improvementPointsError);
+        throw new Error('Failed to delete improvement points');
+      }
+
+      // Then delete associated tags
       const { error: tagError } = await supabase
         .from('match_tags')
         .delete()
@@ -85,7 +96,7 @@ const MatchDetail = () => {
         throw new Error('Failed to delete match tags');
       }
 
-      // Then delete the match
+      // Finally delete the match
       const { error: matchError } = await supabase
         .from('matches')
         .delete()
