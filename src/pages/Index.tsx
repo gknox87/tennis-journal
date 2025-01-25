@@ -5,6 +5,7 @@ import { MatchList } from "@/components/MatchList";
 import { Header } from "@/components/Header";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
+import { ImprovementChecklist } from "@/components/ImprovementChecklist";
 import { Match } from "@/types/match";
 
 const Index = () => {
@@ -144,6 +145,9 @@ const Index = () => {
       <Header />
       <div className="mt-4 sm:mt-8">
         <StatsSection matches={matches} />
+      </div>
+      <div className="mt-6">
+        <ImprovementChecklist />
       </div>
       <div className="mt-6 sm:mt-8">
         <SearchSection
