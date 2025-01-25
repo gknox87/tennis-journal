@@ -13,6 +13,13 @@ interface ImprovementPoint {
   is_completed: boolean;
   source_match_id: string | null;
   created_at: string;
+  matches?: {
+    date: string;
+    score: string;
+    opponents?: {
+      name: string;
+    };
+  };
 }
 
 const ImprovementNotes = () => {

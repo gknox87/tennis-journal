@@ -76,7 +76,7 @@ const AddMatch = () => {
         .select('id')
         .eq('name', opponent)
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();  // Changed from .single() to .maybeSingle()
 
       let opponentId;
 
