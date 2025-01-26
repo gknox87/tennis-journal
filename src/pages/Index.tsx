@@ -199,21 +199,6 @@ const Index = () => {
       )
       .subscribe();
 
-    const improvementSubscription = supabase
-      .channel("improvement_points_channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "improvement_points",
-        },
-        () => {
-          fetchImprovementPoints();
-        }
-      )
-      .subscribe();
-
     const notesSubscription = supabase
       .channel("player_notes_channel")
       .on(
@@ -229,10 +214,25 @@ const Index = () => {
       )
       .subscribe();
 
+    const improvementSubscription = supabase
+      .channel("improvement_points_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "improvement_points",
+        },
+        () => {
+          fetchImprovementPoints();
+        }
+      )
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
-      improvementSubscription.unsubscribe();
       notesSubscription.unsubscribe();
+      improvementSubscription.unsubscribe();
     };
   }, []);
 
@@ -283,6 +283,24 @@ const Index = () => {
           Notes
         </Button>
       </div>
+
+      {playerNotes.length > 0 && (
+        <Card className="mt-6 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">My Notes</h2>
+          </div>
+          <div className="space-y-4">
+            {playerNotes.map((note) => (
+              <div key={note.id} className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-2">{note.title}</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {note.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
       
       {improvementPoints.length > 0 && (
         <Card className="mt-6 p-6">
@@ -314,24 +332,6 @@ const Index = () => {
                 </Button>
                 <p className={`flex-1 ${point.is_completed ? 'line-through text-gray-500' : ''}`}>
                   {point.point}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {playerNotes.length > 0 && (
-        <Card className="mt-6 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Player Notes</h2>
-          </div>
-          <div className="space-y-4">
-            {playerNotes.map((note) => (
-              <div key={note.id} className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">{note.title}</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {note.content}
                 </p>
               </div>
             ))}
