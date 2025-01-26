@@ -6,6 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Edit, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Note {
   id: string;
@@ -17,13 +28,23 @@ interface Note {
 interface NotesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingNote?: Note | null;
 }
 
-export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
+export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingNote) {
+      setTitle(editingNote.title);
+      setContent(editingNote.content);
+    } else {
+      setTitle("");
+      setContent("");
+    }
+  }, [editingNote]);
 
   const handleSubmit = async () => {
     try {
@@ -81,7 +102,6 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
 
       setTitle("");
       setContent("");
-      setEditingNote(null);
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving note:", error);
@@ -97,7 +117,7 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Player Notes</DialogTitle>
+          <DialogTitle>{editingNote ? "Edit Note" : "Add Note"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">

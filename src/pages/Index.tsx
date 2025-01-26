@@ -7,10 +7,21 @@ import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
 import { Card } from "@/components/ui/card";
 import { Match } from "@/types/match";
-import { CheckCircle2, Circle, ArrowRight, Plus } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight, Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { NotesDialog } from "@/components/NotesDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ImprovementPoint {
   id: string;
@@ -37,6 +48,7 @@ const Index = () => {
   const [improvementPoints, setImprovementPoints] = useState<ImprovementPoint[]>([]);
   const [playerNotes, setPlayerNotes] = useState<PlayerNote[]>([]);
   const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [editingNote, setEditingNote] = useState<PlayerNote | null>(null);
 
   const fetchImprovementPoints = async () => {
     try {
@@ -267,6 +279,35 @@ const Index = () => {
     );
   };
 
+  const handleEditNote = (note: PlayerNote) => {
+    setEditingNote(note);
+    setShowNotesDialog(true);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("player_notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note deleted successfully",
+      });
+      fetchPlayerNotes(); // Refresh notes after deletion
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete note",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
       <Header />
@@ -277,7 +318,10 @@ const Index = () => {
       <div className="flex justify-end mt-6">
         <Button
           variant="outline"
-          onClick={() => setShowNotesDialog(true)}
+          onClick={() => {
+            setEditingNote(null);
+            setShowNotesDialog(true);
+          }}
         >
           <Plus className="mr-2 h-4 w-4" />
           Notes
@@ -289,51 +333,70 @@ const Index = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">My Notes</h2>
           </div>
-          <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {playerNotes.map((note) => (
-              <div key={note.id} className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">{note.title}</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {note.content}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-      
-      {improvementPoints.length > 0 && (
-        <Card className="mt-6 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">AI-Generated Improvement Points</h2>
-            <Button
-              variant="ghost"
-              className="text-sm"
-              onClick={() => navigate('/improvement-notes')}
-            >
-              View all
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {improvementPoints.slice(0, 3).map((point) => (
-              <div key={point.id} className="flex items-start gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="mt-0.5"
-                  onClick={() => toggleImprovementPoint(point.id, point.is_completed)}
-                >
-                  {point.is_completed ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-gray-400" />
-                  )}
-                </Button>
-                <p className={`flex-1 ${point.is_completed ? 'line-through text-gray-500' : ''}`}>
-                  {point.point}
-                </p>
-              </div>
+              <Card 
+                key={note.id} 
+                className="match-card cursor-pointer"
+                onClick={() => handleEditNote(note)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base sm:text-lg font-medium line-clamp-1">
+                      {note.title}
+                    </CardTitle>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditNote(note);
+                        }}
+                      >
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Note</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this note? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNote(note.id);
+                            }}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+                    {note.content}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </Card>
@@ -358,6 +421,7 @@ const Index = () => {
       <NotesDialog
         open={showNotesDialog}
         onOpenChange={setShowNotesDialog}
+        editingNote={editingNote}
       />
     </div>
   );
