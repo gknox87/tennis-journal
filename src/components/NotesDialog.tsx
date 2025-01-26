@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,9 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
 
   const fetchNotes = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) return;
+
       const { data, error } = await supabase
         .from("player_notes")
         .select("*")
@@ -47,6 +50,16 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
 
   const handleSubmit = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to add notes",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (!title.trim() || !content.trim()) {
         toast({
           title: "Error",
@@ -59,7 +72,11 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
       if (editingNote) {
         const { error } = await supabase
           .from("player_notes")
-          .update({ title, content, updated_at: new Date().toISOString() })
+          .update({
+            title,
+            content,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", editingNote.id);
 
         if (error) throw error;
@@ -71,7 +88,11 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
       } else {
         const { error } = await supabase
           .from("player_notes")
-          .insert([{ title, content }]);
+          .insert({
+            title,
+            content,
+            user_id: session.session.user.id,
+          });
 
         if (error) throw error;
 
@@ -125,7 +146,7 @@ export const NotesDialog = ({ open, onOpenChange }: NotesDialogProps) => {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     if (open) {
       fetchNotes();
     }
