@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Edit, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,6 +113,32 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      if (!editingNote) return;
+
+      const { error } = await supabase
+        .from("player_notes")
+        .delete()
+        .eq("id", editingNote.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note deleted successfully",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete note",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -132,9 +158,33 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[100px]"
             />
-            <Button onClick={handleSubmit}>
-              {editingNote ? "Update Note" : "Add Note"}
-            </Button>
+            <div className="flex justify-between items-center">
+              <Button onClick={handleSubmit}>
+                {editingNote ? "Update Note" : "Add Note"}
+              </Button>
+              {editingNote && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Note
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Note</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this note? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
