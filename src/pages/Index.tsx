@@ -5,7 +5,7 @@ import { MatchList } from "@/components/MatchList";
 import { Header } from "@/components/Header";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Match } from "@/types/match";
 import { CheckCircle2, Circle, ArrowRight, Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
