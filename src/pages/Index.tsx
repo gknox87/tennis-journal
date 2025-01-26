@@ -7,15 +7,23 @@ import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
 import { Card } from "@/components/ui/card";
 import { Match } from "@/types/match";
-import { CheckCircle2, Circle, ArrowRight } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { NotesDialog } from "@/components/NotesDialog";
 
 interface ImprovementPoint {
   id: string;
   point: string;
   is_completed: boolean;
   source_match_id: string | null;
+}
+
+interface PlayerNote {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
 }
 
 const Index = () => {
@@ -27,6 +35,8 @@ const Index = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
   const [improvementPoints, setImprovementPoints] = useState<ImprovementPoint[]>([]);
+  const [playerNotes, setPlayerNotes] = useState<PlayerNote[]>([]);
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
 
   const fetchImprovementPoints = async () => {
     try {
@@ -145,10 +155,34 @@ const Index = () => {
     }
   };
 
+  const fetchPlayerNotes = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) return;
+
+      const { data, error } = await supabase
+        .from('player_notes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setPlayerNotes(data || []);
+    } catch (error) {
+      console.error('Error fetching player notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch player notes",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchMatches();
     fetchTags();
     fetchImprovementPoints();
+    fetchPlayerNotes();
 
     const subscription = supabase
       .channel("matches_channel")
@@ -180,9 +214,25 @@ const Index = () => {
       )
       .subscribe();
 
+    const notesSubscription = supabase
+      .channel("player_notes_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "player_notes",
+        },
+        () => {
+          fetchPlayerNotes();
+        }
+      )
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
       improvementSubscription.unsubscribe();
+      notesSubscription.unsubscribe();
     };
   }, []);
 
@@ -224,6 +274,16 @@ const Index = () => {
         <StatsSection matches={matches} />
       </div>
       
+      <div className="flex justify-end mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setShowNotesDialog(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Notes
+        </Button>
+      </div>
+      
       {improvementPoints.length > 0 && (
         <Card className="mt-6 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -261,6 +321,24 @@ const Index = () => {
         </Card>
       )}
 
+      {playerNotes.length > 0 && (
+        <Card className="mt-6 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Player Notes</h2>
+          </div>
+          <div className="space-y-4">
+            {playerNotes.map((note) => (
+              <div key={note.id} className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-2">{note.title}</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {note.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <div className="mt-6 sm:mt-8">
         <SearchSection
           searchTerm={searchTerm}
@@ -276,6 +354,11 @@ const Index = () => {
           onMatchDelete={fetchMatches}
         />
       </div>
+
+      <NotesDialog
+        open={showNotesDialog}
+        onOpenChange={setShowNotesDialog}
+      />
     </div>
   );
 };
