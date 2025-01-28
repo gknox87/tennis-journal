@@ -308,6 +308,12 @@ const Index = () => {
     }
   };
 
+  const stripHtmlTags = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
   return (
     <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
       <Header />
@@ -396,7 +402,7 @@ const Index = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap">
-                      {note.content}
+                      {stripHtmlTags(note.content)}
                     </p>
                   </CardContent>
                 </Card>
