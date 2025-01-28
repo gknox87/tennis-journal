@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2, Bold as BoldIcon, Underline as UnderlineIcon, Highlighter, ImagePlus } from "lucide-react";
+import { Trash2, Bold, Underline as UnderlineIcon, Highlighter, ImagePlus } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import UnderlineExtension from '@tiptap/extension-underline';
+import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
 import {
   AlertDialog,
@@ -44,7 +44,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
   const editor = useEditor({
     extensions: [
       StarterKit,
-      UnderlineExtension,
+      Underline,
       Highlight.configure({ multicolor: true }),
     ],
     content: '',
@@ -220,7 +220,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
                 onClick={() => editor?.chain().focus().toggleBold().run()}
                 className={editor?.isActive('bold') ? 'bg-accent' : ''}
               >
-                <BoldIcon className="h-4 w-4" />
+                <Bold className="h-4 w-4" />
               </Button>
               <Button
                 type="button"
