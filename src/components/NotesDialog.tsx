@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2 } from "lucide-react";
+import { Trash2, Bold, Underline, Highlighter, ImagePlus } from "lucide-react";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Highlight from '@tiptap/extension-highlight';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +26,7 @@ interface Note {
   title: string;
   content: string;
   created_at: string;
+  image_url?: string;
 }
 
 interface NotesDialogProps {
@@ -33,18 +37,65 @@ interface NotesDialogProps {
 
 export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProps) => {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Highlight.configure({ multicolor: true }),
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class: 'min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      },
+    },
+  });
 
   useEffect(() => {
     if (editingNote) {
       setTitle(editingNote.title);
-      setContent(editingNote.content);
+      editor?.commands.setContent(editingNote.content);
+      setImagePreview(editingNote.image_url || null);
     } else {
       setTitle("");
-      setContent("");
+      editor?.commands.setContent('');
+      setImagePreview(null);
     }
-  }, [editingNote]);
+  }, [editingNote, editor]);
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError, data } = await supabase.storage
+        .from('note_images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('note_images')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const preview = URL.createObjectURL(file);
+      setImagePreview(preview);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -58,7 +109,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
         return;
       }
 
-      if (!title.trim() || !content.trim()) {
+      if (!title.trim() || !editor?.getHTML()) {
         toast({
           title: "Error",
           description: "Please fill in both title and content",
@@ -67,12 +118,18 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
         return;
       }
 
+      let imageUrl = editingNote?.image_url;
+      if (imageFile) {
+        imageUrl = await handleImageUpload(imageFile);
+      }
+
       if (editingNote) {
         const { error } = await supabase
           .from("player_notes")
           .update({
             title,
-            content,
+            content: editor.getHTML(),
+            image_url: imageUrl,
             updated_at: new Date().toISOString(),
           })
           .eq("id", editingNote.id);
@@ -88,7 +145,8 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
           .from("player_notes")
           .insert({
             title,
-            content,
+            content: editor.getHTML(),
+            image_url: imageUrl,
             user_id: session.session.user.id,
           });
 
@@ -101,7 +159,9 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
       }
 
       setTitle("");
-      setContent("");
+      editor?.commands.setContent('');
+      setImageFile(null);
+      setImagePreview(null);
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving note:", error);
@@ -152,13 +212,64 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <Textarea
-              placeholder="Write your note here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <div className="flex justify-between items-center">
+            <div className="flex gap-2 mb-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={editor?.isActive('bold') ? 'bg-accent' : ''}
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                className={editor?.isActive('underline') ? 'bg-accent' : ''}
+              >
+                <Underline className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleHighlight().run()}
+                className={editor?.isActive('highlight') ? 'bg-accent' : ''}
+              >
+                <Highlighter className="h-4 w-4" />
+              </Button>
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="relative"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <ImagePlus className="h-4 w-4" />
+                </Button>
+                <input
+                  type="file"
+                  id="image-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </div>
+            </div>
+            <EditorContent editor={editor} />
+            {(imagePreview || editingNote?.image_url) && (
+              <div className="mt-4">
+                <img
+                  src={imagePreview || editingNote?.image_url}
+                  alt="Note image"
+                  className="max-h-48 rounded-md"
+                />
+              </div>
+            )}
+            <div className="flex justify-between items-center mt-4">
               <Button onClick={handleSubmit}>
                 {editingNote ? "Update Note" : "Add Note"}
               </Button>
