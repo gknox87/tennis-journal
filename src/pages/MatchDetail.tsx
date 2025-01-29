@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Share2, Mail, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
@@ -18,12 +18,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [match, setMatch] = useState<Match | null>(null);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -123,6 +136,58 @@ const MatchDetail = () => {
     }
   };
 
+  const shareViaWhatsApp = () => {
+    if (!match) return;
+
+    const text = `Match Details:\n
+Opponent: ${match.opponent_name}\n
+Date: ${new Date(match.date).toLocaleDateString()}\n
+Result: ${match.is_win ? 'Win' : 'Loss'}\n
+Score: ${match.score}\n
+${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
+
+    const encodedText = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+  };
+
+  const shareViaEmail = async () => {
+    if (!match) return;
+    setIsSharing(true);
+
+    try {
+      const { error } = await supabase.functions.invoke('share-match-notes', {
+        body: {
+          recipientEmail,
+          matchDetails: {
+            opponent: match.opponent_name,
+            date: new Date(match.date).toLocaleDateString(),
+            score: match.score,
+            notes: match.notes || '',
+            isWin: match.is_win,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Match notes have been shared via email.",
+      });
+      setShowEmailDialog(false);
+      setRecipientEmail("");
+    } catch (error) {
+      console.error('Error sharing via email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to share match notes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   if (!match) {
     return (
       <div className="container mx-auto px-4 py-6 sm:py-8">
@@ -154,6 +219,24 @@ const MatchDetail = () => {
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Match
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => setShowEmailDialog(true)}
+            className="w-full sm:w-auto"
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Share via Email
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={shareViaWhatsApp}
+            className="w-full sm:w-auto"
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Share via WhatsApp
           </Button>
           
           <AlertDialog>
@@ -215,6 +298,46 @@ const MatchDetail = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Match Notes via Email</DialogTitle>
+            <DialogDescription>
+              Enter the recipient's email address to share the match notes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter recipient's email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEmailDialog(false);
+                setRecipientEmail("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={shareViaEmail}
+              disabled={!recipientEmail || isSharing}
+            >
+              {isSharing ? "Sending..." : "Send"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
