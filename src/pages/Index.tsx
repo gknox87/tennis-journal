@@ -196,8 +196,9 @@ const Index = () => {
     fetchImprovementPoints();
     fetchPlayerNotes();
 
-    const subscription = supabase
-      .channel("matches_channel")
+    // Subscribe to matches changes
+    const matchesChannel = supabase
+      .channel("matches_changes")
       .on(
         "postgres_changes",
         {
@@ -211,8 +212,9 @@ const Index = () => {
       )
       .subscribe();
 
-    const notesSubscription = supabase
-      .channel("player_notes_channel")
+    // Subscribe to player notes changes
+    const notesChannel = supabase
+      .channel("notes_changes")
       .on(
         "postgres_changes",
         {
@@ -226,8 +228,9 @@ const Index = () => {
       )
       .subscribe();
 
-    const improvementSubscription = supabase
-      .channel("improvement_points_channel")
+    // Subscribe to improvement points changes
+    const pointsChannel = supabase
+      .channel("points_changes")
       .on(
         "postgres_changes",
         {
@@ -241,10 +244,28 @@ const Index = () => {
       )
       .subscribe();
 
+    // Subscribe to tags changes
+    const tagsChannel = supabase
+      .channel("tags_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tags",
+        },
+        () => {
+          fetchTags();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions
     return () => {
-      subscription.unsubscribe();
-      notesSubscription.unsubscribe();
-      improvementSubscription.unsubscribe();
+      matchesChannel.unsubscribe();
+      notesChannel.unsubscribe();
+      pointsChannel.unsubscribe();
+      tagsChannel.unsubscribe();
     };
   }, []);
 
