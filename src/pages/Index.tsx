@@ -175,6 +175,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
+        .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false })
         .limit(3);
 
@@ -212,7 +213,7 @@ const Index = () => {
       )
       .subscribe();
 
-    // Subscribe to player notes changes
+    // Subscribe to player notes changes with specific user filter
     const notesChannel = supabase
       .channel("notes_changes")
       .on(
@@ -221,8 +222,10 @@ const Index = () => {
           event: "*",
           schema: "public",
           table: "player_notes",
+          filter: `user_id=eq.${supabase.auth.getUser().then(({ data }) => data.user?.id)}`
         },
-        () => {
+        (payload) => {
+          console.log('Notes change detected:', payload);
           fetchPlayerNotes();
         }
       )
