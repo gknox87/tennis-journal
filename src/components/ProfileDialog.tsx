@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,61 +24,108 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     preferred_surface: "",
     avatar_url: null,
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (open) {
+      fetchProfile();
+    }
+  }, [open]);
 
   const fetchProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "No active session found",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching profile:", error);
+      if (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile data",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        setProfileData({
+          full_name: data.full_name || "",
+          club: data.club || "",
+          ranking: data.ranking || "",
+          preferred_surface: data.preferred_surface || "",
+          avatar_url: data.avatar_url || null,
+        });
+      }
+    } catch (err) {
+      console.error("Error in fetchProfile:", err);
       toast({
         title: "Error",
-        description: "Failed to fetch profile data",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (data) {
-      setProfileData(data);
     }
   };
 
   const handleSave = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "No active session found",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(profileData)
-      .eq("id", session.user.id);
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({
+          id: session.user.id,
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        });
 
-    if (error) {
-      console.error("Error updating profile:", error);
+      if (error) {
+        console.error("Error updating profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Error in handleSave:", err);
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    toast({
-      title: "Success",
-      description: "Profile updated successfully",
-    });
-    onOpenChange(false);
   };
 
   return (
@@ -86,6 +133,9 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
+          <DialogDescription>
+            Update your profile information here. Click save when you're done.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-center">
@@ -137,7 +187,9 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </Select>
             </div>
           </div>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
