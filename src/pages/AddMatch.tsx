@@ -58,25 +58,28 @@ const AddMatch = () => {
         return;
       }
 
-      // Only fetch profile if user is authenticated
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('preferred_surface')
-        .eq('id', session.user.id)
-        .single();
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('preferred_surface')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      if (profile?.preferred_surface) {
-        // Capitalize first letter to match court types format
-        const preferredSurface = profile.preferred_surface.charAt(0).toUpperCase() + 
-                               profile.preferred_surface.slice(1);
-        if (courtTypes.includes(preferredSurface as CourtType)) {
-          setCourtType(preferredSurface);
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
         }
+
+        if (profile?.preferred_surface) {
+          // Capitalize first letter to match court types format
+          const preferredSurface = profile.preferred_surface.charAt(0).toUpperCase() + 
+                               profile.preferred_surface.slice(1);
+          if (courtTypes.includes(preferredSurface as CourtType)) {
+            setCourtType(preferredSurface);
+          }
+        }
+      } catch (err) {
+        console.error('Error in checkAuth:', err);
       }
     };
 
