@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,35 @@ const AddMatch = () => {
     { playerScore: "", opponentScore: "" },
     { playerScore: "", opponentScore: "" },
   ]);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('preferred_surface')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (profile?.preferred_surface) {
+        // Capitalize first letter to match court types format
+        const preferredSurface = profile.preferred_surface.charAt(0).toUpperCase() + 
+                               profile.preferred_surface.slice(1);
+        if (courtTypes.includes(preferredSurface as CourtType)) {
+          setCourtType(preferredSurface);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const formatScore = () => {
     return sets
