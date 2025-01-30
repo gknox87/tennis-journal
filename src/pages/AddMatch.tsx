@@ -46,10 +46,19 @@ const AddMatch = () => {
   ]);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add matches",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
 
+      // Only fetch profile if user is authenticated
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('preferred_surface')
@@ -71,8 +80,19 @@ const AddMatch = () => {
       }
     };
 
-    fetchUserProfile();
-  }, []);
+    checkAuth();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
 
   const formatScore = () => {
     return sets
