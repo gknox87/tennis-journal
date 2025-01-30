@@ -14,6 +14,8 @@ interface ScoreInputProps {
   onSetsChange: (sets: SetScore[]) => void;
   isBestOfFive: boolean;
   onBestOfFiveChange: (value: boolean) => void;
+  onIsWinChange?: (value: boolean) => void;
+  onFinalSetTiebreakChange?: (value: boolean) => void;
 }
 
 export const ScoreInput = ({
@@ -21,6 +23,8 @@ export const ScoreInput = ({
   onSetsChange,
   isBestOfFive,
   onBestOfFiveChange,
+  onIsWinChange,
+  onFinalSetTiebreakChange,
 }: ScoreInputProps) => {
   const autoPopulateScore = (score: string): string => {
     const numScore = parseInt(score);
@@ -34,6 +38,47 @@ export const ScoreInput = ({
     return "";
   };
 
+  const checkForMatchWin = (updatedSets: SetScore[]) => {
+    if (!onIsWinChange) return;
+
+    let playerSetsWon = 0;
+    let opponentSetsWon = 0;
+    
+    updatedSets.forEach(set => {
+      const playerScore = parseInt(set.playerScore);
+      const opponentScore = parseInt(set.opponentScore);
+      
+      if (!isNaN(playerScore) && !isNaN(opponentScore)) {
+        if (playerScore > opponentScore) {
+          playerSetsWon++;
+        } else if (opponentScore > playerScore) {
+          opponentSetsWon++;
+        }
+      }
+    });
+
+    const setsNeededToWin = isBestOfFive ? 3 : 2;
+    onIsWinChange(playerSetsWon >= setsNeededToWin);
+  };
+
+  const checkForTiebreak = (updatedSets: SetScore[]) => {
+    if (!onFinalSetTiebreakChange) return;
+
+    const lastPlayedSetIndex = updatedSets.findIndex(set => 
+      set.playerScore === "" && set.opponentScore === ""
+    ) - 1;
+
+    const lastPlayedSet = lastPlayedSetIndex >= 0 ? updatedSets[lastPlayedSetIndex] : updatedSets[updatedSets.length - 1];
+    
+    if (lastPlayedSet && lastPlayedSet.playerScore && lastPlayedSet.opponentScore) {
+      const isTiebreak = 
+        (lastPlayedSet.playerScore === "7" && lastPlayedSet.opponentScore === "6") ||
+        (lastPlayedSet.playerScore === "6" && lastPlayedSet.opponentScore === "7");
+      
+      onFinalSetTiebreakChange(isTiebreak);
+    }
+  };
+
   const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
     const newSets = [...sets];
     newSets[index] = { ...newSets[index], [field]: value };
@@ -45,6 +90,8 @@ export const ScoreInput = ({
     }
 
     onSetsChange(newSets);
+    checkForMatchWin(newSets);
+    checkForTiebreak(newSets);
   };
 
   const toggleBestOfFive = () => {
