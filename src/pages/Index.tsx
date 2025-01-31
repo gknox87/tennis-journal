@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { Match } from "@/types/match";
@@ -6,6 +6,7 @@ import { PlayerNote } from "@/types/notes";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useDataFetching } from "@/hooks/useDataFetching";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { toast } = useToast();
