@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Match } from "@/types/match";
+import { Match, SetScore } from "@/types/match";
 import { MatchForm } from "@/components/match/MatchForm";
 
 const EditMatch = () => {
@@ -57,7 +57,7 @@ const EditMatch = () => {
         }
 
         const scoreArray = matchData.score.split(' ');
-        const parsedSets = scoreArray.map(set => {
+        const parsedSets: SetScore[] = scoreArray.map(set => {
           const [playerScore, opponentScore] = set.split('-');
           return { playerScore, opponentScore };
         });
@@ -65,8 +65,8 @@ const EditMatch = () => {
         setMatch({
           ...matchData,
           opponent_name: matchData.opponents?.name || "Unknown Opponent",
-          sets: parsedSets,
-          selectedTags: matchData.tags || []
+          tags: matchData.tags || [],
+          sets: parsedSets
         });
       } catch (error: any) {
         console.error("Error in fetchMatch:", error);
@@ -98,9 +98,11 @@ const EditMatch = () => {
       }
 
       // Format score string from sets
-      const validSets = formData.sets.filter((set: any) => set.playerScore !== "" && set.opponentScore !== "");
+      const validSets = formData.sets.filter((set: SetScore) => 
+        set.playerScore !== "" && set.opponentScore !== ""
+      );
       const scoreString = validSets
-        .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
+        .map((set: SetScore) => `${set.playerScore}-${set.opponentScore}`)
         .join(' ');
 
       // Get or create opponent

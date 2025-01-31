@@ -1,3 +1,13 @@
+export interface Tag {
+  id: string;
+  name: string;
+}
+
+export interface SetScore {
+  playerScore: string;
+  opponentScore: string;
+}
+
 export interface Match {
   id: string;
   date: string;
@@ -7,7 +17,9 @@ export interface Match {
   is_win: boolean;
   final_set_tiebreak?: boolean;
   notes?: string;
-  tags?: { id: string; name: string; }[];
+  tags?: Tag[];
   created_at?: string;
   user_id?: string;
+  court_type?: string | null;
+  sets?: SetScore[];
 }
