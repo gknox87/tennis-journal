@@ -1,72 +1,53 @@
 import { useState, useCallback, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
-import { Match } from "@/types/match";
-import { PlayerNote } from "@/types/notes";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
-import { useDataFetching } from "@/hooks/useDataFetching";
+import { useMatchesData } from "@/hooks/useMatchesData";
+import { useTagsData } from "@/hooks/useTagsData";
+import { useNotesData } from "@/hooks/useNotesData";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
-import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { toast } = useToast();
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<{ id: string; name: string; }[]>([]);
-  const [playerNotes, setPlayerNotes] = useState<PlayerNote[]>([]);
+  
+  const {
+    matches,
+    filteredMatches,
+    setFilteredMatches,
+    refreshMatches
+  } = useMatchesData();
 
-  const { fetchPlayerNotes, fetchTags, fetchMatches } = useDataFetching();
+  const {
+    selectedTags,
+    availableTags,
+    toggleTag,
+    refreshTags
+  } = useTagsData();
 
-  const refreshData = useCallback(async () => {
+  const {
+    playerNotes,
+    refreshNotes,
+    handleDeleteNote
+  } = useNotesData();
+
+  const refreshAllData = useCallback(async () => {
     console.log('Refreshing all data...');
-    const [notesData, tagsData, matchesData] = await Promise.all([
-      fetchPlayerNotes(),
-      fetchTags(),
-      fetchMatches()
+    await Promise.all([
+      refreshNotes(),
+      refreshTags(),
+      refreshMatches()
     ]);
-
-    setPlayerNotes(notesData);
-    setAvailableTags(tagsData);
-    setMatches(matchesData);
-    setFilteredMatches(matchesData);
-  }, [fetchPlayerNotes, fetchTags, fetchMatches]);
+  }, [refreshNotes, refreshTags, refreshMatches]);
 
   // Set up realtime subscriptions
   useRealtimeSubscriptions({
-    onMatchesUpdate: refreshData,
-    onNotesUpdate: refreshData,
-    onTagsUpdate: refreshData
+    onMatchesUpdate: refreshAllData,
+    onNotesUpdate: refreshAllData,
+    onTagsUpdate: refreshAllData
   });
-
-  const handleDeleteNote = async (noteId: string) => {
-    try {
-      const { error } = await supabase
-        .from("player_notes")
-        .delete()
-        .eq("id", noteId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Note deleted successfully",
-      });
-      
-      // Real-time subscription will handle the update
-    } catch (error) {
-      console.error("Error deleting note:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete note",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Filter matches when search term or selected tags change
   useEffect(() => {
+    console.log('Filtering matches with:', { searchTerm, selectedTags });
     let filtered = matches;
 
     if (searchTerm) {
@@ -86,21 +67,14 @@ const Index = () => {
       );
     }
 
+    console.log('Filtered matches:', filtered);
     setFilteredMatches(filtered);
-  }, [searchTerm, selectedTags, matches]);
-
-  const toggleTag = (tagId: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
-    );
-  };
+  }, [searchTerm, selectedTags, matches, setFilteredMatches]);
 
   // Initial data fetch
   useEffect(() => {
-    refreshData();
-  }, [refreshData]);
+    refreshAllData();
+  }, [refreshAllData]);
 
   return (
     <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
@@ -114,7 +88,7 @@ const Index = () => {
         selectedTags={selectedTags}
         onTagToggle={toggleTag}
         playerNotes={playerNotes}
-        onMatchDelete={refreshData}
+        onMatchDelete={refreshAllData}
         onDeleteNote={handleDeleteNote}
       />
     </div>

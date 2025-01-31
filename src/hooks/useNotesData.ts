@@ -1,0 +1,52 @@
+import { useState, useCallback } from "react";
+import { PlayerNote } from "@/types/notes";
+import { useDataFetching } from "@/hooks/useDataFetching";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+export const useNotesData = () => {
+  const [playerNotes, setPlayerNotes] = useState<PlayerNote[]>([]);
+  const { fetchPlayerNotes } = useDataFetching();
+  const { toast } = useToast();
+
+  const refreshNotes = useCallback(async () => {
+    console.log('Refreshing notes data...');
+    const notesData = await fetchPlayerNotes();
+    console.log('Fetched notes:', notesData);
+    setPlayerNotes(notesData);
+  }, [fetchPlayerNotes]);
+
+  const handleDeleteNote = useCallback(async (noteId: string) => {
+    try {
+      console.log('Deleting note:', noteId);
+      const { error } = await supabase
+        .from("player_notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note deleted successfully",
+      });
+      
+      // Real-time subscription will handle the update
+      console.log('Note deleted successfully');
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete note",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  return {
+    playerNotes,
+    setPlayerNotes,
+    refreshNotes,
+    handleDeleteNote
+  };
+};
