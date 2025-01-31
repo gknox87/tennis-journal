@@ -9,6 +9,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
+import { PlayerNote } from "@/types/notes";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +22,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  image_url?: string;
-}
-
 interface NotesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingNote?: Note | null;
+  editingNote?: PlayerNote | null;
 }
 
 export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProps) => {
