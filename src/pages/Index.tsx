@@ -24,10 +24,10 @@ const Index = () => {
         .from('player_notes')
         .select('*')
         .eq('user_id', session.session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('Fetched notes:', data);
       setPlayerNotes(data || []);
     } catch (error) {
       console.error('Error fetching player notes:', error);
@@ -121,7 +121,8 @@ const Index = () => {
         title: "Success",
         description: "Note deleted successfully",
       });
-      fetchPlayerNotes();
+      
+      // No need to call fetchPlayerNotes here as the real-time subscription will handle it
     } catch (error) {
       console.error("Error deleting note:", error);
       toast({
@@ -139,29 +140,30 @@ const Index = () => {
 
     // Subscribe to matches changes
     const matchesChannel = supabase
-      .channel("matches_changes")
+      .channel('matches_changes')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "matches",
+          event: '*',
+          schema: 'public',
+          table: 'matches',
         },
-        () => {
+        (payload) => {
+          console.log('Matches change detected:', payload);
           fetchMatches();
         }
       )
       .subscribe();
 
-    // Subscribe to player notes changes with specific user filter
+    // Subscribe to player notes changes
     const notesChannel = supabase
-      .channel("notes_changes")
+      .channel('notes_changes')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "player_notes",
+          event: '*',
+          schema: 'public',
+          table: 'player_notes',
         },
         (payload) => {
           console.log('Notes change detected:', payload);
@@ -172,15 +174,16 @@ const Index = () => {
 
     // Subscribe to tags changes
     const tagsChannel = supabase
-      .channel("tags_changes")
+      .channel('tags_changes')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "tags",
+          event: '*',
+          schema: 'public',
+          table: 'tags',
         },
-        () => {
+        (payload) => {
+          console.log('Tags change detected:', payload);
           fetchTags();
         }
       )
