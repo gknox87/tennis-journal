@@ -1,66 +1,33 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Match } from "@/types/match";
-import { OpponentInput } from "@/components/OpponentInput";
-import { ScoreInput } from "@/components/ScoreInput";
-import { MatchSettings } from "@/components/MatchSettings";
-
-interface Tag {
-  id: string;
-  name: string;
-}
-
-interface SetScore {
-  playerScore: string;
-  opponentScore: string;
-}
+import { MatchForm } from "@/components/match/MatchForm";
 
 const EditMatch = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [match, setMatch] = useState<Match | null>(null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [opponentName, setOpponentName] = useState("");
-  const [sets, setSets] = useState<SetScore[]>([
-    { playerScore: "", opponentScore: "" },
-    { playerScore: "", opponentScore: "" },
-    { playerScore: "", opponentScore: "" },
-  ]);
-  const [isBestOfFive, setIsBestOfFive] = useState(false);
-  const [formData, setFormData] = useState({
-    date: "",
-    is_win: false,
-    notes: "",
-    final_set_tiebreak: false,
-  });
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to edit matches.",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return false;
-      }
-      return true;
-    };
-
     const fetchMatch = async () => {
       try {
         setIsLoading(true);
-        const isAuthenticated = await checkAuth();
-        if (!isAuthenticated) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to edit matches.",
+            variant: "destructive",
+          });
+          navigate('/login');
+          return;
+        }
 
         const { data: matchData, error: matchError } = await supabase
           .from("matches")
@@ -89,37 +56,18 @@ const EditMatch = () => {
           return;
         }
 
-        // Create a proper Match object with opponent_name
-        const matchWithOpponent: Match = {
-          ...matchData,
-          opponent_name: matchData.opponents?.name || "Unknown Opponent"
-        };
-
-        // Parse score into sets
         const scoreArray = matchData.score.split(' ');
         const parsedSets = scoreArray.map(set => {
           const [playerScore, opponentScore] = set.split('-');
           return { playerScore, opponentScore };
         });
 
-        // Initialize sets state
-        if (parsedSets.length === 5) {
-          setIsBestOfFive(true);
-          setSets(parsedSets);
-        } else {
-          setSets([...parsedSets, ...Array(5 - parsedSets.length).fill({ playerScore: "", opponentScore: "" })]);
-        }
-
-        setMatch(matchWithOpponent);
-        setOpponentName(matchData.opponents?.name || "");
-        setFormData({
-          date: matchData.date,
-          is_win: matchData.is_win,
-          notes: matchData.notes || "",
-          final_set_tiebreak: matchData.final_set_tiebreak || false,
+        setMatch({
+          ...matchData,
+          opponent_name: matchData.opponents?.name || "Unknown Opponent",
+          sets: parsedSets,
+          selectedTags: matchData.tags || []
         });
-        setSelectedTags(matchData.tags || []);
-
       } catch (error: any) {
         console.error("Error in fetchMatch:", error);
         toast({
@@ -136,8 +84,7 @@ const EditMatch = () => {
     fetchMatch();
   }, [id, navigate, toast]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: any) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -151,15 +98,15 @@ const EditMatch = () => {
       }
 
       // Format score string from sets
-      const validSets = sets.filter(set => set.playerScore !== "" && set.opponentScore !== "");
+      const validSets = formData.sets.filter((set: any) => set.playerScore !== "" && set.opponentScore !== "");
       const scoreString = validSets
-        .map(set => `${set.playerScore}-${set.opponentScore}`)
+        .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
         .join(' ');
 
       // Get or create opponent
       const { data: opponentId } = await supabase
         .rpc('get_or_create_opponent', {
-          p_name: opponentName,
+          p_name: formData.opponent,
           p_user_id: session.user.id
         });
 
@@ -171,10 +118,13 @@ const EditMatch = () => {
       const { error: matchError } = await supabase
         .from("matches")
         .update({
-          ...formData,
+          date: formData.date.toISOString().split('T')[0],
           score: scoreString,
+          is_win: formData.isWin,
+          notes: formData.notes || null,
           opponent_id: opponentId,
-          user_id: session.user.id
+          final_set_tiebreak: formData.finalSetTiebreak,
+          court_type: formData.courtType || null
         })
         .eq("id", id)
         .eq("user_id", session.user.id);
@@ -190,11 +140,11 @@ const EditMatch = () => {
       if (deleteError) throw deleteError;
 
       // Insert new tags if any exist
-      if (selectedTags.length > 0) {
+      if (formData.selectedTags.length > 0) {
         const { error: tagError } = await supabase
           .from("match_tags")
           .insert(
-            selectedTags.map(tag => ({
+            formData.selectedTags.map((tag: any) => ({
               match_id: id,
               tag_id: tag.id
             }))
@@ -232,6 +182,8 @@ const EditMatch = () => {
     );
   }
 
+  if (!match) return null;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -239,59 +191,21 @@ const EditMatch = () => {
         Back
       </Button>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Match</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <OpponentInput
-                value={opponentName}
-                onChange={setOpponentName}
-              />
-            </div>
+      <h1 className="text-2xl font-bold mb-6">Edit Match</h1>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Date</label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-                required
-              />
-            </div>
-
-            <ScoreInput
-              sets={sets}
-              onSetsChange={setSets}
-              isBestOfFive={isBestOfFive}
-              onBestOfFiveChange={setIsBestOfFive}
-            />
-
-            <MatchSettings
-              isWin={formData.is_win}
-              onIsWinChange={(value) => setFormData({ ...formData, is_win: value })}
-              notes={formData.notes}
-              onNotesChange={(value) => setFormData({ ...formData, notes: value })}
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              finalSetTiebreak={formData.final_set_tiebreak}
-              onFinalSetTiebreakChange={(value) => 
-                setFormData({ ...formData, final_set_tiebreak: value })
-              }
-            />
-
-            <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <MatchForm
+        onSubmit={handleSubmit}
+        initialData={{
+          date: new Date(match.date),
+          opponent: match.opponent_name,
+          courtType: match.court_type || "",
+          sets: match.sets || [],
+          isWin: match.is_win,
+          notes: match.notes || "",
+          selectedTags: match.tags || [],
+          finalSetTiebreak: match.final_set_tiebreak || false,
+        }}
+      />
     </div>
   );
 };

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Trash2, Share2, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Mail, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
+import { MatchDetailView } from "@/components/match/MatchDetailView";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,10 +92,7 @@ const MatchDetail = () => {
         .delete()
         .eq('source_match_id', id);
 
-      if (improvementPointsError) {
-        console.error('Error deleting improvement points:', improvementPointsError);
-        throw new Error('Failed to delete improvement points');
-      }
+      if (improvementPointsError) throw improvementPointsError;
 
       // Then delete associated tags
       const { error: tagError } = await supabase
@@ -104,10 +100,7 @@ const MatchDetail = () => {
         .delete()
         .eq('match_id', id);
 
-      if (tagError) {
-        console.error('Error deleting match tags:', tagError);
-        throw new Error('Failed to delete match tags');
-      }
+      if (tagError) throw tagError;
 
       // Finally delete the match
       const { error: matchError } = await supabase
@@ -115,10 +108,7 @@ const MatchDetail = () => {
         .delete()
         .eq('id', id);
 
-      if (matchError) {
-        console.error('Error deleting match:', matchError);
-        throw new Error('Failed to delete match');
-      }
+      if (matchError) throw matchError;
 
       toast({
         title: "Match deleted",
@@ -265,39 +255,7 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
         </div>
       </div>
 
-      <Card className="w-full">
-        <CardHeader className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
-              {match.opponent_name}
-            </CardTitle>
-            <Badge 
-              variant={match.is_win ? "default" : "destructive"}
-              className={`${match.is_win ? "bg-green-500 hover:bg-green-600" : ""} text-center px-4 py-1`}
-            >
-              {match.is_win ? "Win" : "Loss"}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Date</h3>
-            <p className="text-base sm:text-lg">
-              {new Date(match.date).toLocaleDateString()}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Score</h3>
-            <p className="text-xl sm:text-2xl">{match.score}</p>
-          </div>
-          {match.notes && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Notes</h3>
-              <p className="text-base sm:text-lg whitespace-pre-wrap">{match.notes}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <MatchDetailView match={match} />
 
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent>

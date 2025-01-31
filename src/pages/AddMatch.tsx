@@ -1,49 +1,14 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
-import { ScoreInput } from "@/components/ScoreInput";
-import { MatchSettings } from "@/components/MatchSettings";
-import { Card } from "@/components/ui/card";
-import { OpponentInput } from "@/components/OpponentInput";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface SetScore {
-  playerScore: string;
-  opponentScore: string;
-}
-
-interface Tag {
-  id: string;
-  name: string;
-}
-
-const courtTypes = ["Hard", "Artificial Grass", "Clay", "Grass", "Carpet"] as const;
-type CourtType = typeof courtTypes[number];
+import { ArrowLeft } from "lucide-react";
+import { MatchForm } from "@/components/match/MatchForm";
+import { useEffect } from "react";
 
 const AddMatch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [date, setDate] = useState<Date>(new Date());
-  const [opponent, setOpponent] = useState("");
-  const [isWin, setIsWin] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [courtType, setCourtType] = useState<string>("");
-  const [isBestOfFive, setIsBestOfFive] = useState(false);
-  const [finalSetTiebreak, setFinalSetTiebreak] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [sets, setSets] = useState<SetScore[]>([
-    { playerScore: "", opponentScore: "" },
-    { playerScore: "", opponentScore: "" },
-    { playerScore: "", opponentScore: "" },
-  ]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -55,58 +20,13 @@ const AddMatch = () => {
           variant: "destructive",
         });
         navigate("/login");
-        return;
-      }
-
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('preferred_surface')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-
-        if (profile?.preferred_surface) {
-          // Capitalize first letter to match court types format
-          const preferredSurface = profile.preferred_surface.charAt(0).toUpperCase() + 
-                               profile.preferred_surface.slice(1);
-          if (courtTypes.includes(preferredSurface as CourtType)) {
-            setCourtType(preferredSurface);
-          }
-        }
-      } catch (err) {
-        console.error('Error in checkAuth:', err);
       }
     };
 
     checkAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        navigate('/login');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate, toast]);
 
-  const formatScore = () => {
-    return sets
-      .filter(set => set.playerScore !== "" || set.opponentScore !== "")
-      .map(set => `${set.playerScore}-${set.opponentScore}`)
-      .join(", ");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (formData: any) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -120,48 +40,34 @@ const AddMatch = () => {
         return;
       }
 
-      const score = formatScore();
+      const score = formData.sets
+        .filter((set: any) => set.playerScore !== "" || set.opponentScore !== "")
+        .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
+        .join(", ");
 
       // Get or create opponent
-      const { data: existingOpponent, error: searchError } = await supabase
-        .from('opponents')
-        .select('id')
-        .eq('name', opponent)
-        .eq('user_id', session.user.id)
-        .maybeSingle();
+      const { data: opponentId } = await supabase
+        .rpc('get_or_create_opponent', {
+          p_name: formData.opponent,
+          p_user_id: session.user.id
+        });
 
-      let opponentId;
-
-      if (existingOpponent) {
-        opponentId = existingOpponent.id;
-      } else {
-        // Create new opponent as key opponent
-        const { data: newOpponent, error: createError } = await supabase
-          .from('opponents')
-          .insert({
-            name: opponent,
-            user_id: session.user.id,
-            is_key_opponent: true
-          })
-          .select('id')
-          .single();
-
-        if (createError) throw createError;
-        opponentId = newOpponent.id;
+      if (!opponentId) {
+        throw new Error("Failed to get or create opponent");
       }
 
       // Insert match
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
-          date: date.toISOString().split('T')[0],
+          date: formData.date.toISOString().split('T')[0],
           opponent_id: opponentId,
           score,
-          is_win: isWin,
-          notes: notes || null,
+          is_win: formData.isWin,
+          notes: formData.notes || null,
           user_id: session.user.id,
-          final_set_tiebreak: finalSetTiebreak,
-          court_type: courtType || null
+          final_set_tiebreak: formData.finalSetTiebreak,
+          court_type: formData.courtType || null
         })
         .select()
         .single();
@@ -169,11 +75,11 @@ const AddMatch = () => {
       if (matchError) throw matchError;
 
       // Insert tags if any exist
-      if (selectedTags.length > 0 && matchData) {
+      if (formData.selectedTags.length > 0 && matchData) {
         const { error: tagError } = await supabase
           .from("match_tags")
           .insert(
-            selectedTags.map((tag) => ({
+            formData.selectedTags.map((tag: any) => ({
               match_id: matchData.id,
               tag_id: tag.id,
             }))
@@ -183,13 +89,12 @@ const AddMatch = () => {
       }
 
       // Analyze notes with AI if present
-      if (notes) {
+      if (formData.notes) {
         const { data: aiResponse, error: aiError } = await supabase.functions.invoke('analyze-match-notes', {
-          body: { notes }
+          body: { notes: formData.notes }
         });
 
         if (!aiError && aiResponse.suggestions) {
-          // Insert improvement points
           const { error: pointsError } = await supabase
             .from('improvement_points')
             .insert(
@@ -238,89 +143,7 @@ const AddMatch = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="p-6 space-y-6">
-          <div>
-            <Label>Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(date) => date && setDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <OpponentInput
-            value={opponent}
-            onChange={setOpponent}
-          />
-
-          <div className="space-y-2">
-            <Label>Court Type</Label>
-            <Select value={courtType} onValueChange={setCourtType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select court type" />
-              </SelectTrigger>
-              <SelectContent>
-                {courtTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <ScoreInput
-            sets={sets}
-            onSetsChange={setSets}
-            isBestOfFive={isBestOfFive}
-            onBestOfFiveChange={setIsBestOfFive}
-            onIsWinChange={setIsWin}
-            onFinalSetTiebreakChange={setFinalSetTiebreak}
-          />
-
-          <MatchSettings
-            isWin={isWin}
-            onIsWinChange={setIsWin}
-            notes={notes}
-            onNotesChange={setNotes}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            finalSetTiebreak={finalSetTiebreak}
-            onFinalSetTiebreakChange={setFinalSetTiebreak}
-          />
-        </Card>
-
-        <div className="flex space-x-4">
-          <Button type="submit">
-            Save Match
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/")}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+      <MatchForm onSubmit={handleSubmit} />
     </div>
   );
 };

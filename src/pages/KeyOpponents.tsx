@@ -1,19 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search, Plus, Trash2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ArrowLeft, Search } from "lucide-react";
+import { OpponentCard } from "@/components/opponents/OpponentCard";
+import { AddOpponentDialog } from "@/components/opponents/AddOpponentDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
 
 interface Opponent {
   id: string;
@@ -40,8 +32,6 @@ const KeyOpponents = () => {
   const navigate = useNavigate();
   const [opponents, setOpponents] = useState<Opponent[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newOpponentName, setNewOpponentName] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteOpponentId, setDeleteOpponentId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -85,6 +75,48 @@ const KeyOpponents = () => {
     }
   };
 
+  useEffect(() => {
+    fetchOpponents();
+  }, []);
+
+  const handleAddOpponent = async (name: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add key opponents.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("opponents")
+        .insert({
+          name,
+          user_id: session.user.id,
+          is_key_opponent: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Key opponent added successfully.",
+      });
+
+      fetchOpponents();
+    } catch (error) {
+      console.error("Error adding opponent:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add key opponent.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteOpponent = async () => {
     if (!deleteOpponentId) return;
 
@@ -111,66 +143,6 @@ const KeyOpponents = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleAddOpponent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to add key opponents.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from("opponents")
-        .insert({
-          name: newOpponentName,
-          user_id: session.user.id,
-          is_key_opponent: true
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Key opponent added successfully.",
-      });
-
-      setNewOpponentName("");
-      setIsDialogOpen(false);
-      fetchOpponents();
-    } catch (error) {
-      console.error("Error adding opponent:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add key opponent.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchOpponents();
-  }, []);
-
-  const getOpponentStats = (matches: Opponent["matches"]) => {
-    const wins = matches.filter(match => match.is_win).length;
-    const losses = matches.length - wins;
-    const lastMatch = matches.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    )[0];
-
-    return {
-      wins,
-      losses,
-      timesPlayed: matches.length,
-      lastMatch,
-    };
   };
 
   const filteredOpponents = opponents.filter(opponent =>
@@ -201,82 +173,17 @@ const KeyOpponents = () => {
             className="pl-10"
           />
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Key Opponent
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Key Opponent</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddOpponent} className="space-y-4">
-              <div>
-                <Label htmlFor="opponentName">Opponent Name</Label>
-                <Input
-                  id="opponentName"
-                  value={newOpponentName}
-                  onChange={(e) => setNewOpponentName(e.target.value)}
-                  placeholder="Enter opponent name"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">Add Opponent</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <AddOpponentDialog onAdd={handleAddOpponent} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredOpponents.map((opponent) => {
-          const stats = getOpponentStats(opponent.matches);
-          return (
-            <Card key={opponent.id} className="w-full">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-semibold">{opponent.name}</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteOpponentId(opponent.id)}
-                    className="text-destructive hover:text-destructive/90"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Badge variant="default" className="bg-green-500">
-                      Wins: {stats.wins}
-                    </Badge>
-                    <Badge variant="destructive">
-                      Losses: {stats.losses}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Times Played: {stats.timesPlayed}
-                  </p>
-                  {stats.lastMatch && (
-                    <div className="text-sm">
-                      <p className="font-medium">Last Result:</p>
-                      <p>
-                        {new Date(stats.lastMatch.date).toLocaleDateString()} -{" "}
-                        {stats.lastMatch.is_win ? (
-                          <span className="text-green-600">Won</span>
-                        ) : (
-                          <span className="text-red-600">Lost</span>
-                        )}{" "}
-                        {stats.lastMatch.score}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {filteredOpponents.map((opponent) => (
+          <OpponentCard
+            key={opponent.id}
+            opponent={opponent}
+            onDelete={(id) => setDeleteOpponentId(id)}
+          />
+        ))}
       </div>
 
       <AlertDialog open={!!deleteOpponentId} onOpenChange={(open) => !open && setDeleteOpponentId(null)}>
