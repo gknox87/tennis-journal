@@ -3,5 +3,7 @@ export interface PlayerNote {
   title: string;
   content: string;
   created_at?: string;
+  updated_at?: string;
   user_id?: string;
+  image_url?: string | null;
 }
