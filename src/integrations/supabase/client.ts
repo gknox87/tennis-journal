@@ -11,12 +11,19 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: localStorage
     },
     global: {
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    }
   }
 );
