@@ -12,12 +12,12 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: localStorage
+      storage: window.localStorage,
+      flowType: 'pkce'
     },
     global: {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     },
     realtime: {
@@ -27,3 +27,19 @@ export const supabase = createClient<Database>(
     }
   }
 );
+
+// Add session listener to handle auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    // Update headers with the session token when available
+    supabase.rest.headers = {
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': SUPABASE_ANON_KEY
+    };
+  } else {
+    // Reset headers when no session
+    supabase.rest.headers = {
+      'apikey': SUPABASE_ANON_KEY
+    };
+  }
+});
