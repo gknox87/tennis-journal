@@ -28,18 +28,10 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Add session listener to handle auth state changes
+// Listen for auth state changes to update the client configuration
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
-    // Update headers with the session token when available
-    supabase.rest.headers = {
-      'Authorization': `Bearer ${session.access_token}`,
-      'apikey': SUPABASE_ANON_KEY
-    };
-  } else {
-    // Reset headers when no session
-    supabase.rest.headers = {
-      'apikey': SUPABASE_ANON_KEY
-    };
+    // When authenticated, update the client with the session token
+    supabase.setAuth(session.access_token);
   }
 });
