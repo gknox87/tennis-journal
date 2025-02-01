@@ -28,10 +28,10 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Listen for auth state changes to update the client configuration
+// Listen for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
-    // When authenticated, update the client with the session token
-    supabase.setAuth(session.access_token);
+    // Update the authorization header when we have a session
+    supabase.realtime.setAuth(session.access_token);
   }
 });
