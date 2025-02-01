@@ -1,54 +1,32 @@
-import { LogOut, Users, UserCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { AddMatchButton } from "@/components/AddMatchButton";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { ProfileDialog } from "./ProfileDialog";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export const Header = () => {
   const navigate = useNavigate();
-  const [showProfile, setShowProfile] = useState(false);
+  const { toast } = useToast();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="flex flex-col gap-4 mb-6">
-      <h1 className="text-2xl font-bold">Tennis Match Journal</h1>
-      <div className="flex flex-wrap gap-2">
-        <AddMatchButton />
-        <Button 
-          variant="secondary"
-          onClick={() => navigate("/key-opponents")}
-          className="flex-1 sm:flex-none text-white hover:bg-secondary/90"
-        >
-          <Users className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Key Opponents</span>
-          <span className="sm:hidden">Opponents</span>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setShowProfile(true)}
-          className="flex-1 sm:flex-none"
-        >
-          <UserCircle className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Profile</span>
-          <span className="sm:hidden">Profile</span>
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={handleLogout} 
-          className="flex-1 sm:flex-none"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Logout</span>
-          <span className="sm:hidden">Exit</span>
-        </Button>
-      </div>
-      <ProfileDialog open={showProfile} onOpenChange={setShowProfile} />
-    </div>
+    <header className="flex justify-between items-center mb-8">
+      <h1 className="text-3xl font-bold">Tennis Match Tracker</h1>
+      <Button variant="outline" onClick={handleLogout}>
+        Logout
+      </Button>
+    </header>
   );
 };
