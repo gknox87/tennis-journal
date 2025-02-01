@@ -5,9 +5,11 @@ import { useMatchesData } from "@/hooks/useMatchesData";
 import { useTagsData } from "@/hooks/useTagsData";
 import { useNotesData } from "@/hooks/useNotesData";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
   
   const {
     matches,
@@ -30,13 +32,22 @@ const Index = () => {
   } = useNotesData();
 
   const refreshAllData = useCallback(async () => {
-    console.log('Refreshing all data...');
-    await Promise.all([
-      refreshNotes(),
-      refreshTags(),
-      refreshMatches()
-    ]);
-  }, [refreshNotes, refreshTags, refreshMatches]);
+    try {
+      console.log('Refreshing all data...');
+      await Promise.all([
+        refreshNotes(),
+        refreshTags(),
+        refreshMatches()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [refreshNotes, refreshTags, refreshMatches, toast]);
 
   // Set up realtime subscriptions
   useRealtimeSubscriptions({
