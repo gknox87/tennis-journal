@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Mail, MessageSquare, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
 import { MatchDetailView } from "@/components/match/MatchDetailView";
+import { NotesDialog } from "@/components/NotesDialog";
+import { PlayerNote } from "@/types/notes";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +38,8 @@ const MatchDetail = () => {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [isSharing, setIsSharing] = useState(false);
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [editingNote, setEditingNote] = useState<PlayerNote | null>(null);
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -178,6 +182,11 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
     }
   };
 
+  const handleAddNote = () => {
+    setEditingNote(null);
+    setShowNotesDialog(true);
+  };
+
   if (!match) {
     return (
       <div className="container mx-auto px-4 py-6 sm:py-8">
@@ -209,6 +218,15 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Match
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleAddNote}
+            className="w-full sm:w-auto"
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Add Note
           </Button>
 
           <Button
@@ -296,6 +314,12 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NotesDialog
+        open={showNotesDialog}
+        onOpenChange={setShowNotesDialog}
+        editingNote={editingNote}
+      />
     </div>
   );
 };
