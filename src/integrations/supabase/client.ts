@@ -30,10 +30,16 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Listen for auth state changes
+// Listen for auth state changes and update realtime subscription auth
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     // Update the realtime subscription auth when we have a session
     supabase.realtime.setAuth(session.access_token);
+    
+    // Update the client's Authorization header with the session token
+    supabase.rest.headers = {
+      ...supabase.rest.headers,
+      'Authorization': `Bearer ${session.access_token}`
+    };
   }
 });
