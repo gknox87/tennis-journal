@@ -19,7 +19,6 @@ export const supabase = createClient<Database>(
         'Content-Type': 'application/json',
         'X-Client-Info': 'supabase-js-web',
         'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
     },
     realtime: {
@@ -35,11 +34,5 @@ supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     // Update the realtime subscription auth when we have a session
     supabase.realtime.setAuth(session.access_token);
-    
-    // Update the client's Authorization header with the session token
-    supabase.rest.headers = {
-      ...supabase.rest.headers,
-      'Authorization': `Bearer ${session.access_token}`
-    };
   }
 });
