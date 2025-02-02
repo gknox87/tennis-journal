@@ -29,11 +29,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [match, setMatch] = useState<Match | null>(null);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -90,23 +92,6 @@ const MatchDetail = () => {
         return;
       }
 
-      // First delete associated improvement points
-      const { error: improvementPointsError } = await supabase
-        .from('improvement_points')
-        .delete()
-        .eq('source_match_id', id);
-
-      if (improvementPointsError) throw improvementPointsError;
-
-      // Then delete associated tags
-      const { error: tagError } = await supabase
-        .from('match_tags')
-        .delete()
-        .eq('match_id', id);
-
-      if (tagError) throw tagError;
-
-      // Finally delete the match
       const { error: matchError } = await supabase
         .from('matches')
         .delete()
@@ -189,7 +174,7 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
 
   if (!match) {
     return (
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="container mx-auto px-4 py-6">
         <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -200,21 +185,21 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 max-w-3xl">
-      <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+    <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="flex flex-col gap-4 mb-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="w-full sm:w-auto flex items-center justify-center sm:justify-start"
+          className="w-full sm:w-auto flex items-center justify-center"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
         
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
           <Button 
             onClick={() => navigate(`/edit-match/${id}`)}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Match
@@ -223,35 +208,39 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
           <Button
             variant="outline"
             onClick={handleAddNote}
-            className="w-full sm:w-auto"
+            className="w-full"
           >
             <Pencil className="mr-2 h-4 w-4" />
             Add Note
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setShowEmailDialog(true)}
-            className="w-full sm:w-auto"
-          >
-            <Mail className="mr-2 h-4 w-4" />
-            Share via Email
-          </Button>
+          {!isMobile && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setShowEmailDialog(true)}
+                className="w-full"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Share via Email
+              </Button>
 
-          <Button
-            variant="outline"
-            onClick={shareViaWhatsApp}
-            className="w-full sm:w-auto"
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Share via WhatsApp
-          </Button>
+              <Button
+                variant="outline"
+                onClick={shareViaWhatsApp}
+                className="w-full"
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Share via WhatsApp
+              </Button>
+            </>
+          )}
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
                 variant="destructive"
-                className="w-full sm:w-auto"
+                className="w-full"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Match
@@ -271,6 +260,28 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        {isMobile && (
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowEmailDialog(true)}
+              className="w-full"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Share via Email
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={shareViaWhatsApp}
+              className="w-full"
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Share via WhatsApp
+            </Button>
+          </div>
+        )}
       </div>
 
       <MatchDetailView match={match} />
