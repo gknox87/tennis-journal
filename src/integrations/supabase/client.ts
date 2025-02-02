@@ -18,6 +18,7 @@ export const supabase = createClient<Database>(
     global: {
       headers: {
         'Content-Type': 'application/json',
+        'X-Client-Info': 'supabase-js-web'
       },
     },
     realtime: {
@@ -29,9 +30,9 @@ export const supabase = createClient<Database>(
 );
 
 // Listen for auth state changes
-supabase.auth.onAuthStateChange((event, session) => {
+supabase.auth.onAuthStateChange((_event, session) => {
   if (session) {
-    // Update the authorization header when we have a session
+    // Update the realtime subscription auth when we have a session
     supabase.realtime.setAuth(session.access_token);
   }
 });
