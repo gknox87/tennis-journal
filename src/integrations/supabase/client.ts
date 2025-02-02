@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(
 );
 
 // Listen for auth state changes
-supabase.auth.onAuthStateChange((_event, session) => {
+supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     // Update the realtime subscription auth when we have a session
     supabase.realtime.setAuth(session.access_token);
