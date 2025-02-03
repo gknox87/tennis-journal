@@ -24,9 +24,6 @@ export const Header = () => {
   return (
     <header className="flex justify-between items-center mb-8">
       <h1 className="text-3xl font-bold">Tennis Match Tracker</h1>
-      <Button variant="outline" onClick={handleLogout}>
-        Logout
-      </Button>
     </header>
   );
 };
