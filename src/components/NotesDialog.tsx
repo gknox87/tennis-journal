@@ -1,26 +1,16 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2, Bold as BoldIcon, Underline as UnderlineIcon, Highlighter, ImagePlus } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
 import { PlayerNote } from "@/types/notes";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { NoteEditorToolbar } from "./notes/NoteEditorToolbar";
+import { NoteImagePreview } from "./notes/NoteImagePreview";
+import { NoteDialogFooter } from "./notes/NoteDialogFooter";
 
 interface NotesDialogProps {
   open: boolean;
@@ -166,32 +156,6 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      if (!editingNote) return;
-
-      const { error } = await supabase
-        .from("player_notes")
-        .delete()
-        .eq("id", editingNote.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Note deleted successfully",
-      });
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error deleting note:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete note",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -205,90 +169,27 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <div className="flex gap-2 mb-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                className={editor?.isActive('bold') ? 'bg-accent' : ''}
-              >
-                <BoldIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                className={editor?.isActive('underline') ? 'bg-accent' : ''}
-              >
-                <UnderlineIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => editor?.chain().focus().toggleHighlight().run()}
-                className={editor?.isActive('highlight') ? 'bg-accent' : ''}
-              >
-                <Highlighter className="h-4 w-4" />
-              </Button>
-              <div className="relative">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="relative"
-                  onClick={() => document.getElementById('image-upload')?.click()}
-                >
-                  <ImagePlus className="h-4 w-4" />
-                </Button>
-                <input
-                  type="file"
-                  id="image-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </div>
-            </div>
+            <NoteEditorToolbar 
+              editor={editor} 
+              onImageUpload={() => document.getElementById('image-upload')?.click()} 
+            />
+            <input
+              type="file"
+              id="image-upload"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
             <EditorContent editor={editor} />
-            {(imagePreview || editingNote?.image_url) && (
-              <div className="mt-4">
-                <img
-                  src={imagePreview || editingNote?.image_url}
-                  alt="Note image"
-                  className="max-h-48 rounded-md"
-                />
-              </div>
-            )}
-            <div className="flex justify-between items-center mt-4">
-              <Button onClick={handleSubmit}>
-                {editingNote ? "Update Note" : "Add Note"}
-              </Button>
-              {editingNote && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Note
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Note</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this note? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
+            <NoteImagePreview 
+              imagePreview={imagePreview} 
+              editingNoteImageUrl={editingNote?.image_url} 
+            />
+            <NoteDialogFooter
+              editingNote={editingNote}
+              onSubmit={handleSubmit}
+              onDelete={handleSubmit}
+            />
           </div>
         </div>
       </DialogContent>
