@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import { Header } from "@/components/Header";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useTagsData } from "@/hooks/useTagsData";
@@ -89,7 +88,6 @@ const Index = () => {
 
   return (
     <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
-      <Header />
       <DashboardContent
         matches={matches}
         filteredMatches={filteredMatches}
