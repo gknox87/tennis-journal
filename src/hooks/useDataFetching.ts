@@ -79,14 +79,7 @@ export const useDataFetching = () => {
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
-          id,
-          created_at,
-          date,
-          score,
-          is_win,
-          notes,
-          final_set_tiebreak,
-          opponent_id,
+          *,
           opponents (
             name
           ),
@@ -99,21 +92,25 @@ export const useDataFetching = () => {
 
       if (matchesError) throw matchesError;
 
+      console.log('Raw matches data:', matchesData);
+
       const processedMatches: Match[] = matchesData?.map(match => ({
         id: match.id,
         created_at: match.created_at,
         date: match.date,
         score: match.score,
         is_win: match.is_win,
-        notes: match.notes,
-        final_set_tiebreak: match.final_set_tiebreak,
-        opponent_id: match.opponent_id,
+        notes: match.notes || null,
+        final_set_tiebreak: match.final_set_tiebreak || false,
+        opponent_id: match.opponent_id || null,
         opponent_name: match.opponents?.name || "Unknown Opponent",
         tags: match.tags || [],
-        user_id: session.session.user.id
+        user_id: session.session.user.id,
+        court_type: match.court_type || null,
+        sets: match.sets || []
       })) || [];
 
-      console.log('Fetched matches:', processedMatches);
+      console.log('Processed matches:', processedMatches);
       return processedMatches;
     } catch (error) {
       console.error("Error fetching matches:", error);
