@@ -86,6 +86,7 @@ export const useDataFetching = () => {
           is_win,
           notes,
           final_set_tiebreak,
+          opponent_id,
           opponents (
             name
           ),
@@ -98,10 +99,18 @@ export const useDataFetching = () => {
 
       if (matchesError) throw matchesError;
 
-      const processedMatches = matchesData?.map(match => ({
-        ...match,
+      const processedMatches: Match[] = matchesData?.map(match => ({
+        id: match.id,
+        created_at: match.created_at,
+        date: match.date,
+        score: match.score,
+        is_win: match.is_win,
+        notes: match.notes,
+        final_set_tiebreak: match.final_set_tiebreak,
+        opponent_id: match.opponent_id,
         opponent_name: match.opponents?.name || "Unknown Opponent",
-        tags: match.tags
+        tags: match.tags || [],
+        user_id: session.session.user.id
       })) || [];
 
       console.log('Fetched matches:', processedMatches);
