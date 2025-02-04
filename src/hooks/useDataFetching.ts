@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
@@ -78,7 +79,13 @@ export const useDataFetching = () => {
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
-          *,
+          id,
+          created_at,
+          date,
+          score,
+          is_win,
+          notes,
+          final_set_tiebreak,
           opponents (
             name
           ),
