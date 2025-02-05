@@ -22,7 +22,6 @@ export const useDataFetching = () => {
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
-        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -56,7 +55,6 @@ export const useDataFetching = () => {
       const { data, error } = await supabase
         .from('tags')
         .select('*')
-        .eq('user_id', session.user.id)
         .order('name');
       
       if (error) throw error;
@@ -100,7 +98,6 @@ export const useDataFetching = () => {
             name
           )
         `)
-        .eq('user_id', session.user.id)
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
