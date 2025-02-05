@@ -107,7 +107,6 @@ export const useDataFetching = () => {
         tags: match.tags || [],
         user_id: session.session.user.id,
         court_type: match.court_type || null,
-        sets: match.sets || []
       })) || [];
 
       console.log('Processed matches:', processedMatches);
