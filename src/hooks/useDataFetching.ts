@@ -10,14 +10,22 @@ export const useDataFetching = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  const checkAuth = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Auth check error:', error);
+      throw error;
+    }
+    if (!session) {
+      throw new Error('No active session');
+    }
+    return session;
+  };
+
   const fetchPlayerNotes = async () => {
     try {
       console.log('Fetching player notes...');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log('No session found, skipping notes fetch');
-        return [];
-      }
+      const session = await checkAuth();
 
       const { data, error } = await supabase
         .from('player_notes')
@@ -27,13 +35,21 @@ export const useDataFetching = () => {
       if (error) throw error;
       console.log('Fetched notes:', data);
       return data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching player notes:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch player notes. Please make sure you're logged in.",
-        variant: "destructive",
-      });
+      if (error.message === 'No active session') {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view notes",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch player notes",
+          variant: "destructive",
+        });
+      }
       return [];
     }
   };
@@ -41,33 +57,31 @@ export const useDataFetching = () => {
   const fetchTags = async () => {
     try {
       console.log('Fetching tags...');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log('No session found, skipping tag fetch');
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to view tags",
-          variant: "destructive",
-        });
-        return [];
-      }
+      const session = await checkAuth();
 
       const { data, error } = await supabase
         .from('tags')
         .select('*')
-        .eq('user_id', session.user.id)  // Restore user_id filter
         .order('name');
       
       if (error) throw error;
       console.log('Fetched tags:', data);
       return data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching tags:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch tags. Please make sure you're logged in.",
-        variant: "destructive",
-      });
+      if (error.message === 'No active session') {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view tags",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch tags",
+          variant: "destructive",
+        });
+      }
       return [];
     }
   };
@@ -76,16 +90,7 @@ export const useDataFetching = () => {
     setIsLoading(true);
     try {
       console.log('Fetching matches...');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log('No session found, skipping match fetch');
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to view matches",
-          variant: "destructive",
-        });
-        return [];
-      }
+      const session = await checkAuth();
 
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
@@ -99,7 +104,6 @@ export const useDataFetching = () => {
             name
           )
         `)
-        .eq('user_id', session.user.id)  // Restore user_id filter
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
@@ -123,13 +127,21 @@ export const useDataFetching = () => {
 
       console.log('Processed matches:', processedMatches);
       return processedMatches;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching matches:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch matches. Please make sure you're logged in.",
-        variant: "destructive",
-      });
+      if (error.message === 'No active session') {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view matches",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch matches",
+          variant: "destructive",
+        });
+      }
       return [];
     } finally {
       setIsLoading(false);
