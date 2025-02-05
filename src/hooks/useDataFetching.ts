@@ -13,8 +13,8 @@ export const useDataFetching = () => {
   const fetchPlayerNotes = async () => {
     try {
       console.log('Fetching player notes...');
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         console.log('No session found, skipping notes fetch');
         return [];
       }
@@ -22,7 +22,7 @@ export const useDataFetching = () => {
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
-        .eq('user_id', session.session.user.id)
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -42,16 +42,22 @@ export const useDataFetching = () => {
   const fetchTags = async () => {
     try {
       console.log('Fetching tags...');
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         console.log('No session found, skipping tag fetch');
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view tags",
+          variant: "destructive",
+        });
         return [];
       }
 
       const { data, error } = await supabase
-        .from("tags")
-        .select("*")
-        .order("name");
+        .from('tags')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('name');
       
       if (error) throw error;
       console.log('Fetched tags:', data);
@@ -70,8 +76,8 @@ export const useDataFetching = () => {
   const fetchMatches = async () => {
     try {
       console.log('Fetching matches...');
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         console.log('No session found, skipping match fetch');
         return [];
       }
@@ -88,6 +94,7 @@ export const useDataFetching = () => {
             name
           )
         `)
+        .eq('user_id', session.user.id)
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
@@ -105,7 +112,7 @@ export const useDataFetching = () => {
         opponent_id: match.opponent_id || null,
         opponent_name: match.opponents?.name || "Unknown Opponent",
         tags: match.tags || [],
-        user_id: session.session.user.id,
+        user_id: session.user.id,
         court_type: match.court_type || null,
       })) || [];
 
