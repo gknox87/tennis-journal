@@ -32,7 +32,7 @@ export const useDataFetching = () => {
       console.error('Error fetching player notes:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch player notes",
+        description: "Failed to fetch player notes. Please make sure you're logged in.",
         variant: "destructive",
       });
       return [];
@@ -66,7 +66,7 @@ export const useDataFetching = () => {
       console.error("Error fetching tags:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch tags",
+        description: "Failed to fetch tags. Please make sure you're logged in.",
         variant: "destructive",
       });
       return [];
@@ -74,11 +74,17 @@ export const useDataFetching = () => {
   };
 
   const fetchMatches = async () => {
+    setIsLoading(true);
     try {
       console.log('Fetching matches...');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         console.log('No session found, skipping match fetch');
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view matches",
+          variant: "destructive",
+        });
         return [];
       }
 
@@ -122,10 +128,12 @@ export const useDataFetching = () => {
       console.error("Error fetching matches:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch matches",
+        description: "Failed to fetch matches. Please make sure you're logged in.",
         variant: "destructive",
       });
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
 
