@@ -11,12 +11,7 @@ import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tag } from "@/types/match";
-
-interface SetScore {
-  playerScore: string;
-  opponentScore: string;
-}
+import { SetScore } from "@/types/match";
 
 interface MatchFormProps {
   onSubmit: (formData: any) => Promise<void>;
@@ -27,7 +22,6 @@ interface MatchFormProps {
     sets: SetScore[];
     isWin: boolean;
     notes: string;
-    selectedTags: Tag[];
     finalSetTiebreak: boolean;
   };
 }
@@ -40,7 +34,6 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
   const [isBestOfFive, setIsBestOfFive] = useState(false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(initialData?.selectedTags || []);
   const [sets, setSets] = useState<SetScore[]>(
     initialData?.sets || [
       { playerScore: "", opponentScore: "" },
@@ -60,7 +53,6 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       sets,
       isWin,
       notes,
-      selectedTags,
       finalSetTiebreak,
       isBestOfFive,
     });
@@ -130,8 +122,6 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           onIsWinChange={setIsWin}
           notes={notes}
           onNotesChange={setNotes}
-          selectedTags={selectedTags}
-          onTagsChange={setSelectedTags}
           finalSetTiebreak={finalSetTiebreak}
           onFinalSetTiebreakChange={setFinalSetTiebreak}
         />
