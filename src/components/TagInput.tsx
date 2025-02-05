@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Tag as TagIcon, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tag {
   id: string;
@@ -17,18 +19,44 @@ interface TagInputProps {
 export const TagInput = ({ selectedTags, onTagsChange }: TagInputProps) => {
   const [input, setInput] = useState("");
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchTags();
   }, []);
 
   const fetchTags = async () => {
-    const { data } = await supabase
-      .from("tags")
-      .select("*")
-      .order("name");
-    if (data) {
-      setAvailableTags(data);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No session found, skipping tag fetch');
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to manage tags",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .eq('user_id', session.user.id)
+        .order("name");
+
+      if (error) throw error;
+      
+      if (data) {
+        console.log('Fetched tags:', data);
+        setAvailableTags(data);
+      }
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch tags",
+        variant: "destructive",
+      });
     }
   };
 
@@ -36,30 +64,54 @@ export const TagInput = ({ selectedTags, onTagsChange }: TagInputProps) => {
     if (e.key === "Enter" && input.trim()) {
       e.preventDefault();
       
-      // Check if tag already exists
-      let tag = availableTags.find(
-        (t) => t.name.toLowerCase() === input.trim().toLowerCase()
-      );
-
-      if (!tag) {
-        // Create new tag
-        const { data } = await supabase
-          .from("tags")
-          .insert({ name: input.trim() })
-          .select()
-          .single();
-        
-        if (data) {
-          tag = data;
-          setAvailableTags([...availableTags, data]);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to create tags",
+            variant: "destructive",
+          });
+          return;
         }
-      }
 
-      if (tag && !selectedTags.some((t) => t.id === tag!.id)) {
-        onTagsChange([...selectedTags, tag]);
+        // Check if tag already exists
+        let tag = availableTags.find(
+          (t) => t.name.toLowerCase() === input.trim().toLowerCase()
+        );
+
+        if (!tag) {
+          // Create new tag
+          const { data, error } = await supabase
+            .from("tags")
+            .insert({ 
+              name: input.trim(),
+              user_id: session.user.id
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            tag = data;
+            setAvailableTags([...availableTags, data]);
+          }
+        }
+
+        if (tag && !selectedTags.some((t) => t.id === tag!.id)) {
+          onTagsChange([...selectedTags, tag]);
+        }
+        
+        setInput("");
+      } catch (error) {
+        console.error("Error creating tag:", error);
+        toast({
+          title: "Error",
+          description: "Failed to create tag",
+          variant: "destructive",
+        });
       }
-      
-      setInput("");
     }
   };
 
