@@ -55,6 +55,7 @@ export const useDataFetching = () => {
       const { data, error } = await supabase
         .from('tags')
         .select('*')
+        .eq('user_id', session.user.id)  // Restore user_id filter
         .order('name');
       
       if (error) throw error;
@@ -98,6 +99,7 @@ export const useDataFetching = () => {
             name
           )
         `)
+        .eq('user_id', session.user.id)  // Restore user_id filter
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
