@@ -35,10 +35,6 @@ const EditMatch = () => {
             *,
             opponents (
               name
-            ),
-            tags!match_tags (
-              id,
-              name
             )
           `)
           .eq("id", id)
@@ -65,7 +61,6 @@ const EditMatch = () => {
         setMatch({
           ...matchData,
           opponent_name: matchData.opponents?.name || "Unknown Opponent",
-          tags: matchData.tags || [],
           sets: parsedSets
         });
       } catch (error: any) {
@@ -133,28 +128,6 @@ const EditMatch = () => {
 
       if (matchError) throw matchError;
 
-      // Delete existing tags
-      const { error: deleteError } = await supabase
-        .from("match_tags")
-        .delete()
-        .eq("match_id", id);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new tags if any exist
-      if (formData.selectedTags.length > 0) {
-        const { error: tagError } = await supabase
-          .from("match_tags")
-          .insert(
-            formData.selectedTags.map((tag: any) => ({
-              match_id: id,
-              tag_id: tag.id
-            }))
-          );
-
-        if (tagError) throw tagError;
-      }
-
       toast({
         title: "Success",
         description: "Match updated successfully.",
@@ -204,7 +177,6 @@ const EditMatch = () => {
           sets: match.sets || [],
           isWin: match.is_win,
           notes: match.notes || "",
-          selectedTags: match.tags || [],
           finalSetTiebreak: match.final_set_tiebreak || false,
         }}
       />

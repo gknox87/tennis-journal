@@ -1,13 +1,12 @@
+
 import { useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
-import { Tag } from "@/types/match";
 
 type RealtimeCallbacks = {
   onMatchesUpdate: () => void;
   onNotesUpdate: () => void;
-  onTagsUpdate: () => void;
 };
 
 export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
@@ -52,30 +51,10 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
         console.log('Notes subscription status:', status);
       });
 
-    // Tags channel
-    const tagsChannel = supabase
-      .channel('tags_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tags',
-        },
-        (payload) => {
-          console.log('Tags change detected:', payload);
-          callbacks.onTagsUpdate();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Tags subscription status:', status);
-      });
-
     return () => {
       console.log('Cleaning up realtime subscriptions...');
       matchesChannel.unsubscribe();
       notesChannel.unsubscribe();
-      tagsChannel.unsubscribe();
     };
   }, [callbacks]);
 };

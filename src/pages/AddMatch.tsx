@@ -74,20 +74,6 @@ const AddMatch = () => {
 
       if (matchError) throw matchError;
 
-      // Insert tags if any exist
-      if (formData.selectedTags.length > 0 && matchData) {
-        const { error: tagError } = await supabase
-          .from("match_tags")
-          .insert(
-            formData.selectedTags.map((tag: any) => ({
-              match_id: matchData.id,
-              tag_id: tag.id,
-            }))
-          );
-
-        if (tagError) throw tagError;
-      }
-
       // Analyze notes with AI if present
       if (formData.notes) {
         const { data: aiResponse, error: aiError } = await supabase.functions.invoke('analyze-match-notes', {

@@ -1,3 +1,4 @@
+
 import { MatchCard } from "@/components/MatchCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +39,6 @@ export const MatchList = ({ matches, onMatchDelete }: MatchListProps) => {
             score={match.score}
             isWin={match.is_win}
             finalSetTiebreak={match.final_set_tiebreak}
-            tags={match.tags}
             onDelete={onMatchDelete}
             onEdit={() => handleEditMatch(match.id)}
           />
