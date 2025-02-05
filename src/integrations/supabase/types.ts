@@ -44,36 +44,6 @@ export type Database = {
           },
         ]
       }
-      match_tags: {
-        Row: {
-          match_id: string
-          tag_id: string
-        }
-        Insert: {
-          match_id: string
-          tag_id: string
-        }
-        Update: {
-          match_id?: string
-          tag_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "match_tags_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "match_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       matches: {
         Row: {
           court_type: string | null
@@ -202,27 +172,6 @@ export type Database = {
           preferred_surface?: string | null
           ranking?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      tags: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          user_id?: string | null
         }
         Relationships: []
       }

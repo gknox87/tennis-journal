@@ -1,15 +1,10 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { MatchActions } from "@/components/match/MatchActions";
-import { MatchTags } from "@/components/match/MatchTags";
-
-interface Tag {
-  id: string;
-  name: string;
-}
 
 interface MatchCardProps {
   id: string;
@@ -18,7 +13,6 @@ interface MatchCardProps {
   score: string;
   isWin: boolean;
   finalSetTiebreak?: boolean;
-  tags?: Tag[];
   onDelete: () => void;
   onEdit: () => void;
 }
@@ -30,7 +24,6 @@ export const MatchCard = ({
   score, 
   isWin,
   finalSetTiebreak,
-  tags = [],
   onDelete,
   onEdit 
 }: MatchCardProps) => {
@@ -49,18 +42,6 @@ export const MatchCard = ({
         return;
       }
 
-      // First delete associated tags
-      const { error: tagError } = await supabase
-        .from('match_tags')
-        .delete()
-        .eq('match_id', id);
-
-      if (tagError) {
-        console.error('Error deleting match tags:', tagError);
-        throw new Error('Failed to delete match tags');
-      }
-
-      // Then delete the match
       const { error: matchError } = await supabase
         .from('matches')
         .delete()
@@ -130,7 +111,6 @@ export const MatchCard = ({
             Final Set Tiebreak
           </Badge>
         )}
-        <MatchTags tags={tags} />
       </CardContent>
     </Card>
   );

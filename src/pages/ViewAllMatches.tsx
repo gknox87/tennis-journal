@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,10 +28,6 @@ const ViewAllMatches = () => {
           *,
           opponents (
             name
-          ),
-          tags!match_tags (
-            id,
-            name
           )
         `)
         .order("date", { ascending: false });
@@ -39,8 +36,7 @@ const ViewAllMatches = () => {
 
       const processedMatches = matchesData?.map(match => ({
         ...match,
-        opponent_name: match.opponents?.name || "Unknown Opponent",
-        tags: match.tags
+        opponent_name: match.opponents?.name || "Unknown Opponent"
       })) || [];
 
       setMatches(processedMatches);

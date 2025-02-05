@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
-import { Tag } from "@/types/match";
 import { useToast } from "@/hooks/use-toast";
 
 export const useDataFetching = () => {
@@ -54,38 +53,6 @@ export const useDataFetching = () => {
     }
   };
 
-  const fetchTags = async () => {
-    try {
-      console.log('Fetching tags...');
-      const session = await checkAuth();
-
-      const { data, error } = await supabase
-        .from('tags')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      console.log('Fetched tags:', data);
-      return data || [];
-    } catch (error: any) {
-      console.error("Error fetching tags:", error);
-      if (error.message === 'No active session') {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to view tags",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to fetch tags",
-          variant: "destructive",
-        });
-      }
-      return [];
-    }
-  };
-
   const fetchMatches = async () => {
     setIsLoading(true);
     try {
@@ -97,10 +64,6 @@ export const useDataFetching = () => {
         .select(`
           *,
           opponents (
-            name
-          ),
-          tags!match_tags (
-            id,
             name
           )
         `)
@@ -120,7 +83,6 @@ export const useDataFetching = () => {
         final_set_tiebreak: match.final_set_tiebreak || false,
         opponent_id: match.opponent_id || null,
         opponent_name: match.opponents?.name || "Unknown Opponent",
-        tags: match.tags || [],
         user_id: session.user.id,
         court_type: match.court_type || null,
       })) || [];
@@ -150,7 +112,6 @@ export const useDataFetching = () => {
 
   return {
     fetchPlayerNotes,
-    fetchTags,
     fetchMatches,
     isLoading
   };

@@ -1,6 +1,6 @@
+
 import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
-import { Tag } from "@/types/match";
 import { StatsSection } from "@/components/StatsSection";
 import { SearchSection } from "@/components/SearchSection";
 import { MatchList } from "@/components/MatchList";
@@ -14,9 +14,6 @@ interface DashboardContentProps {
   filteredMatches: Match[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  availableTags: Tag[];
-  selectedTags: string[];
-  onTagToggle: (tagId: string) => void;
   playerNotes: PlayerNote[];
   onMatchDelete: () => void;
   onDeleteNote: (noteId: string) => void;
@@ -27,9 +24,6 @@ export const DashboardContent = ({
   filteredMatches,
   searchTerm,
   onSearchChange,
-  availableTags,
-  selectedTags,
-  onTagToggle,
   playerNotes,
   onMatchDelete,
   onDeleteNote,
@@ -67,9 +61,6 @@ export const DashboardContent = ({
         <SearchSection
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
-          availableTags={availableTags}
-          selectedTags={selectedTags}
-          onTagToggle={onTagToggle}
         />
       </div>
 

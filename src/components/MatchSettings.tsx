@@ -1,20 +1,12 @@
+
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { TagInput } from "@/components/TagInput";
-
-interface Tag {
-  id: string;
-  name: string;
-}
 
 interface MatchSettingsProps {
   isWin: boolean;
   onIsWinChange: (value: boolean) => void;
   notes: string;
   onNotesChange: (value: string) => void;
-  selectedTags: Tag[];
-  onTagsChange: (tags: Tag[]) => void;
   finalSetTiebreak: boolean;
   onFinalSetTiebreakChange: (value: boolean) => void;
 }
@@ -24,8 +16,6 @@ export const MatchSettings = ({
   onIsWinChange,
   notes,
   onNotesChange,
-  selectedTags,
-  onTagsChange,
   finalSetTiebreak,
   onFinalSetTiebreakChange,
 }: MatchSettingsProps) => {
@@ -49,14 +39,6 @@ export const MatchSettings = ({
           />
           <Label htmlFor="finalSetTiebreak">Tiebreak final set</Label>
         </div>
-      </div>
-
-      <div>
-        <Label>Tags</Label>
-        <TagInput
-          selectedTags={selectedTags}
-          onTagsChange={onTagsChange}
-        />
       </div>
 
       <div>

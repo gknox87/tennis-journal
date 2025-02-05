@@ -1,7 +1,7 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
-import { useTagsData } from "@/hooks/useTagsData";
 import { useNotesData } from "@/hooks/useNotesData";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
 import { useToast } from "@/hooks/use-toast";
@@ -18,13 +18,6 @@ const Index = () => {
   } = useMatchesData();
 
   const {
-    selectedTags,
-    availableTags,
-    toggleTag,
-    refreshTags
-  } = useTagsData();
-
-  const {
     playerNotes,
     refreshNotes,
     handleDeleteNote
@@ -35,7 +28,6 @@ const Index = () => {
       console.log('Refreshing all data...');
       await Promise.all([
         refreshNotes(),
-        refreshTags(),
         refreshMatches()
       ]);
     } catch (error) {
@@ -46,7 +38,7 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  }, [refreshNotes, refreshTags, refreshMatches, toast]);
+  }, [refreshNotes, refreshMatches, toast]);
 
   // Set up realtime subscriptions
   useRealtimeSubscriptions({
@@ -55,9 +47,9 @@ const Index = () => {
     onTagsUpdate: refreshAllData
   });
 
-  // Filter matches when search term or selected tags change
+  // Filter matches when search term changes
   useEffect(() => {
-    console.log('Filtering matches with:', { searchTerm, selectedTags });
+    console.log('Filtering matches with:', { searchTerm });
     let filtered = matches;
 
     if (searchTerm) {
@@ -69,17 +61,9 @@ const Index = () => {
       );
     }
 
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((match) =>
-        selectedTags.every((tagId) =>
-          match.tags?.some((tag) => tag.id === tagId)
-        )
-      );
-    }
-
     console.log('Filtered matches:', filtered);
     setFilteredMatches(filtered);
-  }, [searchTerm, selectedTags, matches, setFilteredMatches]);
+  }, [searchTerm, matches, setFilteredMatches]);
 
   // Initial data fetch
   useEffect(() => {
@@ -93,9 +77,6 @@ const Index = () => {
         filteredMatches={filteredMatches}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        availableTags={availableTags}
-        selectedTags={selectedTags}
-        onTagToggle={toggleTag}
         playerNotes={playerNotes}
         onMatchDelete={refreshAllData}
         onDeleteNote={handleDeleteNote}
