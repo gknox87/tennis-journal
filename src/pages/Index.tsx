@@ -43,8 +43,7 @@ const Index = () => {
   // Set up realtime subscriptions
   useRealtimeSubscriptions({
     onMatchesUpdate: refreshAllData,
-    onNotesUpdate: refreshAllData,
-    onTagsUpdate: refreshAllData
+    onNotesUpdate: refreshAllData
   });
 
   // Filter matches when search term changes
