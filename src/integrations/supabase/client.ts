@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -12,6 +13,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storageKey: 'tennis-match-chronicle-auth',
     },
     global: {
       headers: {
@@ -27,8 +29,17 @@ export const supabase = createClient<Database>(
   }
 );
 
+// Initialize auth state
+supabase.auth.getSession().then(({ data: { session }}) => {
+  if (session) {
+    // Update the realtime subscription auth when we have a session
+    supabase.realtime.setAuth(session.access_token);
+  }
+});
+
 // Listen for auth state changes and update realtime subscription auth
 supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session?.user?.id);
   if (session) {
     // Update the realtime subscription auth when we have a session
     supabase.realtime.setAuth(session.access_token);
