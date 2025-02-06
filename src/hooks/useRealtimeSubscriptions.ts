@@ -1,8 +1,6 @@
 
 import { useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Match } from "@/types/match";
-import { PlayerNote } from "@/types/notes";
 
 type RealtimeCallbacks = {
   onMatchesUpdate: () => void;
