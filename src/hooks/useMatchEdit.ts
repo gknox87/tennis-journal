@@ -34,6 +34,7 @@ export const useMatchEdit = (id: string) => {
           )
         `)
         .eq("id", id)
+        .eq("user_id", session.user.id)
         .single();
 
       if (matchError) throw matchError;
@@ -92,16 +93,16 @@ export const useMatchEdit = (id: string) => {
         .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
         .join(' ');
 
-      const { data: opponentId } = await supabase
+      // First get or create the opponent
+      const { data: opponentId, error: opponentError } = await supabase
         .rpc('get_or_create_opponent', {
           p_name: formData.opponent,
           p_user_id: session.user.id
         });
 
-      if (!opponentId) {
-        throw new Error("Failed to get or create opponent");
-      }
+      if (opponentError) throw opponentError;
 
+      // Then update the match
       const { error: matchError } = await supabase
         .from("matches")
         .update({
@@ -127,7 +128,7 @@ export const useMatchEdit = (id: string) => {
       console.error("Error updating match:", error);
       toast({
         title: "Error",
-        description: "Failed to update match. Please try again.",
+        description: error.message || "Failed to update match. Please try again.",
         variant: "destructive",
       });
     }
