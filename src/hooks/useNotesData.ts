@@ -33,14 +33,17 @@ export const useNotesData = () => {
         .delete()
         .eq("id", noteId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error deleting note:", error);
+        throw error;
+      }
 
       toast({
         title: "Success",
         description: "Note deleted successfully",
       });
       
-      setPlayerNotes(prev => prev.filter(note => note.id !== noteId));
+      await refreshNotes(); // Refresh notes after successful deletion
     } catch (error) {
       console.error("Error deleting note:", error);
       toast({
@@ -49,7 +52,7 @@ export const useNotesData = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, refreshNotes]);
 
   return {
     playerNotes,

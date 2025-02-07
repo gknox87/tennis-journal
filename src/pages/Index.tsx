@@ -5,6 +5,7 @@ import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
 import { useToast } from "@/hooks/use-toast";
+import { Header } from "@/components/Header";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,7 +77,8 @@ const Index = () => {
   }, [refreshAllData]);
 
   return (
-    <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
+    <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-4 max-w-7xl">
+      <Header />
       <DashboardContent
         matches={matches}
         filteredMatches={filteredMatches}
