@@ -13,18 +13,29 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: localStorage,
       storageKey: 'tennis-match-chronicle-auth',
-    },
-    global: {
-      headers: { 'Content-Type': 'application/json' },
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 2
-      }
     },
     db: {
       schema: 'public'
+    },
+    global: {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      fetch: (url, options = {}) => {
+        const defaultOptions = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'Cache-Control': 'no-cache',
+          },
+          mode: 'cors',
+          credentials: 'include'
+        };
+        return fetch(url, defaultOptions);
+      }
     }
   }
 );
