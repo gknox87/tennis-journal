@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { PlayerNote } from "@/types/notes";
 import { useDataFetching } from "@/hooks/useDataFetching";
 import { useToast } from "@/hooks/use-toast";
@@ -10,18 +10,35 @@ export const useNotesData = () => {
   const { fetchPlayerNotes } = useDataFetching();
   const { toast } = useToast();
   const isFetchingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup function for ongoing fetches
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const refreshNotes = useCallback(async () => {
-    if (isFetchingRef.current) return;
+    if (isFetchingRef.current) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }
     
     try {
       isFetchingRef.current = true;
+      abortControllerRef.current = new AbortController();
+      
       console.log('Refreshing notes data...');
       const notesData = await fetchPlayerNotes();
       console.log('Fetched notes:', notesData);
       setPlayerNotes(notesData);
     } finally {
       isFetchingRef.current = false;
+      abortControllerRef.current = null;
     }
   }, [fetchPlayerNotes]);
 
@@ -34,16 +51,18 @@ export const useNotesData = () => {
         .eq("id", noteId);
 
       if (error) {
-        console.error("Supabase error deleting note:", error);
         throw error;
       }
+
+      // Optimistic update
+      setPlayerNotes(currentNotes => 
+        currentNotes.filter(note => note.id !== noteId)
+      );
 
       toast({
         title: "Success",
         description: "Note deleted successfully",
       });
-      
-      await refreshNotes(); // Refresh notes after successful deletion
     } catch (error) {
       console.error("Error deleting note:", error);
       toast({
@@ -52,7 +71,7 @@ export const useNotesData = () => {
         variant: "destructive",
       });
     }
-  }, [toast, refreshNotes]);
+  }, [toast]);
 
   return {
     playerNotes,
