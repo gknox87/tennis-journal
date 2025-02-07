@@ -75,6 +75,7 @@ export const DashboardContent = ({
         open={showNotesDialog}
         onOpenChange={setShowNotesDialog}
         editingNote={editingNote}
+        onDelete={onDeleteNote}
       />
     </>
   );

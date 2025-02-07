@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,9 +17,10 @@ interface NotesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingNote?: PlayerNote | null;
+  onDelete?: (noteId: string) => void;
 }
 
-export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProps) => {
+export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: NotesDialogProps) => {
   const [title, setTitle] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -156,6 +158,13 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
     }
   };
 
+  const handleDelete = async () => {
+    if (editingNote && onDelete) {
+      onDelete(editingNote.id);
+      onOpenChange(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -188,7 +197,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote }: NotesDialogProp
             <NoteDialogFooter
               editingNote={editingNote}
               onSubmit={handleSubmit}
-              onDelete={handleSubmit}
+              onDelete={handleDelete}
             />
           </div>
         </div>
