@@ -21,20 +21,7 @@ export const supabase = createClient<Database>(
     },
     global: {
       headers: { 
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      fetch: (url: RequestInfo | URL, options: RequestInit = {}) => {
-        const defaultOptions: RequestInit = {
-          ...options,
-          headers: {
-            ...options.headers,
-            'Cache-Control': 'no-cache',
-          },
-          mode: 'cors',
-          credentials: 'include' as RequestCredentials
-        };
-        return fetch(url, defaultOptions);
+        'Content-Type': 'application/json'
       }
     }
   }
