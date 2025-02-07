@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
@@ -9,7 +9,7 @@ export const useDataFetching = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) {
       console.error('Auth check error:', error);
@@ -19,20 +19,19 @@ export const useDataFetching = () => {
       throw new Error('No active session');
     }
     return session;
-  };
+  }, []);
 
-  const fetchPlayerNotes = async () => {
+  const fetchPlayerNotes = useCallback(async () => {
     try {
-      console.log('Fetching player notes...');
       const session = await checkAuth();
 
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10); // Limit initial load
 
       if (error) throw error;
-      console.log('Fetched notes:', data);
       return data || [];
     } catch (error: any) {
       console.error('Error fetching player notes:', error);
@@ -51,27 +50,33 @@ export const useDataFetching = () => {
       }
       return [];
     }
-  };
+  }, [checkAuth, toast]);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching matches...');
       const session = await checkAuth();
 
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
-          *,
+          id,
+          created_at,
+          date,
+          score,
+          is_win,
+          notes,
+          final_set_tiebreak,
+          opponent_id,
+          court_type,
           opponents (
             name
           )
         `)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false })
+        .limit(10); // Limit initial load
 
       if (matchesError) throw matchesError;
-
-      console.log('Raw matches data:', matchesData);
 
       const processedMatches: Match[] = matchesData?.map(match => ({
         id: match.id,
@@ -87,7 +92,6 @@ export const useDataFetching = () => {
         court_type: match.court_type || null,
       })) || [];
 
-      console.log('Processed matches:', processedMatches);
       return processedMatches;
     } catch (error: any) {
       console.error("Error fetching matches:", error);
@@ -108,7 +112,7 @@ export const useDataFetching = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [checkAuth, toast]);
 
   return {
     fetchPlayerNotes,

@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+
+import { useState, useCallback, useRef } from "react";
 import { PlayerNote } from "@/types/notes";
 import { useDataFetching } from "@/hooks/useDataFetching";
 import { useToast } from "@/hooks/use-toast";
@@ -8,12 +9,20 @@ export const useNotesData = () => {
   const [playerNotes, setPlayerNotes] = useState<PlayerNote[]>([]);
   const { fetchPlayerNotes } = useDataFetching();
   const { toast } = useToast();
+  const isFetchingRef = useRef(false);
 
   const refreshNotes = useCallback(async () => {
-    console.log('Refreshing notes data...');
-    const notesData = await fetchPlayerNotes();
-    console.log('Fetched notes:', notesData);
-    setPlayerNotes(notesData);
+    if (isFetchingRef.current) return;
+    
+    try {
+      isFetchingRef.current = true;
+      console.log('Refreshing notes data...');
+      const notesData = await fetchPlayerNotes();
+      console.log('Fetched notes:', notesData);
+      setPlayerNotes(notesData);
+    } finally {
+      isFetchingRef.current = false;
+    }
   }, [fetchPlayerNotes]);
 
   const handleDeleteNote = useCallback(async (noteId: string) => {
@@ -31,8 +40,7 @@ export const useNotesData = () => {
         description: "Note deleted successfully",
       });
       
-      // Real-time subscription will handle the update
-      console.log('Note deleted successfully');
+      setPlayerNotes(prev => prev.filter(note => note.id !== noteId));
     } catch (error) {
       console.error("Error deleting note:", error);
       toast({

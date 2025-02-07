@@ -40,28 +40,34 @@ const Index = () => {
     }
   }, [refreshNotes, refreshMatches, toast]);
 
-  // Set up realtime subscriptions
+  // Set up realtime subscriptions with debounced refresh
   useRealtimeSubscriptions({
     onMatchesUpdate: refreshAllData,
     onNotesUpdate: refreshAllData
   });
 
-  // Filter matches when search term changes
+  // Filter matches with debouncing
   useEffect(() => {
-    console.log('Filtering matches with:', { searchTerm });
-    let filtered = matches;
+    const timeoutId = setTimeout(() => {
+      console.log('Filtering matches with:', { searchTerm });
+      if (!matches.length) return;
 
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (match) =>
-          match.opponent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          match.score.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          match.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+      let filtered = matches;
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          (match) =>
+            match.opponent_name?.toLowerCase().includes(searchLower) ||
+            match.score.toLowerCase().includes(searchLower) ||
+            match.notes?.toLowerCase().includes(searchLower)
+        );
+      }
 
-    console.log('Filtered matches:', filtered);
-    setFilteredMatches(filtered);
+      console.log('Filtered matches:', filtered);
+      setFilteredMatches(filtered);
+    }, 300); // Debounce for 300ms
+
+    return () => clearTimeout(timeoutId);
   }, [searchTerm, matches, setFilteredMatches]);
 
   // Initial data fetch
