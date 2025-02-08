@@ -25,7 +25,7 @@ export const Header = () => {
 
   return (
     <header className="flex justify-between items-center mb-8 gap-4">
-      <h1 className="text-3xl font-semibold tracking-tight">Tennis Match Chronicle</h1>
+      <h1 className="text-3xl font-bold">Tennis Match Chronicle</h1>
       <div className="flex gap-3">
         <Button
           onClick={() => navigate("/add-match")}
@@ -39,7 +39,7 @@ export const Header = () => {
           onClick={handleLogout}
           variant="outline"
           size="lg"
-          className="rounded-lg border-gray-200"
+          className="rounded-full"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
