@@ -15,6 +15,7 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       storage: localStorage,
       storageKey: 'tennis-match-chronicle-auth',
+      flowType: 'pkce',
     },
     db: {
       schema: 'public'

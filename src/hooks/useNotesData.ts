@@ -22,6 +22,13 @@ export const useNotesData = () => {
   }, []);
 
   const refreshNotes = useCallback(async () => {
+    // Check if there's an active session first
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('No active session, skipping notes refresh');
+      return;
+    }
+
     if (isFetchingRef.current) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -44,6 +51,17 @@ export const useNotesData = () => {
 
   const handleDeleteNote = useCallback(async (noteId: string) => {
     try {
+      // Check if there's an active session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to delete notes",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log('Deleting note:', noteId);
       const { error } = await supabase
         .from("player_notes")

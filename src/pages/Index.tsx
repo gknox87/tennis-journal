@@ -1,16 +1,36 @@
 
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
 import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Check auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/login");
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        navigate("/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
   const {
     matches,
     filteredMatches,
@@ -66,7 +86,7 @@ const Index = () => {
 
       console.log('Filtered matches:', filtered);
       setFilteredMatches(filtered);
-    }, 300); // Debounce for 300ms
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, matches, setFilteredMatches]);
