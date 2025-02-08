@@ -38,8 +38,8 @@ const Landing = () => {
             </div>
             <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden">
               <img
-                src="/public/placeholder.svg"
-                alt="Tennis Pal App Interface"
+                src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
+                alt="Tennis player using Tennis Pal app on court"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
