@@ -22,11 +22,17 @@ const Landing = () => {
               <div className="flex gap-4">
                 <Button
                   size="lg"
-                  className="btn-primary"
                   onClick={() => navigate("/login")}
                 >
                   Get Started
                   <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
                 </Button>
               </div>
             </div>
