@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
@@ -70,7 +69,6 @@ const Index = () => {
   // Filter matches with debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('Filtering matches with:', { searchTerm });
       if (!matches.length) return;
 
       let filtered = matches;
@@ -84,30 +82,26 @@ const Index = () => {
         );
       }
 
-      console.log('Filtered matches:', filtered);
       setFilteredMatches(filtered);
     }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, matches, setFilteredMatches]);
 
-  // Initial data fetch
-  useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
-
   return (
-    <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-4 max-w-7xl">
-      <Header />
-      <DashboardContent
-        matches={matches}
-        filteredMatches={filteredMatches}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        playerNotes={playerNotes}
-        onMatchDelete={refreshAllData}
-        onDeleteNote={handleDeleteNote}
-      />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <Header />
+        <DashboardContent
+          matches={matches}
+          filteredMatches={filteredMatches}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          playerNotes={playerNotes}
+          onMatchDelete={refreshMatches}
+          onDeleteNote={handleDeleteNote}
+        />
+      </div>
     </div>
   );
 };
