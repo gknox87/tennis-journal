@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
+import Landing from "@/pages/Landing";
 import AddMatch from "@/pages/AddMatch";
 import EditMatch from "@/pages/EditMatch";
 import MatchDetail from "@/pages/MatchDetail";
@@ -16,7 +17,8 @@ function App() {
     <Router>
       <div className="min-h-screen bg-background">
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/add-match" element={<AddMatch />} />
           <Route path="/edit-match/:id" element={<EditMatch />} />

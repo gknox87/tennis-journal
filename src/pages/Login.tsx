@@ -27,7 +27,7 @@ const Login = () => {
 
       if (error) throw error;
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -67,11 +67,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md p-6 space-y-6 bg-white shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+      <Card className="w-full max-w-md p-6 space-y-6 bg-background shadow-lg">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Tennis Match Chronicle</h1>
-          <p className="text-gray-500">Sign in to record your matches</p>
+          <p className="text-muted-foreground">Sign in to record your matches</p>
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
@@ -82,6 +82,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="w-full"
             />
           </div>
           <div className="space-y-2">
@@ -92,6 +93,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="w-full"
             />
           </div>
           <div className="space-y-2">
