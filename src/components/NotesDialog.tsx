@@ -1,17 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Highlight from '@tiptap/extension-highlight';
 import { PlayerNote } from "@/types/notes";
-import { NoteEditorToolbar } from "./notes/NoteEditorToolbar";
-import { NoteImagePreview } from "./notes/NoteImagePreview";
-import { NoteDialogFooter } from "./notes/NoteDialogFooter";
+import { NoteDialogContent } from "./notes/NoteDialogContent";
+import { NoteForm } from "./notes/NoteForm";
 
 interface NotesDialogProps {
   open: boolean;
@@ -26,31 +20,15 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Highlight.configure({ multicolor: true })
-    ],
-    content: '',
-    editorProps: {
-      attributes: {
-        class: 'min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-      },
-    },
-  });
-
   useEffect(() => {
     if (editingNote) {
       setTitle(editingNote.title);
-      editor?.commands.setContent(editingNote.content);
       setImagePreview(editingNote.image_url || null);
     } else {
       setTitle("");
-      editor?.commands.setContent('');
       setImagePreview(null);
     }
-  }, [editingNote, editor]);
+  }, [editingNote]);
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -94,15 +72,6 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
         return;
       }
 
-      if (!title.trim() || !editor?.getHTML()) {
-        toast({
-          title: "Error",
-          description: "Please fill in both title and content",
-          variant: "destructive",
-        });
-        return;
-      }
-
       let imageUrl = editingNote?.image_url;
       if (imageFile) {
         imageUrl = await handleImageUpload(imageFile);
@@ -113,7 +82,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
           .from("player_notes")
           .update({
             title,
-            content: editor.getHTML(),
+            content: document.querySelector('.ProseMirror')?.innerHTML || '',
             image_url: imageUrl,
             updated_at: new Date().toISOString(),
           })
@@ -130,7 +99,7 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
           .from("player_notes")
           .insert({
             title,
-            content: editor.getHTML(),
+            content: document.querySelector('.ProseMirror')?.innerHTML || '',
             image_url: imageUrl,
             user_id: session.session.user.id,
           });
@@ -144,7 +113,6 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
       }
 
       setTitle("");
-      editor?.commands.setContent('');
       setImageFile(null);
       setImagePreview(null);
       onOpenChange(false);
@@ -167,41 +135,17 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{editingNote ? "Edit Note" : "Add Note"}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              placeholder="Note title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <NoteEditorToolbar 
-              editor={editor} 
-              onImageUpload={() => document.getElementById('image-upload')?.click()} 
-            />
-            <input
-              type="file"
-              id="image-upload"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            <EditorContent editor={editor} />
-            <NoteImagePreview 
-              imagePreview={imagePreview} 
-              editingNoteImageUrl={editingNote?.image_url} 
-            />
-            <NoteDialogFooter
-              editingNote={editingNote}
-              onSubmit={handleSubmit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </div>
-      </DialogContent>
+      <NoteDialogContent isEditing={!!editingNote}>
+        <NoteForm
+          title={title}
+          setTitle={setTitle}
+          imagePreview={imagePreview}
+          editingNote={editingNote || null}
+          onImageUpload={handleFileChange}
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+        />
+      </NoteDialogContent>
     </Dialog>
   );
 };
