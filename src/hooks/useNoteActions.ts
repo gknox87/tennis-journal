@@ -44,6 +44,33 @@ export const useNoteActions = ({ onOpenChange, editingNote }: UseNoteActionsProp
     }
   };
 
+  const handleDelete = async () => {
+    if (!editingNote) return;
+    
+    try {
+      const { error } = await supabase
+        .from("player_notes")
+        .delete()
+        .eq("id", editingNote.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note deleted successfully",
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete note",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (title: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -113,5 +140,6 @@ export const useNoteActions = ({ onOpenChange, editingNote }: UseNoteActionsProp
     imagePreview,
     handleFileChange,
     handleSubmit,
+    handleDelete
   };
 };

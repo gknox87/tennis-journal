@@ -15,7 +15,7 @@ interface NotesDialogProps {
 
 export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: NotesDialogProps) => {
   const [title, setTitle] = useState("");
-  const { imagePreview, handleFileChange, handleSubmit } = useNoteActions({
+  const { imagePreview, handleFileChange, handleSubmit, handleDelete } = useNoteActions({
     onOpenChange,
     editingNote: editingNote || null,
   });
@@ -27,13 +27,6 @@ export const NotesDialog = ({ open, onOpenChange, editingNote, onDelete }: Notes
       setTitle("");
     }
   }, [editingNote]);
-
-  const handleDelete = async () => {
-    if (editingNote && onDelete) {
-      onDelete(editingNote.id);
-      onOpenChange(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
