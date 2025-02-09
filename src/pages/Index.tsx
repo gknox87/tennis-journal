@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
-import { useRealtimeSubscriptions } from "@/hooks/useRealtimeSubscriptions";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,9 +51,10 @@ const Index = () => {
 
     checkAuth();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        navigate("/");
+        navigate("/login");
       }
     });
 
@@ -74,28 +74,14 @@ const Index = () => {
     handleDeleteNote
   } = useNotesData();
 
-  const refreshAllData = useCallback(async () => {
-    try {
-      console.log('Refreshing all data...');
-      await Promise.all([
-        refreshNotes(),
-        refreshMatches()
-      ]);
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh data. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [refreshNotes, refreshMatches, toast]);
-
-  // Set up realtime subscriptions with debounced refresh
-  useRealtimeSubscriptions({
-    onMatchesUpdate: refreshAllData,
-    onNotesUpdate: refreshAllData
-  });
+  // Initial data load
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await Promise.all([refreshMatches(), refreshNotes()]);
+    };
+    
+    loadInitialData();
+  }, [refreshMatches, refreshNotes]);
 
   // Filter matches with debouncing
   useEffect(() => {

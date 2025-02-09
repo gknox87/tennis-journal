@@ -24,38 +24,39 @@ export const useDataFetching = () => {
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
-        .limit(5) // Reduced initial load
-        .maybeSingle(); // Use maybeSingle instead of single
+        .limit(5);
 
       if (error) throw error;
-      return data ? [data] : [];
+      return data || [];
     } catch (error: any) {
       console.error('Error fetching player notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load notes",
+        variant: "destructive",
+      });
       return [];
     }
-  }, [checkAuth]);
+  }, [checkAuth, toast]);
 
   const fetchMatches = useCallback(async () => {
     setIsLoading(true);
     try {
       const session = await checkAuth();
 
-      // Fetch only essential data first
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
-          id,
-          date,
-          score,
-          is_win,
-          opponent_id,
+          *,
           opponents (
             name
           )
         `)
+        .eq('user_id', session.user.id)
         .order("date", { ascending: false })
-        .limit(5); // Reduced initial load
+        .limit(5);
 
       if (matchesError) throw matchesError;
 
@@ -67,20 +68,25 @@ export const useDataFetching = () => {
         opponent_id: match.opponent_id || null,
         opponent_name: match.opponents?.name || "Unknown Opponent",
         user_id: session.user.id,
-        notes: null, // Load notes on demand
-        final_set_tiebreak: false,
-        court_type: null,
-        created_at: new Date().toISOString()
+        notes: match.notes || null,
+        final_set_tiebreak: match.final_set_tiebreak || false,
+        court_type: match.court_type || null,
+        created_at: match.created_at
       })) || [];
 
       return processedMatches;
     } catch (error: any) {
       console.error("Error fetching matches:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load matches",
+        variant: "destructive",
+      });
       return [];
     } finally {
       setIsLoading(false);
     }
-  }, [checkAuth]);
+  }, [checkAuth, toast]);
 
   return {
     fetchPlayerNotes,

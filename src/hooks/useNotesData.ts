@@ -43,11 +43,43 @@ export const useNotesData = () => {
       const notesData = await fetchPlayerNotes();
       console.log('Fetched notes:', notesData);
       setPlayerNotes(notesData);
+    } catch (error) {
+      console.error('Error refreshing notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh notes data",
+        variant: "destructive",
+      });
     } finally {
       isFetchingRef.current = false;
       abortControllerRef.current = null;
     }
-  }, [fetchPlayerNotes]);
+  }, [fetchPlayerNotes, toast]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('notes_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_notes'
+        },
+        (payload) => {
+          console.log('Notes change detected:', payload);
+          refreshNotes();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Notes subscription status:', status);
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [refreshNotes]);
 
   const handleDeleteNote = useCallback(async (noteId: string) => {
     try {
