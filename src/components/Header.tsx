@@ -5,7 +5,19 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, LogOut } from "lucide-react";
 
-export const Header = () => {
+interface Profile {
+  id: string;
+  username?: string;
+  full_name?: string;
+  avatar_url?: string;
+  updated_at?: string;
+}
+
+interface HeaderProps {
+  userProfile?: Profile | null;
+}
+
+export const Header = ({ userProfile }: HeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,7 +37,14 @@ export const Header = () => {
 
   return (
     <header className="flex justify-between items-center mb-8 gap-4">
-      <h1 className="text-3xl font-bold">Tennis Match Chronicle</h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-3xl font-bold">Tennis Match Chronicle</h1>
+        {userProfile && (
+          <span className="text-muted-foreground">
+            Welcome, {userProfile.full_name || userProfile.username || 'Player'}
+          </span>
+        )}
+      </div>
       <div className="flex gap-3">
         <Button
           onClick={() => navigate("/add-match")}
