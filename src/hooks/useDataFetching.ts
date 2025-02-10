@@ -26,7 +26,7 @@ export const useDataFetching = () => {
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(9);
 
       if (error) throw error;
       return data || [];
@@ -55,8 +55,7 @@ export const useDataFetching = () => {
           )
         `)
         .eq('user_id', session.user.id)
-        .order("date", { ascending: false })
-        .limit(5);
+        .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
 
