@@ -37,8 +37,7 @@ export const Header = ({ userProfile }: HeaderProps) => {
 
   return (
     <header className="flex justify-between items-center mb-8 gap-4">
-      <div className="flex items-center gap-4">
-        <h1 className="text-3xl font-bold">Tennis Match Chronicle</h1>
+      <div>
         {userProfile && (
           <span className="text-muted-foreground">
             Welcome, {userProfile.full_name || userProfile.username || 'Player'}

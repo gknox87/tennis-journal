@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,14 @@ export const ImprovementChecklist = () => {
         .limit(5);
 
       if (error) throw error;
-      setPoints(data || []);
+      
+      // Convert asterisks to bold text
+      const processedPoints = data?.map(point => ({
+        ...point,
+        point: point.point.replace(/\*\*(.*?)\*\*/g, '$1')
+      })) || [];
+      
+      setPoints(processedPoints);
     } catch (error) {
       console.error('Error fetching improvement points:', error);
       toast({
@@ -82,7 +90,7 @@ export const ImprovementChecklist = () => {
                 point.is_completed ? 'line-through text-muted-foreground' : ''
               }`}
             >
-              {point.point}
+              <span className="font-semibold">{point.point}</span>
             </label>
           </div>
         ))}

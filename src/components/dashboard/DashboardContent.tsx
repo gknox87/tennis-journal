@@ -40,6 +40,9 @@ export const DashboardContent = ({
     setShowNotesDialog(true);
   };
 
+  // Take only the first 9 matches for the dashboard
+  const recentMatches = filteredMatches.slice(0, 9);
+
   return (
     <>
       <div className="mt-4 sm:mt-8">
@@ -77,7 +80,7 @@ export const DashboardContent = ({
       <Suspense fallback={<div>Loading matches...</div>}>
         <div className="mt-4">
           <MatchList
-            matches={filteredMatches}
+            matches={recentMatches}
             onMatchDelete={onMatchDelete}
           />
         </div>

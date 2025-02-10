@@ -1,3 +1,4 @@
+
 import { Match } from "@/types/match";
 import { StatsOverview } from "./StatsOverview";
 
@@ -15,27 +16,18 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
   const wins = matches.filter((match) => match.is_win).length;
   const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
 
-  // Calculate sets won/lost from the score string
+  // Calculate sets won/lost
   const setStats = matches.reduce(
     (acc, match) => {
-      // Split the score string into individual sets
       const sets = match.score.split(" ");
       
       sets.forEach((set) => {
-        // Handle potential empty strings or invalid formats
         if (!set) return;
         
-        // Split each set into player and opponent scores
-        const scores = set.split("-");
-        if (scores.length !== 2) return;
-        
-        const [playerScore, opponentScore] = scores.map(score => {
-          // Remove any non-numeric characters (like parentheses for tiebreaks)
-          const cleanScore = score.replace(/[^0-9]/g, '');
-          return parseInt(cleanScore, 10);
-        });
+        // Remove any parentheses content (tiebreak scores)
+        const cleanSet = set.replace(/\([^)]*\)/g, '');
+        const [playerScore, opponentScore] = cleanSet.split("-").map(Number);
 
-        // Only count valid scores
         if (!isNaN(playerScore) && !isNaN(opponentScore)) {
           if (playerScore > opponentScore) {
             acc.setsWon++;
@@ -50,10 +42,10 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
     { setsWon: 0, setsLost: 0 }
   );
 
-  // Calculate tiebreaks won
+  // Calculate tiebreaks won/lost
   const tiebreaksWon = matches.reduce((acc, match) => {
-    if (match.is_win && match.final_set_tiebreak) {
-      return acc + 1;
+    if (match.final_set_tiebreak) {
+      return match.is_win ? acc + 1 : acc;
     }
     return acc;
   }, 0);
