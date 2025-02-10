@@ -37,11 +37,17 @@ function App() {
     <Router>
       <div className="min-h-screen bg-background">
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
+          {/* Public routes - redirect to dashboard if authenticated */}
+          <Route
+            path="/"
+            element={session ? <Navigate to="/dashboard" /> : <Landing />}
+          />
+          <Route
+            path="/login"
+            element={session ? <Navigate to="/dashboard" /> : <Login />}
+          />
 
-          {/* Protected routes */}
+          {/* Protected routes - redirect to login if not authenticated */}
           <Route
             path="/dashboard"
             element={session ? <Index /> : <Navigate to="/login" />}
@@ -69,6 +75,12 @@ function App() {
           <Route
             path="/improvement-notes"
             element={session ? <ImprovementNotes /> : <Navigate to="/login" />}
+          />
+
+          {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
+          <Route
+            path="*"
+            element={session ? <Navigate to="/dashboard" /> : <Navigate to="/" />}
           />
         </Routes>
         <Toaster />
