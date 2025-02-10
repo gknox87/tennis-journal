@@ -17,9 +17,6 @@ export const supabase = createClient<Database>(
       storageKey: 'tennis-match-chronicle-auth',
       flowType: 'pkce',
     },
-    db: {
-      schema: 'public'
-    },
     global: {
       headers: { 
         'Content-Type': 'application/json'
@@ -35,7 +32,7 @@ supabase.auth.getSession().then(({ data: { session }}) => {
   }
 });
 
-// Listen for auth state changes
+// Listen for auth changes
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     supabase.realtime.setAuth(session.access_token);
