@@ -74,19 +74,19 @@ export const ImprovementChecklist = () => {
   }
 
   return (
-    <div className="space-y-4 mb-6">
-      <h2 className="text-lg font-semibold">Improvement Points</h2>
+    <div className="space-y-4">
       <div className="space-y-2">
         {points.map((point) => (
-          <div key={point.id} className="flex items-start space-x-2">
+          <div key={point.id} className="flex items-start space-x-3 text-left">
             <Checkbox
               id={point.id}
               checked={point.is_completed}
               onCheckedChange={() => togglePoint(point.id, point.is_completed)}
+              className="mt-1"
             />
             <label
               htmlFor={point.id}
-              className={`text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+              className={`text-sm leading-tight ${
                 point.is_completed ? 'line-through text-muted-foreground' : ''
               }`}
             >

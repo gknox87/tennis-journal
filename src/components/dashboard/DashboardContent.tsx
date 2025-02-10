@@ -9,7 +9,6 @@ import { NotesDialog } from "@/components/NotesDialog";
 import { ImprovementChecklist } from "@/components/ImprovementChecklist";
 import { useState, memo, Suspense } from "react";
 
-// Memoize static components
 const MemoizedStatsSection = memo(StatsSection);
 const MemoizedImprovementChecklist = memo(ImprovementChecklist);
 
@@ -40,19 +39,18 @@ export const DashboardContent = ({
     setShowNotesDialog(true);
   };
 
-  // Take only the first 9 matches for the dashboard
   const recentMatches = filteredMatches.slice(0, 9);
 
   return (
-    <>
-      <div className="mt-4 sm:mt-8">
+    <div className="grid gap-6 md:gap-8">
+      <div>
         <Suspense fallback={<div>Loading stats...</div>}>
           <MemoizedStatsSection matches={matches} />
         </Suspense>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-4">Helpful Tips</h2>
+      <div>
+        <h2 className="text-lg font-semibold mb-4 text-left">Helpful Tips</h2>
         <Suspense fallback={<div>Loading tips...</div>}>
           <MemoizedImprovementChecklist />
         </Suspense>
@@ -70,7 +68,7 @@ export const DashboardContent = ({
         />
       </Suspense>
 
-      <div className="mt-6">
+      <div>
         <SearchSection
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
@@ -78,12 +76,10 @@ export const DashboardContent = ({
       </div>
 
       <Suspense fallback={<div>Loading matches...</div>}>
-        <div className="mt-4">
-          <MatchList
-            matches={recentMatches}
-            onMatchDelete={onMatchDelete}
-          />
-        </div>
+        <MatchList
+          matches={recentMatches}
+          onMatchDelete={onMatchDelete}
+        />
       </Suspense>
 
       <NotesDialog
@@ -92,6 +88,6 @@ export const DashboardContent = ({
         editingNote={editingNote}
         onDelete={onDeleteNote}
       />
-    </>
+    </div>
   );
 };

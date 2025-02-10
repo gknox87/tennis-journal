@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Star, CheckCircle, CircleCheck, Award, ThumbsUp } from "lucide-react";
@@ -34,7 +35,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <Trophy className="w-5 h-5 text-primary mb-1" />
           <p className="text-lg font-bold">{winRate}%</p>
-          <p className="text-xs text-muted-foreground">Win Rate</p>
+          <p className="text-xs text-muted-foreground text-center">Win Rate</p>
         </CardContent>
       </Card>
 
@@ -45,7 +46,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <Star className="w-5 h-5 text-secondary mb-1" />
           <p className="text-lg font-bold">{totalMatches}</p>
-          <p className="text-xs text-muted-foreground">Total Matches</p>
+          <p className="text-xs text-muted-foreground text-center">Total Matches</p>
         </CardContent>
       </Card>
 
@@ -56,7 +57,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <CheckCircle className="w-5 h-5 text-accent mb-1" />
           <p className="text-lg font-bold">{matchesThisYear}</p>
-          <p className="text-xs text-muted-foreground">This Year</p>
+          <p className="text-xs text-muted-foreground text-center">This Year</p>
         </CardContent>
       </Card>
 
@@ -67,7 +68,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <CircleCheck className="w-5 h-5 text-primary mb-1" />
           <p className="text-lg font-bold">{setsWon}</p>
-          <p className="text-xs text-muted-foreground">Sets Won</p>
+          <p className="text-xs text-muted-foreground text-center">Sets Won</p>
         </CardContent>
       </Card>
 
@@ -78,7 +79,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <Award className="w-5 h-5 text-secondary mb-1" />
           <p className="text-lg font-bold">{setsLost}</p>
-          <p className="text-xs text-muted-foreground">Sets Lost</p>
+          <p className="text-xs text-muted-foreground text-center">Sets Lost</p>
         </CardContent>
       </Card>
 
@@ -89,7 +90,7 @@ export const StatsOverview = ({
         <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
           <ThumbsUp className="w-5 h-5 text-accent mb-1" />
           <p className="text-lg font-bold">{tiebreaksWon}</p>
-          <p className="text-xs text-muted-foreground">Tiebreaks Won</p>
+          <p className="text-xs text-muted-foreground text-center">Tiebreaks Won</p>
         </CardContent>
       </Card>
     </div>

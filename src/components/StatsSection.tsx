@@ -20,11 +20,8 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
   const setStats = matches.reduce(
     (acc, match) => {
       const sets = match.score.split(" ");
-      
       sets.forEach((set) => {
         if (!set) return;
-        
-        // Remove any parentheses content (tiebreak scores)
         const cleanSet = set.replace(/\([^)]*\)/g, '');
         const [playerScore, opponentScore] = cleanSet.split("-").map(Number);
 
@@ -36,7 +33,6 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
           }
         }
       });
-
       return acc;
     },
     { setsWon: 0, setsLost: 0 }
