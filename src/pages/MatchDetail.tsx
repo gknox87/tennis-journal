@@ -1,13 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Mail, MessageSquare, Pencil } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Mail, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
 import { MatchDetailView } from "@/components/match/MatchDetailView";
-import { NotesDialog } from "@/components/NotesDialog";
-import { PlayerNote } from "@/types/notes";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,8 +39,6 @@ const MatchDetail = () => {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [isSharing, setIsSharing] = useState(false);
-  const [showNotesDialog, setShowNotesDialog] = useState(false);
-  const [editingNote, setEditingNote] = useState<PlayerNote | null>(null);
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -167,11 +164,6 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
     }
   };
 
-  const handleAddNote = () => {
-    setEditingNote(null);
-    setShowNotesDialog(true);
-  };
-
   if (!match) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -196,7 +188,7 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
           Back to Dashboard
         </Button>
         
-        <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button 
             onClick={() => navigate(`/edit-match/${id}`)}
             className="w-full"
@@ -204,37 +196,6 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
             <Edit className="mr-2 h-4 w-4" />
             Edit Match
           </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleAddNote}
-            className="w-full"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Add Note
-          </Button>
-
-          {!isMobile && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setShowEmailDialog(true)}
-                className="w-full"
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                Share via Email
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={shareViaWhatsApp}
-                className="w-full"
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Share via WhatsApp
-              </Button>
-            </>
-          )}
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -260,31 +221,29 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
-        {isMobile && (
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowEmailDialog(true)}
-              className="w-full"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Share via Email
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={shareViaWhatsApp}
-              className="w-full"
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Share via WhatsApp
-            </Button>
-          </div>
-        )}
       </div>
 
       <MatchDetailView match={match} />
+
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          onClick={() => setShowEmailDialog(true)}
+          className="w-full"
+        >
+          <Mail className="mr-2 h-4 w-4" />
+          Share via Email
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={shareViaWhatsApp}
+          className="w-full"
+        >
+          <MessageSquare className="mr-2 h-4 w-4" />
+          Share via WhatsApp
+        </Button>
+      </div>
 
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent>
@@ -325,12 +284,6 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <NotesDialog
-        open={showNotesDialog}
-        onOpenChange={setShowNotesDialog}
-        editingNote={editingNote}
-      />
     </div>
   );
 };
