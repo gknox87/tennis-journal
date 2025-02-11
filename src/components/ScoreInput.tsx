@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -83,7 +84,6 @@ export const ScoreInput = ({
     const newSets = [...sets];
     newSets[index] = { ...newSets[index], [field]: value };
 
-    // Auto-populate the opponent's score
     if (value !== "") {
       const otherField = field === 'playerScore' ? 'opponentScore' : 'playerScore';
       newSets[index][otherField] = autoPopulateScore(value);
@@ -94,58 +94,50 @@ export const ScoreInput = ({
     checkForTiebreak(newSets);
   };
 
-  const toggleBestOfFive = () => {
-    const newValue = !isBestOfFive;
-    onBestOfFiveChange(newValue);
-    if (newValue) {
-      onSetsChange([...sets, { playerScore: "", opponentScore: "" }, { playerScore: "", opponentScore: "" }]);
-    } else {
-      onSetsChange(sets.slice(0, 3));
-    }
-  };
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <Label>Score</Label>
-        <div className="flex items-center space-x-2">
-          <Label htmlFor="best-of-five">Best of 5</Label>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-base font-medium">Score</Label>
+        <div className="flex items-center gap-2">
           <Switch
             id="best-of-five"
             checked={isBestOfFive}
-            onCheckedChange={toggleBestOfFive}
+            onCheckedChange={onBestOfFiveChange}
           />
+          <Label htmlFor="best-of-five" className="text-sm">Best of 5</Label>
         </div>
       </div>
       
       <Card className="p-4">
-        <div className="grid grid-cols-5 gap-4">
-          {sets.map((set, index) => (
-            <div key={index} className="flex flex-col space-y-2">
-              <Label className="text-center">Set {index + 1}</Label>
-              <div className="flex flex-col space-y-2">
+        {sets.map((set, index) => (
+          <div key={index} className="mb-4 last:mb-0">
+            <Label className="text-sm mb-2 block">Set {index + 1}</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">You</Label>
                 <Input
                   type="number"
                   value={set.playerScore}
                   onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                  placeholder="You"
-                  className="w-full h-8 text-sm"
+                  className="h-10 text-lg font-medium"
                   min="0"
                   max="7"
                 />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Opponent</Label>
                 <Input
                   type="number"
                   value={set.opponentScore}
                   onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                  placeholder="Opp"
-                  className="w-full h-8 text-sm"
+                  className="h-10 text-lg font-medium"
                   min="0"
                   max="7"
                 />
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </Card>
     </div>
   );

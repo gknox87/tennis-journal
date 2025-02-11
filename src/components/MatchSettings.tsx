@@ -20,35 +20,35 @@ export const MatchSettings = ({
   onFinalSetTiebreakChange,
 }: MatchSettingsProps) => {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center space-x-2">
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex items-center space-x-2 bg-background/50 p-4 rounded-lg">
           <Switch
             id="isWin"
             checked={isWin}
             onCheckedChange={onIsWinChange}
           />
-          <Label htmlFor="isWin">Won the match</Label>
+          <Label htmlFor="isWin" className="font-medium">Won the match</Label>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 bg-background/50 p-4 rounded-lg">
           <Switch
             id="finalSetTiebreak"
             checked={finalSetTiebreak}
             onCheckedChange={onFinalSetTiebreakChange}
           />
-          <Label htmlFor="finalSetTiebreak">Tiebreak final set</Label>
+          <Label htmlFor="finalSetTiebreak" className="font-medium">Tiebreak final set</Label>
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="notes">Match Notes</Label>
+      <div className="space-y-2">
+        <Label htmlFor="notes" className="text-base font-medium">Match Notes</Label>
         <textarea
           id="notes"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           placeholder="What went well? What could be improved?"
-          className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
     </div>
