@@ -1,44 +1,19 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Mail, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
 import { MatchDetailView } from "@/components/match/MatchDetailView";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { MatchDetailHeader } from "@/components/match/MatchDetailHeader";
+import { MatchActionButtons } from "@/components/match/MatchActionButtons";
+import { MatchShareButtons } from "@/components/match/MatchShareButtons";
 
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const [match, setMatch] = useState<Match | null>(null);
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -112,23 +87,8 @@ const MatchDetail = () => {
     }
   };
 
-  const shareViaWhatsApp = () => {
+  const handleEmailShare = async (recipientEmail: string) => {
     if (!match) return;
-
-    const text = `Match Details:\n
-Opponent: ${match.opponent_name}\n
-Date: ${new Date(match.date).toLocaleDateString()}\n
-Result: ${match.is_win ? 'Win' : 'Loss'}\n
-Score: ${match.score}\n
-${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
-
-    const encodedText = encodeURIComponent(text);
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
-  };
-
-  const shareViaEmail = async () => {
-    if (!match) return;
-    setIsSharing(true);
 
     try {
       const { error } = await supabase.functions.invoke('share-match-notes', {
@@ -150,8 +110,6 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
         title: "Success",
         description: "Match notes have been shared via email.",
       });
-      setShowEmailDialog(false);
-      setRecipientEmail("");
     } catch (error) {
       console.error('Error sharing via email:', error);
       toast({
@@ -159,18 +117,14 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
         description: "Failed to share match notes. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSharing(false);
+      throw error;
     }
   };
 
   if (!match) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <MatchDetailHeader onBack={() => navigate('/')} />
         <p>Loading match details...</p>
       </div>
     );
@@ -179,111 +133,20 @@ ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
   return (
     <div className="container mx-auto px-4 py-6 max-w-3xl">
       <div className="flex flex-col gap-4 mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/')}
-          className="w-full sm:w-auto flex items-center justify-center"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Button 
-            onClick={() => navigate(`/edit-match/${id}`)}
-            className="w-full"
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Match
-          </Button>
-          
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button 
-                variant="destructive"
-                className="w-full"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Match
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="sm:max-w-[425px]">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Match</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this match? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+        <MatchDetailHeader onBack={() => navigate('/')} />
+        <MatchActionButtons
+          matchId={id!}
+          onEdit={() => navigate(`/edit-match/${id}`)}
+          onDelete={handleDelete}
+        />
       </div>
 
       <MatchDetailView match={match} />
 
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          onClick={() => setShowEmailDialog(true)}
-          className="w-full"
-        >
-          <Mail className="mr-2 h-4 w-4" />
-          Share via Email
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={shareViaWhatsApp}
-          className="w-full"
-        >
-          <MessageSquare className="mr-2 h-4 w-4" />
-          Share via WhatsApp
-        </Button>
-      </div>
-
-      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Match Notes via Email</DialogTitle>
-            <DialogDescription>
-              Enter the recipient's email address to share the match notes.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter recipient's email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowEmailDialog(false);
-                setRecipientEmail("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={shareViaEmail}
-              disabled={!recipientEmail || isSharing}
-            >
-              {isSharing ? "Sending..." : "Send"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MatchShareButtons
+        match={match}
+        onEmailShare={handleEmailShare}
+      />
     </div>
   );
 };
