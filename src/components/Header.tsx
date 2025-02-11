@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, LogOut } from "lucide-react";
+import { useState } from "react";
+import { ProfileDialog } from "./ProfileDialog";
 
 interface Profile {
   id: string;
@@ -20,6 +22,7 @@ interface HeaderProps {
 export const Header = ({ userProfile }: HeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -36,7 +39,7 @@ export const Header = ({ userProfile }: HeaderProps) => {
   };
 
   return (
-    <header className="flex justify-between items-center mb-8 gap-4">
+    <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
       <div>
         {userProfile && (
           <span className="text-muted-foreground">
@@ -44,7 +47,21 @@ export const Header = ({ userProfile }: HeaderProps) => {
           </span>
         )}
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 justify-center sm:justify-end">
+        <Button
+          onClick={() => navigate("/key-opponents")}
+          variant="outline"
+          size="lg"
+        >
+          Key Opponents
+        </Button>
+        <Button
+          onClick={() => setShowProfileDialog(true)}
+          variant="outline"
+          size="lg"
+        >
+          My Profile
+        </Button>
         <Button
           onClick={() => navigate("/add-match")}
           className="btn-primary"
@@ -63,6 +80,10 @@ export const Header = ({ userProfile }: HeaderProps) => {
           Logout
         </Button>
       </div>
+      <ProfileDialog 
+        open={showProfileDialog} 
+        onOpenChange={setShowProfileDialog}
+      />
     </header>
   );
 };

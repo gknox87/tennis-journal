@@ -97,6 +97,8 @@ export type Database = {
           id: string
           is_key_opponent: boolean | null
           name: string
+          notes: string | null
+          tactics: string[] | null
           user_id: string | null
         }
         Insert: {
@@ -104,6 +106,8 @@ export type Database = {
           id?: string
           is_key_opponent?: boolean | null
           name: string
+          notes?: string | null
+          tactics?: string[] | null
           user_id?: string | null
         }
         Update: {
@@ -111,6 +115,8 @@ export type Database = {
           id?: string
           is_key_opponent?: boolean | null
           name?: string
+          notes?: string | null
+          tactics?: string[] | null
           user_id?: string | null
         }
         Relationships: []
