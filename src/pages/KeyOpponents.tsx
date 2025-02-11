@@ -2,32 +2,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Search } from "lucide-react";
-import { OpponentCard } from "@/components/opponents/OpponentCard";
-import { AddOpponentDialog } from "@/components/opponents/AddOpponentDialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-interface Opponent {
-  id: string;
-  name: string;
-  matches: {
-    is_win: boolean;
-    date: string;
-    score: string;
-  }[];
-}
+import { ArrowLeft } from "lucide-react";
+import { OpponentSearchSection } from "@/components/opponents/OpponentSearchSection";
+import { OpponentList } from "@/components/opponents/OpponentList";
+import { DeleteOpponentDialog } from "@/components/opponents/DeleteOpponentDialog";
+import type { Opponent } from "@/types/opponents";
 
 const KeyOpponents = () => {
   const navigate = useNavigate();
@@ -164,45 +145,22 @@ const KeyOpponents = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">Key Opponents</h1>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search opponents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <AddOpponentDialog onAdd={handleAddOpponent} />
-      </div>
+      <OpponentSearchSection
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onAddOpponent={handleAddOpponent}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredOpponents.map((opponent) => (
-          <OpponentCard
-            key={opponent.id}
-            opponent={opponent}
-            onDelete={(id) => setDeleteOpponentId(id)}
-          />
-        ))}
-      </div>
+      <OpponentList
+        opponents={filteredOpponents}
+        onDelete={(id) => setDeleteOpponentId(id)}
+      />
 
-      <AlertDialog open={!!deleteOpponentId} onOpenChange={(open) => !open && setDeleteOpponentId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this opponent and cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteOpponent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteOpponentDialog
+        isOpen={!!deleteOpponentId}
+        onClose={() => setDeleteOpponentId(null)}
+        onConfirm={handleDeleteOpponent}
+      />
     </div>
   );
 };
