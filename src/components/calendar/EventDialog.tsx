@@ -49,6 +49,11 @@ export const EventDialog = ({
 
     setLoading(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("No authenticated user");
+      }
+
       if (isNew) {
         const { error } = await supabase
           .from('scheduled_events')
@@ -57,7 +62,8 @@ export const EventDialog = ({
             start_time: event.start,
             end_time: event.end,
             session_type: sessionType,
-            notes
+            notes,
+            user_id: session.user.id // Add user_id here
           });
 
         if (error) throw error;
@@ -67,7 +73,8 @@ export const EventDialog = ({
           .update({
             title,
             session_type: sessionType,
-            notes
+            notes,
+            user_id: session.user.id // Add user_id here
           })
           .eq('id', event.id);
 
