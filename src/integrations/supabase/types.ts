@@ -181,6 +181,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_events: {
+        Row: {
+          created_at: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time: string
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time: string
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          session_type?: Database["public"]["Enums"]["session_type"]
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -195,7 +231,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      session_type: "training" | "recovery" | "match"
     }
     CompositeTypes: {
       [_ in never]: never

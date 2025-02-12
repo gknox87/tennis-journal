@@ -11,6 +11,7 @@ import MatchDetail from "@/pages/MatchDetail";
 import ViewAllMatches from "@/pages/ViewAllMatches";
 import KeyOpponents from "@/pages/KeyOpponents";
 import ImprovementNotes from "@/pages/ImprovementNotes";
+import Calendar from "@/pages/Calendar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -80,6 +81,10 @@ function App() {
           <Route
             path="/improvement-notes"
             element={session ? <ImprovementNotes /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/calendar"
+            element={session ? <Calendar /> : <Navigate to="/login" />}
           />
 
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
