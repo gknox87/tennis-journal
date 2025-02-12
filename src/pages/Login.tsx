@@ -16,31 +16,49 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
+    // Clear any existing sessions on component mount
+    const clearSession = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error clearing session:', error);
       }
-    });
-  }, [navigate]);
+    };
+    clearSession();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      navigate("/dashboard");
-    } catch (error: any) {
+    if (!email || !password) {
       toast({
         title: "Error",
-        description: error.message,
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      console.log('Attempting login with email:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+
+      if (data.user) {
+        console.log('Login successful:', data.user.id);
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      console.error('Login error details:', error);
+      toast({
+        title: "Login Failed",
+        description: error.message || "Please check your email and password",
         variant: "destructive",
       });
     } finally {
@@ -50,14 +68,32 @@ const Login = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
+      console.log('Attempting signup with email:', email);
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
@@ -65,9 +101,10 @@ const Login = () => {
 
       toast({
         title: "Success",
-        description: "Check your email for the confirmation link",
+        description: "Please check your email for the confirmation link",
       });
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -95,6 +132,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full"
+              placeholder="Enter your email"
             />
           </div>
           <div className="space-y-2">
@@ -106,6 +144,8 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full"
+              placeholder="Enter your password"
+              minLength={6}
             />
           </div>
           <div className="space-y-2">
