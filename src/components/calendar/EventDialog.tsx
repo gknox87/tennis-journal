@@ -15,6 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
+import { format } from "date-fns";
 
 interface EventDialogProps {
   event: ScheduledEvent;
@@ -34,6 +35,8 @@ export const EventDialog = ({
   const [title, setTitle] = useState(event.title);
   const [sessionType, setSessionType] = useState<SessionType>(event.session_type);
   const [notes, setNotes] = useState(event.notes || '');
+  const [startDate, setStartDate] = useState(format(new Date(event.start), "yyyy-MM-dd'T'HH:mm"));
+  const [endDate, setEndDate] = useState(format(new Date(event.end), "yyyy-MM-dd'T'HH:mm"));
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -42,6 +45,15 @@ export const EventDialog = ({
       toast({
         title: "Error",
         description: "Please enter a title",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+      toast({
+        title: "Error",
+        description: "End time must be after start time",
         variant: "destructive",
       });
       return;
@@ -59,11 +71,11 @@ export const EventDialog = ({
           .from('scheduled_events')
           .insert({
             title,
-            start_time: event.start,
-            end_time: event.end,
+            start_time: startDate,
+            end_time: endDate,
             session_type: sessionType,
             notes,
-            user_id: session.user.id // Add user_id here
+            user_id: session.user.id
           });
 
         if (error) throw error;
@@ -72,9 +84,11 @@ export const EventDialog = ({
           .from('scheduled_events')
           .update({
             title,
+            start_time: startDate,
+            end_time: endDate,
             session_type: sessionType,
             notes,
-            user_id: session.user.id // Add user_id here
+            user_id: session.user.id
           })
           .eq('id', event.id);
 
@@ -144,6 +158,28 @@ export const EventDialog = ({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter event title"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-time">Start Time</Label>
+              <Input
+                id="start-time"
+                type="datetime-local"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end-time">End Time</Label>
+              <Input
+                id="end-time"
+                type="datetime-local"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
