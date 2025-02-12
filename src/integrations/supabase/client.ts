@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       storage: localStorage,
       storageKey: 'tennis-match-chronicle-auth',
-      flowType: 'pkce',
+      // Remove flowType: 'pkce' as it's causing refresh token issues
     },
     global: {
       headers: { 
