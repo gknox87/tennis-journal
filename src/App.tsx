@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import Landing from "@/pages/Landing";
 import AddMatch from "@/pages/AddMatch";
 import EditMatch from "@/pages/EditMatch";
@@ -45,6 +46,10 @@ function App() {
           <Route
             path="/login"
             element={session ? <Navigate to="/dashboard" /> : <Login />}
+          />
+          <Route
+            path="/register"
+            element={session ? <Navigate to="/dashboard" /> : <Register />}
           />
 
           {/* Protected routes - redirect to login if not authenticated */}
