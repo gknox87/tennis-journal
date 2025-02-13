@@ -24,13 +24,19 @@ interface OpponentCardProps {
 
 export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [currentOpponent, setCurrentOpponent] = useState(opponent);
+  
   const stats = {
-    wins: opponent.matches.filter(match => match.is_win).length,
-    losses: opponent.matches.filter(match => !match.is_win).length,
-    timesPlayed: opponent.matches.length,
-    lastMatch: opponent.matches.sort((a, b) => 
+    wins: currentOpponent.matches.filter(match => match.is_win).length,
+    losses: currentOpponent.matches.filter(match => !match.is_win).length,
+    timesPlayed: currentOpponent.matches.length,
+    lastMatch: currentOpponent.matches.sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     )[0]
+  };
+
+  const handleUpdate = (updatedOpponent: typeof opponent) => {
+    setCurrentOpponent(updatedOpponent);
   };
 
   return (
@@ -41,13 +47,13 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
       >
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-xl font-semibold">{opponent.name}</h2>
+            <h2 className="text-xl font-semibold">{currentOpponent.name}</h2>
             <Button
               variant="ghost"
               size="icon"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(opponent.id);
+                onDelete(currentOpponent.id);
               }}
               className="text-destructive hover:text-destructive/90"
             >
@@ -93,12 +99,30 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
       </Card>
 
       <OpponentDetailsDialog
-        opponent={opponent}
+        opponent={currentOpponent}
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
         onUpdate={() => {
-          // Refresh the opponent data
-          window.location.reload();
+          // Fetch the updated opponent data
+          const fetchUpdatedOpponent = async () => {
+            const { data, error } = await supabase
+              .from('opponents')
+              .select(`
+                *,
+                matches (
+                  is_win,
+                  date,
+                  score
+                )
+              `)
+              .eq('id', currentOpponent.id)
+              .single();
+
+            if (!error && data) {
+              handleUpdate(data);
+            }
+          };
+          fetchUpdatedOpponent();
         }}
       />
     </>
