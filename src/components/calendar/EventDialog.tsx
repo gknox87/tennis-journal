@@ -15,7 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 interface EventDialogProps {
   event: ScheduledEvent;
@@ -35,8 +35,18 @@ export const EventDialog = ({
   const [title, setTitle] = useState(event.title);
   const [sessionType, setSessionType] = useState<SessionType>(event.session_type);
   const [notes, setNotes] = useState(event.notes || '');
-  const [startDate, setStartDate] = useState(format(new Date(event.start), "yyyy-MM-dd'T'HH:mm"));
-  const [endDate, setEndDate] = useState(format(new Date(event.end), "yyyy-MM-dd'T'HH:mm"));
+  
+  // Safely format dates with fallback to current time
+  const formatDateWithFallback = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isValid(date)) {
+      return format(date, "yyyy-MM-dd'T'HH:mm");
+    }
+    return format(new Date(), "yyyy-MM-dd'T'HH:mm");
+  };
+
+  const [startDate, setStartDate] = useState(formatDateWithFallback(event.start));
+  const [endDate, setEndDate] = useState(formatDateWithFallback(event.end));
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -50,7 +60,19 @@ export const EventDialog = ({
       return;
     }
 
-    if (new Date(endDate) <= new Date(startDate)) {
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+
+    if (!isValid(startDateTime) || !isValid(endDateTime)) {
+      toast({
+        title: "Error",
+        description: "Invalid date format",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (endDateTime <= startDateTime) {
       toast({
         title: "Error",
         description: "End time must be after start time",
