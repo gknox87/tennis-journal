@@ -12,6 +12,14 @@ import type { ScheduledEvent } from "@/types/calendar";
 import type { DateSelectArg, EventClickArg } from '@fullcalendar/core';
 import { Plus, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Color mapping for different session types
+const sessionTypeColors = {
+  training: '#F2FCE2',
+  recovery: '#FEF7CD',
+  match: '#FEC6A1'
+};
 
 const Calendar = () => {
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
@@ -20,6 +28,7 @@ const Calendar = () => {
   const [isNewEvent, setIsNewEvent] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchEvents = async () => {
     try {
@@ -35,6 +44,9 @@ const Calendar = () => {
         title: event.title,
         start: event.start_time,
         end: event.end_time,
+        backgroundColor: sessionTypeColors[event.session_type],
+        borderColor: sessionTypeColors[event.session_type],
+        textColor: '#000000',
         session_type: event.session_type,
         notes: event.notes
       }));
@@ -148,15 +160,15 @@ const Calendar = () => {
       <div className="bg-background rounded-lg shadow p-2 sm:p-4">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
+          initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
           headerToolbar={{
-            left: 'prev,next today addEventButton',
+            left: isMobile ? 'prev,next' : 'prev,next today addEventButton',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: isMobile ? 'addEventButton' : 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
           customButtons={{
             addEventButton: {
-              text: '+ Add Event',
+              text: isMobile ? '+' : '+ Add Event',
               click: handleAddEvent
             }
           }}
@@ -167,15 +179,18 @@ const Calendar = () => {
           events={events}
           select={handleDateSelect}
           eventClick={handleEventClick}
-          height="auto"
-          contentHeight="auto"
-          aspectRatio={1.5}
+          height={isMobile ? "auto" : "70vh"}
+          contentHeight={isMobile ? "auto" : "70vh"}
+          aspectRatio={isMobile ? 0.8 : 1.5}
           expandRows={true}
           handleWindowResize={true}
           stickyHeaderDates={true}
           nowIndicator={true}
           slotMinTime="06:00:00"
           slotMaxTime="22:00:00"
+          allDaySlot={false}
+          slotDuration="01:00:00"
+          slotLabelInterval="01:00"
         />
       </div>
 
@@ -183,9 +198,16 @@ const Calendar = () => {
         <EventDialog
           event={selectedEvent}
           isOpen={showEventDialog}
-          onClose={() => setShowEventDialog(false)}
+          onClose={() => {
+            setShowEventDialog(false);
+            setSelectedEvent(null);
+          }}
           isNew={isNewEvent}
-          onSave={fetchEvents}
+          onSave={() => {
+            fetchEvents();
+            setShowEventDialog(false);
+            setSelectedEvent(null);
+          }}
         />
       )}
     </div>
