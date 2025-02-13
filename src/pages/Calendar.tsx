@@ -80,6 +80,50 @@ const Calendar = () => {
     setShowEventDialog(true);
   };
 
+  const handleAddEvent = () => {
+    setIsNewEvent(true);
+    setSelectedEvent({
+      id: '',
+      title: '',
+      start: new Date().toISOString(),
+      end: new Date(Date.now() + 3600000).toISOString(),
+      session_type: 'training'
+    });
+    setShowEventDialog(true);
+  };
+
+  const handleCalendarSync = () => {
+    // Generate .ics file content
+    let icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Tennis Schedule//EN',
+      ...events.map(event => [
+        'BEGIN:VEVENT',
+        `DTSTART:${new Date(event.start).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/g, '')}`,
+        `DTEND:${new Date(event.end).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/g, '')}`,
+        `SUMMARY:${event.title}`,
+        `DESCRIPTION:${event.notes || ''}`,
+        'END:VEVENT'
+      ].join('\n')),
+      'END:VCALENDAR'
+    ].join('\n');
+
+    // Create and download the .ics file
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'tennis-schedule.ics';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Calendar Export Ready",
+      description: "Your calendar has been exported. Import this file into your preferred calendar app.",
+    });
+  };
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -92,36 +136,13 @@ const Calendar = () => {
           Back to Dashboard
         </Button>
         
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={() => {
-              setIsNewEvent(true);
-              setSelectedEvent({
-                id: '',
-                title: '',
-                start: new Date().toISOString(),
-                end: new Date(Date.now() + 3600000).toISOString(),
-                session_type: 'training'
-              });
-              setShowEventDialog(true);
-            }}
-            className="flex items-center"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Event
-          </Button>
-          
-          <Button 
-            variant="outline"
-            onClick={() => {
-              const url = 'webcal://calendar.google.com/calendar/ical/YOUR_CALENDAR_ID/public/basic.ics';
-              window.open(url, '_blank');
-            }}
-            className="hidden sm:flex items-center"
-          >
-            Sync Calendar
-          </Button>
-        </div>
+        <Button 
+          variant="outline"
+          onClick={handleCalendarSync}
+          className="hidden sm:flex items-center"
+        >
+          Sync Calendar
+        </Button>
       </div>
       
       <div className="bg-background rounded-lg shadow p-2 sm:p-4">
@@ -136,17 +157,7 @@ const Calendar = () => {
           customButtons={{
             addEventButton: {
               text: '+ Add Event',
-              click: () => {
-                setIsNewEvent(true);
-                setSelectedEvent({
-                  id: '',
-                  title: '',
-                  start: new Date().toISOString(),
-                  end: new Date(Date.now() + 3600000).toISOString(),
-                  session_type: 'training'
-                });
-                setShowEventDialog(true);
-              }
+              click: handleAddEvent
             }
           }}
           editable={true}
