@@ -98,8 +98,11 @@ export type Database = {
           is_key_opponent: boolean | null
           name: string
           notes: string | null
+          strengths: string | null
           tactics: string[] | null
+          tendencies: string | null
           user_id: string | null
+          weaknesses: string | null
         }
         Insert: {
           created_at?: string
@@ -107,8 +110,11 @@ export type Database = {
           is_key_opponent?: boolean | null
           name: string
           notes?: string | null
+          strengths?: string | null
           tactics?: string[] | null
+          tendencies?: string | null
           user_id?: string | null
+          weaknesses?: string | null
         }
         Update: {
           created_at?: string
@@ -116,8 +122,11 @@ export type Database = {
           is_key_opponent?: boolean | null
           name?: string
           notes?: string | null
+          strengths?: string | null
           tactics?: string[] | null
+          tendencies?: string | null
           user_id?: string | null
+          weaknesses?: string | null
         }
         Relationships: []
       }

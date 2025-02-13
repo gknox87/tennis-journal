@@ -7,4 +7,7 @@ export interface Opponent {
     date: string;
     score: string;
   }[];
+  strengths?: string;
+  weaknesses?: string;
+  tendencies?: string;
 }
