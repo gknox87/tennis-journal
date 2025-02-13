@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { EventDialog } from "@/components/calendar/EventDialog";
 import type { ScheduledEvent } from "@/types/calendar";
 import type { DateSelectArg, EventClickArg } from '@fullcalendar/core';
+import { Plus, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Calendar = () => {
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
@@ -17,6 +19,7 @@ const Calendar = () => {
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [isNewEvent, setIsNewEvent] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchEvents = async () => {
     try {
@@ -26,11 +29,17 @@ const Calendar = () => {
 
       if (error) throw error;
 
-      setEvents(data.map(event => ({
+      const formattedEvents = data.map(event => ({
         ...event,
+        id: event.id,
+        title: event.title,
         start: event.start_time,
-        end: event.end_time
-      })));
+        end: event.end_time,
+        session_type: event.session_type,
+        notes: event.notes
+      }));
+
+      setEvents(formattedEvents);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -59,39 +68,86 @@ const Calendar = () => {
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     setIsNewEvent(false);
-    setSelectedEvent(clickInfo.event.extendedProps as ScheduledEvent);
+    const event = {
+      id: clickInfo.event.id,
+      title: clickInfo.event.title,
+      start: clickInfo.event.startStr,
+      end: clickInfo.event.endStr,
+      session_type: clickInfo.event.extendedProps.session_type || 'training',
+      notes: clickInfo.event.extendedProps.notes || ''
+    };
+    setSelectedEvent(event);
     setShowEventDialog(true);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Schedule</h1>
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <Button 
-          onClick={() => {
-            setIsNewEvent(true);
-            setSelectedEvent({
-              id: '',
-              title: '',
-              start: new Date().toISOString(),
-              end: new Date(Date.now() + 3600000).toISOString(),
-              session_type: 'training'
-            });
-            setShowEventDialog(true);
-          }}
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="flex items-center"
         >
-          Add Event
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Dashboard
         </Button>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => {
+              setIsNewEvent(true);
+              setSelectedEvent({
+                id: '',
+                title: '',
+                start: new Date().toISOString(),
+                end: new Date(Date.now() + 3600000).toISOString(),
+                session_type: 'training'
+              });
+              setShowEventDialog(true);
+            }}
+            className="flex items-center"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
+          
+          <Button 
+            variant="outline"
+            onClick={() => {
+              const url = 'webcal://calendar.google.com/calendar/ical/YOUR_CALENDAR_ID/public/basic.ics';
+              window.open(url, '_blank');
+            }}
+            className="hidden sm:flex items-center"
+          >
+            Sync Calendar
+          </Button>
+        </div>
       </div>
       
-      <div className="bg-background rounded-lg shadow p-4">
+      <div className="bg-background rounded-lg shadow p-2 sm:p-4">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
           headerToolbar={{
-            left: 'prev,next today',
+            left: 'prev,next today addEventButton',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
+          customButtons={{
+            addEventButton: {
+              text: '+ Add Event',
+              click: () => {
+                setIsNewEvent(true);
+                setSelectedEvent({
+                  id: '',
+                  title: '',
+                  start: new Date().toISOString(),
+                  end: new Date(Date.now() + 3600000).toISOString(),
+                  session_type: 'training'
+                });
+                setShowEventDialog(true);
+              }
+            }
           }}
           editable={true}
           selectable={true}
@@ -101,6 +157,14 @@ const Calendar = () => {
           select={handleDateSelect}
           eventClick={handleEventClick}
           height="auto"
+          contentHeight="auto"
+          aspectRatio={1.5}
+          expandRows={true}
+          handleWindowResize={true}
+          stickyHeaderDates={true}
+          nowIndicator={true}
+          slotMinTime="06:00:00"
+          slotMaxTime="22:00:00"
         />
       </div>
 
