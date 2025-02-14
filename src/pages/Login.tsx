@@ -26,14 +26,41 @@ const Login = () => {
     clearSession();
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
     if (!email || !password) {
       toast({
         title: "Error",
         description: "Please enter both email and password",
         variant: "destructive",
       });
+      return false;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
       return;
     }
     
@@ -47,11 +74,18 @@ const Login = () => {
 
       if (error) {
         console.error('Login error:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
         throw error;
       }
 
       if (data.user) {
         console.log('Login successful:', data.user.id);
+        toast({
+          title: "Success",
+          description: "Login successful",
+        });
         navigate("/dashboard");
       }
     } catch (error: any) {
@@ -84,6 +118,8 @@ const Login = () => {
               required
               className="w-full"
               placeholder="Enter your email"
+              disabled={loading}
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -97,6 +133,8 @@ const Login = () => {
               className="w-full"
               placeholder="Enter your password"
               minLength={6}
+              disabled={loading}
+              autoComplete="current-password"
             />
           </div>
           <Button
@@ -104,7 +142,7 @@ const Login = () => {
             className="w-full"
             disabled={loading}
           >
-            {loading ? "Loading..." : "Sign In"}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
