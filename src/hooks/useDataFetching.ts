@@ -26,7 +26,7 @@ export const useDataFetching = () => {
         .from('scheduled_events')
         .select('*')
         .eq('user_id', session.user.id)
-        .order('start', { ascending: true });
+        .order('start_time', { ascending: true });
 
       if (error) throw error;
 

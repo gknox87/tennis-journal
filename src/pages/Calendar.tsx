@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,13 @@ const Calendar = () => {
   const fetchEvents = async () => {
     try {
       const eventsData = await fetchScheduledEvents();
-      setEvents(eventsData);
+      // Map the database fields to FullCalendar format
+      const mappedEvents = eventsData.map(event => ({
+        ...event,
+        start: event.start_time,
+        end: event.end_time
+      }));
+      setEvents(mappedEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -39,8 +46,8 @@ const Calendar = () => {
     setSelectedEvent({
       id: crypto.randomUUID(),
       title: "",
-      start: new Date().toISOString(),
-      end: new Date().toISOString(),
+      start_time: new Date().toISOString(),
+      end_time: new Date().toISOString(),
       session_type: "training",
     });
     setShowEventDialog(true);
@@ -57,12 +64,20 @@ const Calendar = () => {
     setSelectedEvent({
       id: crypto.randomUUID(),
       title: "",
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
+      start_time: selectInfo.startStr,
+      end_time: selectInfo.endStr,
       session_type: "training",
     });
     setShowEventDialog(true);
   };
+
+  const calendarEvents = events.map(event => ({
+    id: event.id,
+    title: event.title,
+    start: event.start_time,
+    end: event.end_time,
+    extendedProps: event
+  }));
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -97,7 +112,7 @@ const Calendar = () => {
             selectable={true}
             selectMirror={true}
             dayMaxEvents={true}
-            events={events}
+            events={calendarEvents}
             select={handleDateSelect}
             eventClick={(info) => handleEventClick(info.event.extendedProps as ScheduledEvent)}
             height="70vh"

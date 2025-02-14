@@ -16,8 +16,8 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
 
   const todayEvents = events.filter(event => 
-    isSameDay(new Date(event.start), selectedDate)
-  ).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    isSameDay(new Date(event.start_time), selectedDate)
+  ).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   const handlePreviousDay = () => {
     setSelectedDate(current => addDays(current, -1));
@@ -67,7 +67,7 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                 <div className="flex-1">
                   <h3 className="font-medium">{event.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                    {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
                   </p>
                 </div>
               </div>
