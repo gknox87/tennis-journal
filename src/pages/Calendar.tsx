@@ -1,63 +1,33 @@
-import { useState, useEffect } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { EventDialog } from "@/components/calendar/EventDialog";
-import type { ScheduledEvent } from "@/types/calendar";
-import type { DateSelectArg, EventClickArg } from '@fullcalendar/core';
-import { Plus, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 
-// Color mapping for different session types
-const sessionTypeColors = {
-  training: '#F2FCE2',
-  recovery: '#FEF7CD',
-  match: '#FEC6A1'
-};
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { EventDialog } from "@/components/calendar/EventDialog";
+import { MobileCalendarView } from "@/components/calendar/MobileCalendarView";
+import { useDataFetching } from "@/hooks/useDataFetching";
+import { useMobile } from "@/hooks/use-mobile";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import type { ScheduledEvent } from "@/types/calendar";
 
 const Calendar = () => {
-  const [events, setEvents] = useState<ScheduledEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
-  const [showEventDialog, setShowEventDialog] = useState(false);
-  const [isNewEvent, setIsNewEvent] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const { fetchScheduledEvents } = useDataFetching();
+  const [events, setEvents] = useState<ScheduledEvent[]>([]);
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
+  const [isNewEvent, setIsNewEvent] = useState(false);
+  const isMobile = useMobile();
 
   const fetchEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('scheduled_events')
-        .select('*');
-
-      if (error) throw error;
-
-      const formattedEvents = data.map(event => ({
-        ...event,
-        id: event.id,
-        title: event.title,
-        start: event.start_time,
-        end: event.end_time,
-        backgroundColor: sessionTypeColors[event.session_type],
-        borderColor: sessionTypeColors[event.session_type],
-        textColor: '#000000',
-        session_type: event.session_type,
-        notes: event.notes
-      }));
-
-      setEvents(formattedEvents);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to load events",
-        variant: "destructive",
-      });
-      console.error('Error fetching events:', error);
+      const eventsData = await fetchScheduledEvents();
+      setEvents(eventsData);
+    } catch (error) {
+      console.error("Error fetching events:", error);
     }
   };
 
@@ -65,74 +35,34 @@ const Calendar = () => {
     fetchEvents();
   }, []);
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
+  const handleAddEvent = () => {
     setIsNewEvent(true);
     setSelectedEvent({
-      id: '',
-      title: '',
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
-      session_type: 'training'
+      id: crypto.randomUUID(),
+      title: "",
+      start: new Date().toISOString(),
+      end: new Date().toISOString(),
+      session_type: "training",
     });
     setShowEventDialog(true);
   };
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
+  const handleEventClick = (event: ScheduledEvent) => {
     setIsNewEvent(false);
-    const event = {
-      id: clickInfo.event.id,
-      title: clickInfo.event.title,
-      start: clickInfo.event.startStr,
-      end: clickInfo.event.endStr,
-      session_type: clickInfo.event.extendedProps.session_type || 'training',
-      notes: clickInfo.event.extendedProps.notes || ''
-    };
     setSelectedEvent(event);
     setShowEventDialog(true);
   };
 
-  const handleAddEvent = () => {
+  const handleDateSelect = (selectInfo: any) => {
     setIsNewEvent(true);
     setSelectedEvent({
-      id: '',
-      title: '',
-      start: new Date().toISOString(),
-      end: new Date(Date.now() + 3600000).toISOString(),
-      session_type: 'training'
+      id: crypto.randomUUID(),
+      title: "",
+      start: selectInfo.startStr,
+      end: selectInfo.endStr,
+      session_type: "training",
     });
     setShowEventDialog(true);
-  };
-
-  const handleCalendarSync = () => {
-    // Generate .ics file content
-    let icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Tennis Schedule//EN',
-      ...events.map(event => [
-        'BEGIN:VEVENT',
-        `DTSTART:${new Date(event.start).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/g, '')}`,
-        `DTEND:${new Date(event.end).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/g, '')}`,
-        `SUMMARY:${event.title}`,
-        `DESCRIPTION:${event.notes || ''}`,
-        'END:VEVENT'
-      ].join('\n')),
-      'END:VCALENDAR'
-    ].join('\n');
-
-    // Create and download the .ics file
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = 'tennis-schedule.ics';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Calendar Export Ready",
-      description: "Your calendar has been exported. Import this file into your preferred calendar app.",
-    });
   };
 
   return (
@@ -146,51 +76,41 @@ const Calendar = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
-        
-        <Button 
-          variant="outline"
-          onClick={handleCalendarSync}
-          className="hidden sm:flex items-center"
-        >
-          Sync Calendar
-        </Button>
       </div>
       
       <div className="bg-background rounded-lg shadow p-2 sm:p-4">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
-          headerToolbar={{
-            left: isMobile ? 'prev,next' : 'prev,next today addEventButton',
-            center: 'title',
-            right: isMobile ? 'addEventButton' : 'dayGridMonth,timeGridWeek,timeGridDay'
-          }}
-          customButtons={{
-            addEventButton: {
-              text: isMobile ? '+' : '+ Add Event',
-              click: handleAddEvent
-            }
-          }}
-          editable={true}
-          selectable={true}
-          selectMirror={true}
-          dayMaxEvents={true}
-          events={events}
-          select={handleDateSelect}
-          eventClick={handleEventClick}
-          height={isMobile ? "auto" : "70vh"}
-          contentHeight={isMobile ? "auto" : "70vh"}
-          aspectRatio={isMobile ? 0.8 : 1.5}
-          expandRows={true}
-          handleWindowResize={true}
-          stickyHeaderDates={true}
-          nowIndicator={true}
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          allDaySlot={false}
-          slotDuration="01:00:00"
-          slotLabelInterval="01:00"
-        />
+        {isMobile ? (
+          <MobileCalendarView
+            events={events}
+            onEventClick={handleEventClick}
+            onAddEvent={handleAddEvent}
+          />
+        ) : (
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            }}
+            editable={true}
+            selectable={true}
+            selectMirror={true}
+            dayMaxEvents={true}
+            events={events}
+            select={handleDateSelect}
+            eventClick={(info) => handleEventClick(info.event.extendedProps as ScheduledEvent)}
+            height="70vh"
+            expandRows={true}
+            handleWindowResize={true}
+            stickyHeaderDates={true}
+            nowIndicator={true}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            allDaySlot={false}
+          />
+        )}
       </div>
 
       {showEventDialog && selectedEvent && (

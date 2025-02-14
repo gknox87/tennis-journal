@@ -5,14 +5,20 @@ interface NoteImagePreviewProps {
 }
 
 export const NoteImagePreview = ({ imagePreview, editingNoteImageUrl }: NoteImagePreviewProps) => {
-  if (!imagePreview && !editingNoteImageUrl) return null;
+  const imageUrl = imagePreview || editingNoteImageUrl;
+  
+  if (!imageUrl) return null;
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 relative">
       <img
-        src={imagePreview || editingNoteImageUrl}
+        src={imageUrl}
         alt="Note image"
         className="max-h-48 rounded-md object-cover w-full"
+        onError={(e) => {
+          console.error('Error loading image:', imageUrl);
+          e.currentTarget.style.display = 'none';
+        }}
       />
     </div>
   );
