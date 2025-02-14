@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { EventDialog } from "@/components/calendar/EventDialog";
 import { MobileCalendarView } from "@/components/calendar/MobileCalendarView";
 import { useDataFetching } from "@/hooks/useDataFetching";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -20,7 +19,7 @@ const Calendar = () => {
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
   const [isNewEvent, setIsNewEvent] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const fetchEvents = async () => {
     try {

@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
+import { ScheduledEvent } from "@/types/calendar";
 import { useToast } from "@/hooks/use-toast";
 
 export const useDataFetching = () => {
@@ -16,6 +17,30 @@ export const useDataFetching = () => {
     }
     return session;
   }, []);
+
+  const fetchScheduledEvents = useCallback(async () => {
+    try {
+      const session = await checkAuth();
+
+      const { data, error } = await supabase
+        .from('scheduled_events')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('start', { ascending: true });
+
+      if (error) throw error;
+
+      return data as ScheduledEvent[] || [];
+    } catch (error: any) {
+      console.error('Error fetching scheduled events:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load scheduled events",
+        variant: "destructive",
+      });
+      return [];
+    }
+  }, [checkAuth, toast]);
 
   const fetchPlayerNotes = useCallback(async () => {
     try {
@@ -90,6 +115,7 @@ export const useDataFetching = () => {
   return {
     fetchPlayerNotes,
     fetchMatches,
+    fetchScheduledEvents,
     isLoading
   };
 };
