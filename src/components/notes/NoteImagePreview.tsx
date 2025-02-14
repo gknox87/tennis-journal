@@ -1,3 +1,4 @@
+
 interface NoteImagePreviewProps {
   imagePreview: string | null;
   editingNoteImageUrl?: string | null;
@@ -11,7 +12,7 @@ export const NoteImagePreview = ({ imagePreview, editingNoteImageUrl }: NoteImag
       <img
         src={imagePreview || editingNoteImageUrl}
         alt="Note image"
-        className="max-h-48 rounded-md"
+        className="max-h-48 rounded-md object-cover w-full"
       />
     </div>
   );

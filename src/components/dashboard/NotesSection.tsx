@@ -50,7 +50,7 @@ export const NotesSection = ({
       </div>
 
       {playerNotes.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {playerNotes.map((note) => (
             <Card 
               key={note.id} 
@@ -117,6 +117,15 @@ export const NotesSection = ({
                 <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap">
                   {stripHtmlTags(note.content)}
                 </p>
+                {note.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={note.image_url} 
+                      alt="Note attachment" 
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
