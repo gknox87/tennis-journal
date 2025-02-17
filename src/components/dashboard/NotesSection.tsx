@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,15 +116,6 @@ export const NotesSection = ({
                 <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap">
                   {stripHtmlTags(note.content)}
                 </p>
-                {note.image_url && (
-                  <div className="mt-2">
-                    <img 
-                      src={note.image_url} 
-                      alt="Note attachment" 
-                      className="w-full h-32 object-cover rounded-md"
-                    />
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}

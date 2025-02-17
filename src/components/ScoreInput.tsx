@@ -27,14 +27,24 @@ export const ScoreInput = ({
   onIsWinChange,
   onFinalSetTiebreakChange,
 }: ScoreInputProps) => {
-  const autoPopulateScore = (score: string): string => {
+  const autoPopulateScore = (score: string, setIndex: number): string => {
     const numScore = parseInt(score);
     if (!isNaN(numScore)) {
-      if (numScore <= 4) return "6";
-      if (numScore === 5) return "7";
-      if (numScore === 6) return "7";
-      if (numScore === 7) return "6";
-      if (numScore > 7) return (numScore - 2).toString();
+      const isFinalSet = (setIndex === 2 && !isBestOfFive) || (setIndex === 4 && isBestOfFive);
+      
+      if (isFinalSet) {
+        // In final set, allow scores over 7 for tiebreak
+        if (numScore <= 4) return "6";
+        if (numScore === 5) return "7";
+        return ""; // Don't auto-populate in tiebreak situations
+      } else {
+        // Regular set scoring
+        if (numScore <= 4) return "6";
+        if (numScore === 5) return "7";
+        if (numScore === 6) return "7";
+        if (numScore === 7) return "6";
+        if (numScore > 7) return (numScore - 2).toString();
+      }
     }
     return "";
   };
@@ -72,9 +82,13 @@ export const ScoreInput = ({
     const lastPlayedSet = lastPlayedSetIndex >= 0 ? updatedSets[lastPlayedSetIndex] : updatedSets[updatedSets.length - 1];
     
     if (lastPlayedSet && lastPlayedSet.playerScore && lastPlayedSet.opponentScore) {
-      const isTiebreak = 
-        (lastPlayedSet.playerScore === "7" && lastPlayedSet.opponentScore === "6") ||
-        (lastPlayedSet.playerScore === "6" && lastPlayedSet.opponentScore === "7");
+      const playerScore = parseInt(lastPlayedSet.playerScore);
+      const opponentScore = parseInt(lastPlayedSet.opponentScore);
+      
+      // Check if it's a tiebreak situation (scores higher than normal set scores)
+      const isTiebreak = !isNaN(playerScore) && !isNaN(opponentScore) && 
+        (playerScore > 7 || opponentScore > 7) &&
+        Math.abs(playerScore - opponentScore) >= 2;
       
       onFinalSetTiebreakChange(isTiebreak);
     }
@@ -86,7 +100,13 @@ export const ScoreInput = ({
 
     if (value !== "") {
       const otherField = field === 'playerScore' ? 'opponentScore' : 'playerScore';
-      newSets[index][otherField] = autoPopulateScore(value);
+      const currentValue = parseInt(value);
+      const otherValue = parseInt(newSets[index][otherField]);
+      
+      // Only auto-populate if we're not in a tiebreak situation
+      if (isNaN(currentValue) || isNaN(otherValue) || (currentValue <= 7 && otherValue <= 7)) {
+        newSets[index][otherField] = autoPopulateScore(value, index);
+      }
     }
 
     onSetsChange(newSets);
@@ -121,7 +141,6 @@ export const ScoreInput = ({
                   onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
                   className="h-10 text-lg font-medium"
                   min="0"
-                  max="7"
                 />
               </div>
               <div className="space-y-1">
@@ -132,7 +151,6 @@ export const ScoreInput = ({
                   onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
                   className="h-10 text-lg font-medium"
                   min="0"
-                  max="7"
                 />
               </div>
             </div>
