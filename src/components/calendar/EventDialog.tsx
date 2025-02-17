@@ -56,8 +56,8 @@ export const EventDialog = ({
     return format(new Date(), "yyyy-MM-dd'T'HH:mm");
   };
 
-  const [startDate, setStartDate] = useState(formatDateWithFallback(event.start));
-  const [endDate, setEndDate] = useState(formatDateWithFallback(event.end));
+  const [startDate, setStartDate] = useState(formatDateWithFallback(event.start_time));
+  const [endDate, setEndDate] = useState(formatDateWithFallback(event.end_time));
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 

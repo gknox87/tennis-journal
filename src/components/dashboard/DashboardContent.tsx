@@ -49,17 +49,7 @@ export const DashboardContent = ({
 
       if (error) throw error;
 
-      // Map the database fields to match ScheduledEvent type
-      const formattedEvents: ScheduledEvent[] = (data || []).map(event => ({
-        id: event.id,
-        title: event.title,
-        start: event.start_time,
-        end: event.end_time,
-        session_type: event.session_type,
-        notes: event.notes
-      }));
-
-      setUpcomingEvents(formattedEvents);
+      setUpcomingEvents(data || []);
     } catch (error) {
       console.error('Error fetching upcoming events:', error);
     }

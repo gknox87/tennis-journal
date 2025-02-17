@@ -48,7 +48,7 @@ export const UpcomingEvents = ({ events }: UpcomingEventsProps) => {
                 <div>
                   <h3 className="font-medium">{event.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(event.start), "MMM d, h:mm a")}
+                    {format(new Date(event.start_time), "MMM d, h:mm a")}
                   </p>
                 </div>
               </div>
