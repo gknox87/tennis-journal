@@ -1,47 +1,30 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock, Share2, Smartphone, ChevronRight, Mail, MessageCircle } from "lucide-react";
-
 const Landing = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative py-20 px-4 md:px-6 lg:px-8">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Elevate Your Game with Tennis Pal
-              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">Your Game with Tennis Pal</h1>
               <p className="text-lg md:text-xl text-muted-foreground">
                 Effortlessly track your matches, record training notes, and share your progress with your coach in seconds.
               </p>
               <div className="flex gap-4">
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/login")}
-                >
+                <Button size="lg" onClick={() => navigate("/login")}>
                   Get Started
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate("/login")}
-                >
+                <Button size="lg" variant="outline" onClick={() => navigate("/login")}>
                   Login
                 </Button>
               </div>
             </div>
             <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden">
-              <img
-                src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
-                alt="Tennis player using Tennis Pal app on court"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              <img src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png" alt="Tennis player using Tennis Pal app on court" className="absolute inset-0 w-full h-full object-cover" />
             </div>
           </div>
         </div>
@@ -87,31 +70,25 @@ const Landing = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Track",
-                description: "Quickly record match scores and key stats.",
-                icon: <Smartphone className="h-6 w-6" />,
-              },
-              {
-                title: "Analyse",
-                description: "Review your performance trends with clear analytics.",
-                icon: <Clock className="h-6 w-6" />,
-              },
-              {
-                title: "Share",
-                description: "Instantly share insights with your coach.",
-                icon: <Share2 className="h-6 w-6" />,
-              },
-            ].map((step, index) => (
-              <div key={index} className="text-center">
+            {[{
+            title: "Track",
+            description: "Quickly record match scores and key stats.",
+            icon: <Smartphone className="h-6 w-6" />
+          }, {
+            title: "Analyse",
+            description: "Review your performance trends with clear analytics.",
+            icon: <Clock className="h-6 w-6" />
+          }, {
+            title: "Share",
+            description: "Instantly share insights with your coach.",
+            icon: <Share2 className="h-6 w-6" />
+          }].map((step, index) => <div key={index} className="text-center">
                 <div className="h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                   {step.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
                 <p className="text-muted-foreground">{step.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -138,11 +115,7 @@ const Landing = () => {
             <h3 className="text-2xl font-bold">
               Ready to Transform Your Game?
             </h3>
-            <Button
-              size="lg"
-              className="btn-primary"
-              onClick={() => navigate("/login")}
-            >
+            <Button size="lg" className="btn-primary" onClick={() => navigate("/login")}>
               Get Started Now
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
@@ -153,8 +126,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
