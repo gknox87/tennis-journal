@@ -24,6 +24,7 @@ interface MatchFormProps {
     isWin: boolean;
     notes: string;
     finalSetTiebreak: boolean;
+    isBestOfFive?: boolean;
   };
 }
 
@@ -33,15 +34,18 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
   const [opponent, setOpponent] = useState(initialData?.opponent || "");
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
-  const [isBestOfFive, setIsBestOfFive] = useState(false);
+  const [isBestOfFive, setIsBestOfFive] = useState(initialData?.isBestOfFive || false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
+  
+  // Initialize sets based on isBestOfFive
+  const defaultSets = isBestOfFive ? 
+    Array(5).fill({ playerScore: "", opponentScore: "" }) : 
+    Array(3).fill({ playerScore: "", opponentScore: "" });
+    
   const [sets, setSets] = useState<SetScore[]>(
-    initialData?.sets || [
-      { playerScore: "", opponentScore: "" },
-      { playerScore: "", opponentScore: "" },
-      { playerScore: "", opponentScore: "" },
-    ]
+    initialData?.sets?.length ? initialData.sets : defaultSets
   );
+  
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
   const [notes, setNotes] = useState(initialData?.notes || "");
 

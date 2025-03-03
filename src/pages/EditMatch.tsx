@@ -41,6 +41,7 @@ const EditMatch = () => {
           isWin: match.is_win,
           notes: match.notes || "",
           finalSetTiebreak: match.final_set_tiebreak || false,
+          isBestOfFive: match.sets && match.sets.length > 3,
         }}
       />
     </div>

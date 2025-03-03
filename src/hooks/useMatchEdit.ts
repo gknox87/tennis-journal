@@ -1,9 +1,9 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Match } from "@/types/match";
+import { Match, SetScore } from "@/types/match";
 
 export const useMatchEdit = (id: string) => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export const useMatchEdit = (id: string) => {
   const [match, setMatch] = useState<Match | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchMatch = async () => {
+  const fetchMatch = useCallback(async () => {
     try {
       setIsLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -49,11 +49,27 @@ export const useMatchEdit = (id: string) => {
         return;
       }
 
-      const scoreArray = matchData.score.split(' ');
+      // Parse the score string into sets
+      const scoreArray = matchData.score.split(/,\s*|\s+/); // Split by comma+space or just space
       const parsedSets = scoreArray.map(set => {
         const [playerScore, opponentScore] = set.split('-');
-        return { playerScore, opponentScore };
+        return { 
+          playerScore: playerScore || "", 
+          opponentScore: opponentScore || "" 
+        };
       });
+
+      // Ensure we have at least 3 sets (for the form)
+      while (parsedSets.length < 3) {
+        parsedSets.push({ playerScore: "", opponentScore: "" });
+      }
+
+      // Create additional sets if best of 5 (total of 5 sets)
+      if (parsedSets.length > 3 && parsedSets.length < 5) {
+        while (parsedSets.length < 5) {
+          parsedSets.push({ playerScore: "", opponentScore: "" });
+        }
+      }
 
       setMatch({
         ...matchData,
@@ -71,7 +87,7 @@ export const useMatchEdit = (id: string) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, navigate, toast]);
 
   const handleSubmit = async (formData: any) => {
     try {
@@ -86,12 +102,12 @@ export const useMatchEdit = (id: string) => {
         return;
       }
 
-      const validSets = formData.sets.filter((set: any) => 
+      const validSets = formData.sets.filter((set: SetScore) => 
         set.playerScore !== "" && set.opponentScore !== ""
       );
       const scoreString = validSets
-        .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
-        .join(' ');
+        .map((set: SetScore) => `${set.playerScore}-${set.opponentScore}`)
+        .join(', ');
 
       // First get or create the opponent
       const { data: opponentId, error: opponentError } = await supabase
