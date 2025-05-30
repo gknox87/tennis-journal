@@ -2,6 +2,8 @@
 export interface SetScore {
   playerScore: string;
   opponentScore: string;
+  playerTiebreak?: string;
+  opponentTiebreak?: string;
 }
 
 export interface Match {

@@ -53,7 +53,12 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       return [...initialData.sets];
     }
     const numberOfSets = isBestOfFive ? 5 : 3;
-    return Array(numberOfSets).fill(null).map(() => ({ playerScore: "", opponentScore: "" }));
+    return Array(numberOfSets).fill(null).map(() => ({ 
+      playerScore: "", 
+      opponentScore: "",
+      playerTiebreak: "",
+      opponentTiebreak: ""
+    }));
   };
 
   const [sets, setSets] = useState<SetScore[]>(getInitialSets());
@@ -62,7 +67,12 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   useEffect(() => {
     if (!initialData?.sets?.length) {
       const numberOfSets = isBestOfFive ? 5 : 3;
-      setSets(Array(numberOfSets).fill(null).map(() => ({ playerScore: "", opponentScore: "" })));
+      setSets(Array(numberOfSets).fill(null).map(() => ({ 
+        playerScore: "", 
+        opponentScore: "",
+        playerTiebreak: "",
+        opponentTiebreak: ""
+      })));
     }
   }, [isBestOfFive, initialData?.sets?.length]);
 
@@ -179,8 +189,6 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       {/* Match Settings & Notes */}
       <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
         <MatchSettings
-          isWin={isWin}
-          onIsWinChange={setIsWin}
           notes={notes}
           onNotesChange={setNotes}
           finalSetTiebreak={finalSetTiebreak}

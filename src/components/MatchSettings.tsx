@@ -1,11 +1,9 @@
 
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Trophy, MessageCircle, Zap, Sparkles } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { MessageCircle, Zap, Sparkles } from "lucide-react";
 
 interface MatchSettingsProps {
-  isWin: boolean;
-  onIsWinChange: (value: boolean) => void;
   notes: string;
   onNotesChange: (value: string) => void;
   finalSetTiebreak: boolean;
@@ -13,8 +11,6 @@ interface MatchSettingsProps {
 }
 
 export const MatchSettings = ({
-  isWin,
-  onIsWinChange,
   notes,
   onNotesChange,
   finalSetTiebreak,
@@ -30,38 +26,8 @@ export const MatchSettings = ({
         <h3 className="text-xl font-bold gradient-text">Match Details</h3>
       </div>
 
-      {/* Toggle Switches */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all duration-300 ${
-          isWin 
-            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg' 
-            : 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200'
-        }`}>
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-full transition-all duration-300 ${
-              isWin 
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg' 
-                : 'bg-gray-300'
-            }`}>
-              <Trophy className={`w-6 h-6 ${isWin ? 'text-white' : 'text-gray-600'}`} />
-            </div>
-            <div>
-              <Label htmlFor="isWin" className="text-lg font-bold text-gray-800 cursor-pointer">
-                {isWin ? '🎉 Victory!' : 'Match Result'}
-              </Label>
-              <p className="text-sm text-gray-600">
-                {isWin ? 'Great job winning!' : 'Did you win this match?'}
-              </p>
-            </div>
-          </div>
-          <Switch
-            id="isWin"
-            checked={isWin}
-            onCheckedChange={onIsWinChange}
-            className="data-[state=checked]:bg-green-500"
-          />
-        </div>
-        
+      {/* Final Set Tiebreak Toggle */}
+      <div className="grid gap-6">
         <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all duration-300 ${
           finalSetTiebreak 
             ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 shadow-lg' 
@@ -77,10 +43,10 @@ export const MatchSettings = ({
             </div>
             <div>
               <Label htmlFor="finalSetTiebreak" className="text-lg font-bold text-gray-800 cursor-pointer">
-                {finalSetTiebreak ? '⚡ Tiebreak!' : 'Final Set'}
+                {finalSetTiebreak ? '⚡ Final Set Tiebreak!' : 'Final Set Format'}
               </Label>
               <p className="text-sm text-gray-600">
-                {finalSetTiebreak ? 'Intense finish!' : 'Was there a tiebreak?'}
+                {finalSetTiebreak ? 'Decided by tiebreak!' : 'Was the final set a tiebreak?'}
               </p>
             </div>
           </div>

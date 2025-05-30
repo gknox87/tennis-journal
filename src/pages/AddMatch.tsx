@@ -41,9 +41,16 @@ const AddMatch = () => {
         return;
       }
 
+      // Build score string with tiebreak support
       const score = formData.sets
         .filter((set: any) => set.playerScore !== "" || set.opponentScore !== "")
-        .map((set: any) => `${set.playerScore}-${set.opponentScore}`)
+        .map((set: any) => {
+          let setScore = `${set.playerScore}-${set.opponentScore}`;
+          if (set.playerTiebreak && set.opponentTiebreak) {
+            setScore += ` (${set.playerTiebreak}-${set.opponentTiebreak})`;
+          }
+          return setScore;
+        })
         .join(", ");
 
       // Get or create opponent
