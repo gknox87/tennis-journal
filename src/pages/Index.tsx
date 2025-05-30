@@ -122,17 +122,21 @@ const Index = () => {
         <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <Header userProfile={userProfile} />
-        <DashboardContent
-          matches={matches}
-          filteredMatches={filteredMatches}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          playerNotes={playerNotes}
-          onMatchDelete={refreshMatches}
-          onDeleteNote={handleDeleteNote}
-        />
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto">
+          <Header userProfile={userProfile} />
+          <div className="mt-6 sm:mt-8">
+            <DashboardContent
+              matches={matches}
+              filteredMatches={filteredMatches}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              playerNotes={playerNotes}
+              onMatchDelete={refreshMatches}
+              onDeleteNote={handleDeleteNote}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
