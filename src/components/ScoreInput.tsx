@@ -89,7 +89,8 @@ export const ScoreInput = ({
         ((playerScore === 6 && opponentScore === 6 && (lastPlayedSet.playerTiebreak || lastPlayedSet.opponentTiebreak)) ||
          (playerScore > 7 || opponentScore > 7));
       
-      onFinalSetTiebreakChange(isTiebreak);
+      // Ensure we pass a boolean value
+      onFinalSetTiebreakChange(Boolean(isTiebreak));
     }
   };
 
