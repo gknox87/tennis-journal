@@ -20,11 +20,13 @@ import "./App.css";
 
 function App() {
   const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setLoading(false);
     });
 
     // Listen for auth changes
@@ -32,10 +34,20 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -44,63 +56,63 @@ function App() {
           {/* Public routes - redirect to dashboard if authenticated */}
           <Route
             path="/"
-            element={session ? <Navigate to="/dashboard" /> : <Landing />}
+            element={session ? <Navigate to="/dashboard" replace /> : <Landing />}
           />
           <Route
             path="/login"
-            element={session ? <Navigate to="/dashboard" /> : <Login />}
+            element={session ? <Navigate to="/dashboard" replace /> : <Login />}
           />
           <Route
             path="/register"
-            element={session ? <Navigate to="/dashboard" /> : <Register />}
+            element={session ? <Navigate to="/dashboard" replace /> : <Register />}
           />
 
           {/* Protected routes - redirect to login if not authenticated */}
           <Route
             path="/dashboard"
-            element={session ? <Index /> : <Navigate to="/login" />}
+            element={session ? <Index /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/add-match"
-            element={session ? <AddMatch /> : <Navigate to="/login" />}
+            element={session ? <AddMatch /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/edit-match/:id"
-            element={session ? <EditMatch /> : <Navigate to="/login" />}
+            element={session ? <EditMatch /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/match/:id"
-            element={session ? <MatchDetail /> : <Navigate to="/login" />}
+            element={session ? <MatchDetail /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/matches"
-            element={session ? <ViewAllMatches /> : <Navigate to="/login" />}
+            element={session ? <ViewAllMatches /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/key-opponents"
-            element={session ? <KeyOpponents /> : <Navigate to="/login" />}
+            element={session ? <KeyOpponents /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/improvement-notes"
-            element={session ? <ImprovementNotes /> : <Navigate to="/login" />}
+            element={session ? <ImprovementNotes /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/calendar"
-            element={session ? <Calendar /> : <Navigate to="/login" />}
+            element={session ? <Calendar /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/training-notes"
-            element={session ? <TrainingNotes /> : <Navigate to="/login" />}
+            element={session ? <TrainingNotes /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/profile"
-            element={session ? <Profile /> : <Navigate to="/login" />}
+            element={session ? <Profile /> : <Navigate to="/login" replace />}
           />
 
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
           <Route
             path="*"
-            element={session ? <Navigate to="/dashboard" /> : <Navigate to="/" />}
+            element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />}
           />
         </Routes>
         <Toaster />

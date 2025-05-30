@@ -2,7 +2,6 @@
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Plus, LogOut, User, Users, Calendar, BookOpen } from "lucide-react";
 
 interface Profile {
@@ -19,19 +18,21 @@ interface HeaderProps {
 
 export const Header = ({ userProfile }: HeaderProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate("/login");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Clear any cached data first
+      localStorage.removeItem('tennis-match-chronicle-auth');
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Navigate to login page
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if there's an error, navigate to login
+      navigate("/login", { replace: true });
     }
   };
 

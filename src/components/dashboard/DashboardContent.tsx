@@ -68,8 +68,8 @@ export const DashboardContent = ({
 
   return (
     <div className="space-y-8 md:space-y-12">
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl -z-10"></div>
+      <div className="relative bg-gradient-to-br from-blue-50/80 via-purple-50/80 to-pink-50/80 rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-2xl md:rounded-3xl -z-10"></div>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

@@ -78,30 +78,30 @@ export const StatsOverview = ({
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="text-center mb-6">
+    <div className="space-y-6">
+      <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2">Your Tennis Journey</h2>
-        <p className="text-muted-foreground">Track your progress and celebrate your wins!</p>
+        <p className="text-muted-foreground text-sm md:text-base">Track your progress and celebrate your wins!</p>
       </div>
       
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 px-2">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
             <Card 
               key={stat.title}
-              className={`stat-card cursor-pointer touch-manipulation bg-gradient-to-br ${stat.bgColor} border-0 hover:shadow-2xl group`}
+              className={`stat-card cursor-pointer touch-manipulation bg-gradient-to-br ${stat.bgColor} border-0 hover:shadow-xl transition-all duration-300 group min-h-[140px] md:min-h-[160px]`}
               onClick={handleStatClick}
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <CardContent className="p-4 md:p-6 flex flex-col items-center justify-center space-y-2 relative z-10">
-                <div className={`p-3 rounded-full bg-gradient-to-r ${stat.color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-white floating-icon" />
+              <CardContent className="p-3 md:p-4 lg:p-6 flex flex-col items-center justify-center space-y-2 h-full relative z-10">
+                <div className={`p-2 md:p-3 rounded-full bg-gradient-to-r ${stat.color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 text-white floating-icon" />
                 </div>
-                <div className="text-center">
-                  <p className="text-xl md:text-2xl font-bold text-gray-800">{stat.value}</p>
-                  <p className="text-xs md:text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">{stat.description}</p>
+                <div className="text-center flex-1 flex flex-col justify-center">
+                  <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 leading-tight">{stat.value}</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 leading-tight mt-1">{stat.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden lg:block leading-tight">{stat.description}</p>
                 </div>
               </CardContent>
             </Card>
