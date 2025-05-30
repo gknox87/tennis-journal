@@ -62,6 +62,9 @@ export default {
 			fontFamily: {
 				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
 			},
+			scale: {
+				'102': '1.02',
+			},
 			keyframes: {
 				"accordion-down": {
 					from: { height: '0' },
