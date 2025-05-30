@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles, Save, X } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
@@ -29,6 +29,14 @@ interface MatchFormProps {
 }
 
 const courtTypes = ["Hard", "Artificial Grass", "Clay", "Grass", "Carpet"] as const;
+
+const courtTypeColors = {
+  "Hard": "from-gray-500 to-slate-600",
+  "Artificial Grass": "from-green-500 to-emerald-600", 
+  "Clay": "from-orange-500 to-red-600",
+  "Grass": "from-green-400 to-green-600",
+  "Carpet": "from-blue-500 to-indigo-600"
+};
 
 export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
@@ -84,54 +92,80 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card className="p-6 space-y-6">
-        <div>
-          <Label>Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(date) => date && setDate(date)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+      {/* Date & Opponent Section */}
+      <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600">
+            <CalendarIcon className="w-5 h-5 text-white" />
+          </div>
+          <h3 className="text-xl font-bold gradient-text">Match Details</h3>
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-3">
+            <Label className="text-base font-semibold text-gray-700">When did you play?</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-medium rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-blue-200/50 hover:border-blue-400 transition-all duration-300 hover:shadow-lg",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-3 h-5 w-5 text-blue-500" />
+                  {date ? format(date, "EEEE, MMMM do") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 rounded-2xl border-2 border-white/30 shadow-2xl" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(date) => date && setDate(date)}
+                  initialFocus
+                  className="rounded-2xl bg-white/95 backdrop-blur-sm"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-3">
+            <OpponentInput
+              value={opponent}
+              onChange={setOpponent}
+            />
+          </div>
         </div>
 
-        <OpponentInput
-          value={opponent}
-          onChange={setOpponent}
-        />
-
-        <div className="space-y-2">
-          <Label>Court Type</Label>
+        <div className="mt-6 space-y-3">
+          <Label className="text-base font-semibold text-gray-700">Court Surface</Label>
           <Select value={courtType} onValueChange={setCourtType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select court type" />
+            <SelectTrigger className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-green-200/50 hover:border-green-400 transition-all duration-300">
+              <SelectValue placeholder="🎾 Select court type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl bg-white/95 backdrop-blur-sm border-2 border-white/30 shadow-2xl">
               {courtTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
+                <SelectItem key={type} value={type} className="rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${courtTypeColors[type]}`} />
+                    <span className="font-medium">{type}</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+      </Card>
 
+      {/* Score Section */}
+      <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-purple-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-600">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <h3 className="text-xl font-bold gradient-text">Match Score</h3>
+        </div>
+        
         <ScoreInput
           sets={sets}
           onSetsChange={setSets}
@@ -140,7 +174,10 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           onIsWinChange={setIsWin}
           onFinalSetTiebreakChange={setFinalSetTiebreak}
         />
+      </Card>
 
+      {/* Match Settings & Notes */}
+      <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
         <MatchSettings
           isWin={isWin}
           onIsWinChange={setIsWin}
@@ -151,15 +188,22 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
         />
       </Card>
 
-      <div className="flex space-x-4">
-        <Button type="submit">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        <Button 
+          type="submit" 
+          className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+        >
+          <Save className="mr-3 h-6 w-6" />
           Save Match
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => window.history.back()}
+          className="sm:w-32 h-14 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-gray-400 font-semibold transition-all duration-300 hover:shadow-lg"
         >
+          <X className="mr-2 h-5 w-5" />
           Cancel
         </Button>
       </div>

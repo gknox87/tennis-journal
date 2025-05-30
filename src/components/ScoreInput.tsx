@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
+import { Trophy, Target } from "lucide-react";
 
 interface SetScore {
   playerScore: string;
@@ -115,47 +116,82 @@ export const ScoreInput = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-medium">Score</Label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-600">
+            <Target className="w-5 h-5 text-white" />
+          </div>
+          <Label className="text-lg font-bold text-gray-800">Set Scores</Label>
+        </div>
+        <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm p-3 rounded-2xl border-2 border-purple-200/50">
           <Switch
             id="best-of-five"
             checked={isBestOfFive}
             onCheckedChange={onBestOfFiveChange}
+            className="data-[state=checked]:bg-purple-500"
           />
-          <Label htmlFor="best-of-five" className="text-sm">Best of 5</Label>
+          <Label htmlFor="best-of-five" className="font-semibold text-gray-700">
+            Best of {isBestOfFive ? '5' : '3'}
+          </Label>
         </div>
       </div>
       
-      <Card className="p-4">
-        {sets.map((set, index) => (
-          <div key={index} className="mb-4 last:mb-0">
-            <Label className="text-sm mb-2 block">Set {index + 1}</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">You</Label>
-                <Input
-                  type="number"
-                  value={set.playerScore}
-                  onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                  className="h-10 text-lg font-medium"
-                  min="0"
-                />
+      <Card className="p-6 rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/30 backdrop-blur-sm border-2 border-orange-200/30">
+        <div className="space-y-6">
+          {sets.map((set, index) => (
+            <div key={index} className="space-y-4">
+              <div className="flex items-center justify-center">
+                <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                  Set {index + 1}
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Opponent</Label>
-                <Input
-                  type="number"
-                  value={set.opponentScore}
-                  onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                  className="h-10 text-lg font-medium"
-                  min="0"
-                />
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-blue-500" />
+                    You
+                  </Label>
+                  <Input
+                    type="number"
+                    value={set.playerScore}
+                    onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-red-500" />
+                    Opponent
+                  </Label>
+                  <Input
+                    type="number"
+                    value={set.opponentScore}
+                    onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
               </div>
+              
+              {index < sets.length - 1 && (
+                <div className="flex justify-center">
+                  <div className="w-12 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200/30">
+          <p className="text-sm text-gray-600 text-center">
+            💡 <strong>Quick Tip:</strong> Enter your score and the opponent's score will auto-fill based on tennis scoring rules!
+          </p>
+        </div>
       </Card>
     </div>
   );
