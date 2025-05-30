@@ -13,6 +13,7 @@ import KeyOpponents from "@/pages/KeyOpponents";
 import ImprovementNotes from "@/pages/ImprovementNotes";
 import Calendar from "@/pages/Calendar";
 import TrainingNotes from "@/pages/TrainingNotes";
+import Profile from "@/pages/Profile";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -90,6 +91,10 @@ function App() {
           <Route
             path="/training-notes"
             element={session ? <TrainingNotes /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/profile"
+            element={session ? <Profile /> : <Navigate to="/login" />}
           />
 
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}

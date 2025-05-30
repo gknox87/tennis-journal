@@ -4,8 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, LogOut, User, Users, Calendar, BookOpen } from "lucide-react";
-import { useState } from "react";
-import { ProfileDialog } from "./ProfileDialog";
 
 interface Profile {
   id: string;
@@ -22,7 +20,6 @@ interface HeaderProps {
 export const Header = ({ userProfile }: HeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -102,7 +99,7 @@ export const Header = ({ userProfile }: HeaderProps) => {
             Schedule
           </Button>
           <Button
-            onClick={() => setShowProfileDialog(true)}
+            onClick={() => navigate("/profile")}
             variant="outline"
             className="flex-1 sm:flex-none"
             size="lg"
@@ -112,11 +109,6 @@ export const Header = ({ userProfile }: HeaderProps) => {
           </Button>
         </div>
       </div>
-
-      <ProfileDialog 
-        open={showProfileDialog} 
-        onOpenChange={setShowProfileDialog}
-      />
     </header>
   );
 };

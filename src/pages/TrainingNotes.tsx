@@ -88,52 +88,55 @@ const TrainingNotes = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/dashboard")}
-              className="hover:bg-white/50"
+              className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-md hover:bg-white/90 hover:shadow-lg transition-all duration-300"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
                 🎾 Training Notes
               </h1>
-              <p className="text-gray-600 mt-1">Track your progress and reflect on your training sessions</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Track your progress and reflect on your training sessions</p>
             </div>
           </div>
-          <Button onClick={handleAddNote} size="lg" className="shadow-lg">
-            <Plus className="mr-2 h-5 w-5" />
-            Add Training Note
-          </Button>
+          
+          <div className="flex justify-center sm:justify-end">
+            <Button onClick={handleAddNote} size="lg" className="w-full sm:w-auto shadow-lg">
+              <Plus className="mr-2 h-5 w-5" />
+              Add Training Note
+            </Button>
+          </div>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <Target className="h-5 w-5" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-sm opacity-90">Total Sessions</p>
-                <p className="text-2xl font-bold">{trainingNotes.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm opacity-90">Total Sessions</p>
+                <p className="text-lg sm:text-2xl font-bold">{trainingNotes.length}</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <Calendar className="h-5 w-5" />
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-sm opacity-90">This Month</p>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm opacity-90">This Month</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   {trainingNotes.filter(note => {
                     const noteDate = new Date(note.training_date);
                     const now = new Date();
@@ -143,27 +146,27 @@ const TrainingNotes = () => {
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <ThumbsUp className="h-5 w-5" />
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
+                <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-sm opacity-90">Positive Notes</p>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm opacity-90">Positive Notes</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   {trainingNotes.filter(note => note.what_felt_good).length}
                 </p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <User2 className="h-5 w-5" />
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
+                <User2 className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-sm opacity-90">With Coach</p>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm opacity-90">With Coach</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   {trainingNotes.filter(note => note.coach_name).length}
                 </p>
               </div>
@@ -173,21 +176,21 @@ const TrainingNotes = () => {
 
         {/* Training Notes List */}
         {trainingNotes.length === 0 ? (
-          <Card className="p-12 text-center bg-gradient-to-r from-blue-50 to-green-50">
+          <Card className="p-8 sm:p-12 text-center bg-gradient-to-r from-blue-50 to-green-50">
             <div className="max-w-md mx-auto">
-              <div className="text-6xl mb-4">🎾</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Training Notes Yet</h3>
-              <p className="text-gray-600 mb-6">
+              <div className="text-4xl sm:text-6xl mb-4">🎾</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No Training Notes Yet</h3>
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">
                 Start tracking your training sessions to see your progress over time!
               </p>
-              <Button onClick={handleAddNote} size="lg">
+              <Button onClick={handleAddNote} size="lg" className="w-full sm:w-auto">
                 <Plus className="mr-2 h-5 w-5" />
                 Add Your First Training Note
               </Button>
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {trainingNotes.map((note) => (
               <TrainingNoteCard
                 key={note.id}
