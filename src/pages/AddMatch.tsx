@@ -49,7 +49,8 @@ const AddMatch = () => {
         });
 
       if (!opponentId) {
-        throw new Error("Failed to get or create opponent");
+        console.error("Failed to get or create opponent");
+        return;
       }
 
       // Insert match
@@ -70,30 +71,26 @@ const AddMatch = () => {
 
       if (matchError) throw matchError;
 
-      // Analyze notes with AI if present
+      // Analyze notes with AI if present (run in background)
       if (formData.notes) {
-        const { data: aiResponse, error: aiError } = await supabase.functions.invoke('analyze-match-notes', {
+        supabase.functions.invoke('analyze-match-notes', {
           body: { notes: formData.notes }
-        });
-
-        if (!aiError && aiResponse.suggestions) {
-          const { error: pointsError } = await supabase
-            .from('improvement_points')
-            .insert(
-              aiResponse.suggestions.map((point: string) => ({
-                user_id: session.user.id,
-                point,
-                source_match_id: matchData.id
-              }))
-            );
-
-          if (pointsError) {
-            console.error('Error saving improvement points:', pointsError);
+        }).then(({ data: aiResponse, error: aiError }) => {
+          if (!aiError && aiResponse?.suggestions) {
+            supabase
+              .from('improvement_points')
+              .insert(
+                aiResponse.suggestions.map((point: string) => ({
+                  user_id: session.user.id,
+                  point,
+                  source_match_id: matchData.id
+                }))
+              );
           }
-        }
+        });
       }
 
-      // Navigate to the match detail page
+      // Navigate immediately to the match detail page
       navigate(`/match/${matchData.id}`);
     } catch (error: any) {
       console.error('Error saving match:', error);

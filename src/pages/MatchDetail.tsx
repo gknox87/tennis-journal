@@ -12,10 +12,22 @@ const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [match, setMatch] = useState<Match | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMatch = async () => {
+      if (!id) {
+        navigate('/');
+        return;
+      }
+
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          navigate("/login");
+          return;
+        }
+
         const { data, error } = await supabase
           .from("matches")
           .select(`
@@ -25,9 +37,14 @@ const MatchDetail = () => {
             )
           `)
           .eq("id", id)
+          .eq("user_id", session.user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching match:", error);
+          navigate('/');
+          return;
+        }
 
         if (data) {
           const matchWithOpponent: Match = {
@@ -39,6 +56,8 @@ const MatchDetail = () => {
       } catch (error) {
         console.error("Error fetching match:", error);
         navigate('/');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -55,7 +74,8 @@ const MatchDetail = () => {
       const { error: matchError } = await supabase
         .from('matches')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', session.user.id);
 
       if (matchError) throw matchError;
 
@@ -90,13 +110,26 @@ const MatchDetail = () => {
     }
   };
 
-  if (!match) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <MatchDetailHeader onBack={() => navigate('/')} />
           <div className="flex items-center justify-center mt-8 sm:mt-12">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!match) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <MatchDetailHeader onBack={() => navigate('/')} />
+          <div className="flex items-center justify-center mt-8 sm:mt-12">
+            <p className="text-gray-600">Match not found</p>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { eachDayOfInterval, parseISO, format } from "date-fns";
 import type { ScheduledEvent } from "@/types/calendar";
 
 const Calendar = () => {
@@ -37,11 +38,12 @@ const Calendar = () => {
 
   const handleAddEvent = () => {
     setIsNewEvent(true);
+    const now = new Date();
     setSelectedEvent({
       id: crypto.randomUUID(),
       title: "",
-      start_time: new Date().toISOString(),
-      end_time: new Date().toISOString(),
+      start_time: now.toISOString(),
+      end_time: now.toISOString(),
       session_type: "training",
     });
     setShowEventDialog(true);
@@ -72,12 +74,33 @@ const Calendar = () => {
     }
   };
 
-  const calendarEvents = events.map(event => ({
-    id: event.id,
-    title: event.title,
-    start: event.start_time,
-    end: event.end_time,
-  }));
+  // Expand multi-day events for FullCalendar
+  const expandedEvents = events.flatMap(event => {
+    const startDate = parseISO(event.start_time);
+    const endDate = parseISO(event.end_time);
+    
+    // If it's a multi-day event, create an entry for each day
+    if (startDate.toDateString() !== endDate.toDateString()) {
+      const days = eachDayOfInterval({ start: startDate, end: endDate });
+      return days.map((day, index) => ({
+        id: `${event.id}-${index}`,
+        title: event.title,
+        start: format(day, 'yyyy-MM-dd'),
+        end: format(day, 'yyyy-MM-dd'),
+        allDay: true,
+        extendedProps: { originalEvent: event }
+      }));
+    }
+    
+    // Single day event
+    return [{
+      id: event.id,
+      title: event.title,
+      start: event.start_time,
+      end: event.end_time,
+      extendedProps: { originalEvent: event }
+    }];
+  });
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -112,7 +135,7 @@ const Calendar = () => {
             selectable={true}
             selectMirror={true}
             dayMaxEvents={true}
-            events={calendarEvents}
+            events={expandedEvents}
             select={handleDateSelect}
             eventClick={handleFullCalendarEventClick}
             height="70vh"
@@ -122,7 +145,7 @@ const Calendar = () => {
             nowIndicator={true}
             slotMinTime="06:00:00"
             slotMaxTime="22:00:00"
-            allDaySlot={false}
+            allDaySlot={true}
           />
         )}
       </div>

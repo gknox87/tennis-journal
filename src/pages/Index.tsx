@@ -4,14 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
-import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   
@@ -34,11 +32,6 @@ const Index = () => {
 
         if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
           console.error('Error fetching profile:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load user profile",
-            variant: "destructive",
-          });
         } else {
           setUserProfile(profile);
         }
@@ -59,7 +52,7 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const {
     matches,
@@ -120,8 +113,16 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-32 right-16 w-16 h-16 bg-purple-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-32 left-20 w-12 h-12 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-8">
         <Header userProfile={userProfile} />
         <DashboardContent
           matches={matches}

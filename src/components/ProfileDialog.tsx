@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Camera } from "lucide-react";
 
 interface ProfileData {
   full_name: string | null;
@@ -25,7 +26,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     avatar_url: null,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -37,11 +38,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Error",
-          description: "No active session found",
-          variant: "destructive",
-        });
+        console.error("No active session found");
         return;
       }
 
@@ -53,11 +50,6 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
       if (error) {
         console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch profile data",
-          variant: "destructive",
-        });
         return;
       }
 
@@ -72,11 +64,40 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       }
     } catch (err) {
       console.error("Error in fetchProfile:", err);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error("No active session found");
+        return;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setProfileData(prev => ({ ...prev, avatar_url: publicUrl }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -85,11 +106,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       setIsLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Error",
-          description: "No active session found",
-          variant: "destructive",
-        });
+        console.error("No active session found");
         return;
       }
 
@@ -103,26 +120,13 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
       if (error) {
         console.error("Error updating profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive",
-        });
         return;
       }
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
+      console.log("Profile updated successfully");
       onOpenChange(false);
     } catch (err) {
       console.error("Error in handleSave:", err);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -139,10 +143,27 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         </DialogHeader>
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-center">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profileData.avatar_url || ""} />
-              <AvatarFallback>{profileData.full_name?.[0] || "U"}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={profileData.avatar_url || ""} />
+                <AvatarFallback>{profileData.full_name?.[0] || "U"}</AvatarFallback>
+              </Avatar>
+              <label className="absolute bottom-0 right-0 p-2 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
+                <Camera className="h-4 w-4 text-white" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+              </label>
+              {isUploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="grid gap-4">
             <div className="grid gap-2">

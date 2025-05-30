@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { format, addDays, startOfDay, isSameDay } from "date-fns";
+import { format, addDays, startOfDay, isSameDay, eachDayOfInterval, parseISO } from "date-fns";
 import { ScheduledEvent, SessionType } from "@/types/calendar";
 
 interface MobileCalendarViewProps {
@@ -15,9 +15,23 @@ interface MobileCalendarViewProps {
 export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileCalendarViewProps) => {
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
 
-  const todayEvents = events.filter(event => 
-    isSameDay(new Date(event.start_time), selectedDate)
-  ).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  // Group events by date and expand multi-day events
+  const getEventsForDate = (date: Date) => {
+    return events.filter(event => {
+      const eventStart = parseISO(event.start_time);
+      const eventEnd = parseISO(event.end_time);
+      
+      // For all-day events or multi-day events, show on each day
+      if (eventStart.toDateString() !== eventEnd.toDateString()) {
+        const eventDays = eachDayOfInterval({ start: eventStart, end: eventEnd });
+        return eventDays.some(eventDay => isSameDay(eventDay, date));
+      }
+      
+      return isSameDay(eventStart, date);
+    }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  };
+
+  const todayEvents = getEventsForDate(selectedDate);
 
   const handlePreviousDay = () => {
     setSelectedDate(current => addDays(current, -1));
@@ -40,6 +54,13 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
     }
   };
 
+  const isAllDayEvent = (event: ScheduledEvent) => {
+    const start = parseISO(event.start_time);
+    const end = parseISO(event.end_time);
+    return start.getHours() === 0 && start.getMinutes() === 0 && 
+           end.getHours() === 23 && end.getMinutes() === 59;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -58,7 +79,7 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
         {todayEvents.length > 0 ? (
           todayEvents.map((event) => (
             <Card
-              key={event.id}
+              key={`${event.id}-${selectedDate.getTime()}`}
               className="p-3 cursor-pointer hover:bg-accent"
               onClick={() => onEventClick(event)}
             >
@@ -67,7 +88,11 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                 <div className="flex-1">
                   <h3 className="font-medium">{event.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
+                    {isAllDayEvent(event) ? (
+                      "All day"
+                    ) : (
+                      `${format(new Date(event.start_time), 'h:mm a')} - ${format(new Date(event.end_time), 'h:mm a')}`
+                    )}
                   </p>
                 </div>
               </div>
