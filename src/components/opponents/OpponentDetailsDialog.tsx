@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Target, Zap, TrendingDown, Save } from "lucide-react";
 
 interface OpponentDetailsDialogProps {
   opponent: {
@@ -47,8 +48,8 @@ export const OpponentDetailsDialog = ({
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Opponent details updated successfully.",
+        title: "🎯 Strategy Updated!",
+        description: "Your opponent analysis has been saved successfully.",
       });
       onUpdate();
       onClose();
@@ -64,50 +65,80 @@ export const OpponentDetailsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{opponent.name}</DialogTitle>
+      <DialogContent className="max-w-2xl modal-content border-0">
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-2xl gradient-text flex items-center justify-center gap-2">
+            <Target className="w-6 h-6 text-blue-500" />
+            Strategy Notes: {opponent.name}
+          </DialogTitle>
+          <p className="text-muted-foreground mt-2">
+            Analyze your opponent to gain the competitive edge
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="strengths">What was my opponent's biggest strength?</Label>
+        <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-500" />
+              <Label htmlFor="strengths" className="text-base font-semibold text-gray-700">
+                What's their biggest strength?
+              </Label>
+            </div>
             <Textarea
               id="strengths"
-              placeholder="Forehand, net game, movement?"
+              placeholder="e.g., Powerful forehand, excellent net game, great court coverage..."
               value={strengths}
               onChange={(e) => setStrengths(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] rounded-2xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="weaknesses">What is my opponent's weakness, and do I exploit it?</Label>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-red-500" />
+              <Label htmlFor="weaknesses" className="text-base font-semibold text-gray-700">
+                What weaknesses can you exploit?
+              </Label>
+            </div>
             <Textarea
               id="weaknesses"
-              placeholder="Struggles with high balls, weak second serve"
+              placeholder="e.g., Struggles with high balls, weak second serve, poor movement on clay..."
               value={weaknesses}
               onChange={(e) => setWeaknesses(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] rounded-2xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tendencies">Include opponent tendencies?</Label>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-purple-500" />
+              <Label htmlFor="tendencies" className="text-base font-semibold text-gray-700">
+                Key patterns & tendencies
+              </Label>
+            </div>
             <Textarea
               id="tendencies"
-              placeholder="Tends to serve wide on big points"
+              placeholder="e.g., Serves wide on big points, gets impatient in long rallies, double faults under pressure..."
               value={tendencies}
               onChange={(e) => setTendencies(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] rounded-2xl border-2 border-gray-200 focus:border-blue-500 transition-colors"
             />
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="rounded-2xl px-6"
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              Save Changes
+            <Button 
+              type="submit"
+              className="btn-primary px-6 rounded-2xl font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Strategy
             </Button>
           </div>
         </form>

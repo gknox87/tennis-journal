@@ -67,27 +67,44 @@ export const DashboardContent = ({
   const recentMatches = filteredMatches.slice(0, 9);
 
   return (
-    <div className="grid gap-6 md:gap-8">
-      <div>
-        <Suspense fallback={<div>Loading stats...</div>}>
+    <div className="space-y-8 md:space-y-12">
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-3xl -z-10"></div>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        }>
           <MemoizedStatsSection matches={matches} />
         </Suspense>
       </div>
 
-      <div>
-        <Suspense fallback={<div>Loading upcoming events...</div>}>
+      <div className="space-y-6">
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        }>
           <UpcomingEvents events={upcomingEvents} />
         </Suspense>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold mb-4 text-left">Helpful Tips</h2>
-        <Suspense fallback={<div>Loading tips...</div>}>
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-3xl p-6 md:p-8">
+        <h2 className="text-xl md:text-2xl font-bold gradient-text mb-6 text-center">🎯 Level Up Your Game</h2>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        }>
           <MemoizedImprovementChecklist />
         </Suspense>
       </div>
 
-      <Suspense fallback={<div>Loading notes...</div>}>
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+        </div>
+      }>
         <NotesSection
           playerNotes={playerNotes}
           onAddNote={() => {
@@ -99,14 +116,18 @@ export const DashboardContent = ({
         />
       </Suspense>
 
-      <div>
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl">
         <SearchSection
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
         />
       </div>
 
-      <Suspense fallback={<div>Loading matches...</div>}>
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      }>
         <MatchList
           matches={recentMatches}
           onMatchDelete={onMatchDelete}

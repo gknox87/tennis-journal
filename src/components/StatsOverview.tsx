@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Star, CheckCircle, CircleCheck, Award, ThumbsUp } from "lucide-react";
+import { Trophy, Star, CheckCircle, CircleCheck, Award, ThumbsUp, TrendingUp, Zap } from "lucide-react";
 
 interface StatsOverviewProps {
   totalMatches: number;
@@ -26,73 +26,88 @@ export const StatsOverview = ({
     navigate("/matches");
   };
 
+  const stats = [
+    {
+      title: "Win Rate",
+      value: `${winRate}%`,
+      icon: Trophy,
+      color: "from-yellow-400 to-orange-500",
+      bgColor: "from-yellow-50 to-orange-50",
+      description: "Your success rate"
+    },
+    {
+      title: "Total Matches",
+      value: totalMatches,
+      icon: Star,
+      color: "from-blue-500 to-purple-600",
+      bgColor: "from-blue-50 to-purple-50",
+      description: "Games played"
+    },
+    {
+      title: "This Year",
+      value: matchesThisYear,
+      icon: TrendingUp,
+      color: "from-green-400 to-blue-500",
+      bgColor: "from-green-50 to-blue-50",
+      description: "Recent activity"
+    },
+    {
+      title: "Sets Won",
+      value: setsWon,
+      icon: CircleCheck,
+      color: "from-emerald-400 to-teal-500",
+      bgColor: "from-emerald-50 to-teal-50",
+      description: "Winning sets"
+    },
+    {
+      title: "Sets Lost",
+      value: setsLost,
+      icon: Award,
+      color: "from-rose-400 to-pink-500",
+      bgColor: "from-rose-50 to-pink-50",
+      description: "Learning moments"
+    },
+    {
+      title: "Tiebreaks",
+      value: tiebreaksWon,
+      icon: Zap,
+      color: "from-purple-500 to-indigo-600",
+      bgColor: "from-purple-50 to-indigo-50",
+      description: "Clutch wins"
+    }
+  ];
+
   return (
-    <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:gap-3">
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-primary/20 to-primary/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <Trophy className="w-5 h-5 text-primary mb-1" />
-          <p className="text-lg font-bold">{winRate}%</p>
-          <p className="text-xs text-muted-foreground text-center">Win Rate</p>
-        </CardContent>
-      </Card>
-
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-secondary/20 to-secondary/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <Star className="w-5 h-5 text-secondary mb-1" />
-          <p className="text-lg font-bold">{totalMatches}</p>
-          <p className="text-xs text-muted-foreground text-center">Total Matches</p>
-        </CardContent>
-      </Card>
-
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-accent/20 to-accent/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <CheckCircle className="w-5 h-5 text-accent mb-1" />
-          <p className="text-lg font-bold">{matchesThisYear}</p>
-          <p className="text-xs text-muted-foreground text-center">This Year</p>
-        </CardContent>
-      </Card>
-
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-primary/20 to-primary/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <CircleCheck className="w-5 h-5 text-primary mb-1" />
-          <p className="text-lg font-bold">{setsWon}</p>
-          <p className="text-xs text-muted-foreground text-center">Sets Won</p>
-        </CardContent>
-      </Card>
-
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-secondary/20 to-secondary/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <Award className="w-5 h-5 text-secondary mb-1" />
-          <p className="text-lg font-bold">{setsLost}</p>
-          <p className="text-xs text-muted-foreground text-center">Sets Lost</p>
-        </CardContent>
-      </Card>
-
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-300 touch-manipulation bg-gradient-to-br from-accent/20 to-accent/5"
-        onClick={handleStatClick}
-      >
-        <CardContent className="p-3 flex flex-col items-center justify-center space-y-1">
-          <ThumbsUp className="w-5 h-5 text-accent mb-1" />
-          <p className="text-lg font-bold">{tiebreaksWon}</p>
-          <p className="text-xs text-muted-foreground text-center">Tiebreaks Won</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2">Your Tennis Journey</h2>
+        <p className="text-muted-foreground">Track your progress and celebrate your wins!</p>
+      </div>
+      
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {stats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          return (
+            <Card 
+              key={stat.title}
+              className={`stat-card cursor-pointer touch-manipulation bg-gradient-to-br ${stat.bgColor} border-0 hover:shadow-2xl group`}
+              onClick={handleStatClick}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CardContent className="p-4 md:p-6 flex flex-col items-center justify-center space-y-2 relative z-10">
+                <div className={`p-3 rounded-full bg-gradient-to-r ${stat.color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-white floating-icon" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xl md:text-2xl font-bold text-gray-800">{stat.value}</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">{stat.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 };
