@@ -49,26 +49,30 @@ export const useMatchEdit = (id: string) => {
         return;
       }
 
-      // Parse the score string into sets
-      const scoreArray = matchData.score.split(/,\s*|\s+/); // Split by comma+space or just space
-      const parsedSets = scoreArray.map(set => {
-        const [playerScore, opponentScore] = set.split('-');
+      // Parse the score string into sets with improved logic
+      const scoreString = matchData.score || "";
+      const scoreArray = scoreString.split(/,\s*|\s+/).filter(s => s.trim()); // Split and filter empty
+      
+      const parsedSets: SetScore[] = scoreArray.map(set => {
+        const parts = set.split('-');
         return { 
-          playerScore: playerScore || "", 
-          opponentScore: opponentScore || "" 
+          playerScore: parts[0] || "", 
+          opponentScore: parts[1] || "" 
         };
       });
 
-      // Ensure we have at least 3 sets (for the form)
-      while (parsedSets.length < 3) {
+      // Determine if it's best of 5 based on existing sets
+      const isBestOfFive = parsedSets.length > 3;
+      const targetLength = isBestOfFive ? 5 : 3;
+
+      // Ensure we have the correct number of sets
+      while (parsedSets.length < targetLength) {
         parsedSets.push({ playerScore: "", opponentScore: "" });
       }
 
-      // Create additional sets if best of 5 (total of 5 sets)
-      if (parsedSets.length > 3 && parsedSets.length < 5) {
-        while (parsedSets.length < 5) {
-          parsedSets.push({ playerScore: "", opponentScore: "" });
-        }
+      // Trim if we have too many sets
+      if (parsedSets.length > targetLength) {
+        parsedSets.splice(targetLength);
       }
 
       setMatch({
@@ -105,6 +109,16 @@ export const useMatchEdit = (id: string) => {
       const validSets = formData.sets.filter((set: SetScore) => 
         set.playerScore !== "" && set.opponentScore !== ""
       );
+      
+      if (validSets.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please enter at least one set score.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const scoreString = validSets
         .map((set: SetScore) => `${set.playerScore}-${set.opponentScore}`)
         .join(', ');

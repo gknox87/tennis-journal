@@ -32,7 +32,7 @@ const Index = () => {
           .eq('id', session.user.id)
           .single();
 
-        if (error) {
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
           console.error('Error fetching profile:', error);
           toast({
             title: "Error",
@@ -77,11 +77,17 @@ const Index = () => {
   // Initial data load
   useEffect(() => {
     const loadInitialData = async () => {
-      await Promise.all([refreshMatches(), refreshNotes()]);
+      try {
+        await Promise.all([refreshMatches(), refreshNotes()]);
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      }
     };
     
-    loadInitialData();
-  }, [refreshMatches, refreshNotes]);
+    if (!isLoading) {
+      loadInitialData();
+    }
+  }, [refreshMatches, refreshNotes, isLoading]);
 
   // Filter matches with debouncing
   useEffect(() => {

@@ -25,13 +25,7 @@ const Calendar = () => {
   const fetchEvents = async () => {
     try {
       const eventsData = await fetchScheduledEvents();
-      // Map the database fields to FullCalendar format
-      const mappedEvents = eventsData.map(event => ({
-        ...event,
-        start: event.start_time,
-        end: event.end_time
-      }));
-      setEvents(mappedEvents);
+      setEvents(eventsData);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -71,12 +65,18 @@ const Calendar = () => {
     setShowEventDialog(true);
   };
 
+  const handleFullCalendarEventClick = (info: any) => {
+    const event = events.find(e => e.id === info.event.id);
+    if (event) {
+      handleEventClick(event);
+    }
+  };
+
   const calendarEvents = events.map(event => ({
     id: event.id,
     title: event.title,
     start: event.start_time,
     end: event.end_time,
-    extendedProps: event
   }));
 
   return (
@@ -114,7 +114,7 @@ const Calendar = () => {
             dayMaxEvents={true}
             events={calendarEvents}
             select={handleDateSelect}
-            eventClick={(info) => handleEventClick(info.event.extendedProps as ScheduledEvent)}
+            eventClick={handleFullCalendarEventClick}
             height="70vh"
             expandRows={true}
             handleWindowResize={true}

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,21 +36,40 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
   const [isBestOfFive, setIsBestOfFive] = useState(initialData?.isBestOfFive || false);
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
-  
-  // Initialize sets based on isBestOfFive
-  const defaultSets = isBestOfFive ? 
-    Array(5).fill({ playerScore: "", opponentScore: "" }) : 
-    Array(3).fill({ playerScore: "", opponentScore: "" });
-    
-  const [sets, setSets] = useState<SetScore[]>(
-    initialData?.sets?.length ? initialData.sets : defaultSets
-  );
-  
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
   const [notes, setNotes] = useState(initialData?.notes || "");
 
+  // Initialize sets with proper logic
+  const getInitialSets = (): SetScore[] => {
+    if (initialData?.sets?.length) {
+      return [...initialData.sets];
+    }
+    const numberOfSets = isBestOfFive ? 5 : 3;
+    return Array(numberOfSets).fill(null).map(() => ({ playerScore: "", opponentScore: "" }));
+  };
+
+  const [sets, setSets] = useState<SetScore[]>(getInitialSets());
+
+  // Update sets when isBestOfFive changes (only for new matches)
+  useEffect(() => {
+    if (!initialData?.sets?.length) {
+      const numberOfSets = isBestOfFive ? 5 : 3;
+      setSets(Array(numberOfSets).fill(null).map(() => ({ playerScore: "", opponentScore: "" })));
+    }
+  }, [isBestOfFive, initialData?.sets?.length]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that at least one set is entered
+    const validSets = sets.filter(set => 
+      set.playerScore !== "" && set.opponentScore !== ""
+    );
+    
+    if (validSets.length === 0) {
+      return; // Let the backend handle the error message
+    }
+
     await onSubmit({
       date,
       opponent,
