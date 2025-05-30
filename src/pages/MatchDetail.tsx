@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 import { Match } from "@/types/match";
 import { MatchDetailView } from "@/components/match/MatchDetailView";
 import { MatchDetailHeader } from "@/components/match/MatchDetailHeader";
@@ -12,7 +11,6 @@ import { MatchShareButtons } from "@/components/match/MatchShareButtons";
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [match, setMatch] = useState<Match | null>(null);
 
   useEffect(() => {
@@ -40,27 +38,17 @@ const MatchDetail = () => {
         }
       } catch (error) {
         console.error("Error fetching match:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch match details.",
-          variant: "destructive",
-        });
         navigate('/');
       }
     };
 
     fetchMatch();
-  }, [id, navigate, toast]);
+  }, [id, navigate]);
 
   const handleDelete = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to delete matches.",
-          variant: "destructive",
-        });
         return;
       }
 
@@ -71,19 +59,9 @@ const MatchDetail = () => {
 
       if (matchError) throw matchError;
 
-      toast({
-        title: "Match deleted",
-        description: "The match has been successfully deleted.",
-      });
-
       navigate('/');
     } catch (error) {
       console.error('Error in delete operation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the match. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -106,47 +84,54 @@ const MatchDetail = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Match notes have been shared via email.",
-      });
     } catch (error) {
       console.error('Error sharing via email:', error);
-      toast({
-        title: "Error",
-        description: "Failed to share match notes. Please try again.",
-        variant: "destructive",
-      });
       throw error;
     }
   };
 
   if (!match) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <MatchDetailHeader onBack={() => navigate('/')} />
-        <p>Loading match details...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="container mx-auto px-4 py-6">
+          <MatchDetailHeader onBack={() => navigate('/')} />
+          <div className="flex items-center justify-center mt-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl">
-      <div className="flex flex-col gap-4 mb-6">
-        <MatchDetailHeader onBack={() => navigate('/')} />
-        <MatchActionButtons
-          matchId={id!}
-          onEdit={() => navigate(`/edit-match/${id}`)}
-          onDelete={handleDelete}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-32 right-16 w-16 h-16 bg-purple-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-32 left-20 w-12 h-12 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <MatchDetailView match={match} />
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-4xl">
+        <div className="flex flex-col gap-6 mb-8">
+          <MatchDetailHeader onBack={() => navigate('/')} />
+          <MatchActionButtons
+            matchId={id!}
+            onEdit={() => navigate(`/edit-match/${id}`)}
+            onDelete={handleDelete}
+          />
+        </div>
 
-      <MatchShareButtons
-        match={match}
-        onEmailShare={handleEmailShare}
-      />
+        <MatchDetailView match={match} />
+
+        <div className="mt-8">
+          <MatchShareButtons
+            match={match}
+            onEmailShare={handleEmailShare}
+          />
+        </div>
+      </div>
     </div>
   );
 };

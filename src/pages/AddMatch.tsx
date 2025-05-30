@@ -1,7 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Trophy, Target, Zap } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
@@ -9,34 +8,23 @@ import { useEffect } from "react";
 
 const AddMatch = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to add matches",
-          variant: "destructive",
-        });
         navigate("/login");
       }
     };
 
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleSubmit = async (formData: any) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to add matches.",
-          variant: "destructive",
-        });
         navigate("/login");
         return;
       }
@@ -105,19 +93,10 @@ const AddMatch = () => {
         }
       }
 
-      toast({
-        title: "🎾 Match Recorded!",
-        description: "Your match has been successfully saved to your tennis journal.",
-      });
-      
-      navigate("/");
+      // Navigate to the match detail page
+      navigate(`/match/${matchData.id}`);
     } catch (error: any) {
       console.error('Error saving match:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save match. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
