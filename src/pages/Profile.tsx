@@ -19,6 +19,12 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
+interface LiveStats {
+  matchesWon: number;
+  trainingSessions: number;
+  keyOpponents: number;
+}
+
 const Profile = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
@@ -27,6 +33,11 @@ const Profile = () => {
     preferred_surface: "",
     avatar_url: null,
   });
+  const [liveStats, setLiveStats] = useState<LiveStats>({
+    matchesWon: 0,
+    trainingSessions: 0,
+    keyOpponents: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
@@ -34,6 +45,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchLiveStats();
   }, []);
 
   const fetchProfile = async () => {
@@ -80,6 +92,46 @@ const Profile = () => {
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchLiveStats = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Fetch matches won
+      const { data: matchesData } = await supabase
+        .from("matches")
+        .select("is_win")
+        .eq("user_id", session.user.id);
+
+      const matchesWon = matchesData?.filter(match => match.is_win).length || 0;
+
+      // Fetch training sessions
+      const { data: trainingData } = await supabase
+        .from("training_notes")
+        .select("id")
+        .eq("user_id", session.user.id);
+
+      const trainingSessions = trainingData?.length || 0;
+
+      // Fetch key opponents
+      const { data: opponentsData } = await supabase
+        .from("opponents")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .eq("is_key_opponent", true);
+
+      const keyOpponents = opponentsData?.length || 0;
+
+      setLiveStats({
+        matchesWon,
+        trainingSessions,
+        keyOpponents,
+      });
+    } catch (error) {
+      console.error("Error fetching live stats:", error);
     }
   };
 
@@ -140,20 +192,23 @@ const Profile = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/dashboard")}
-            className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-md hover:bg-white/90 hover:shadow-lg transition-all duration-300"
+            className="h-12 w-12 rounded-full bg-white/90 backdrop-blur-sm border-2 border-blue-200/50 shadow-lg hover:bg-white hover:shadow-xl hover:border-blue-300 transition-all duration-300"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-blue-600" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
               Your Profile
             </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage your tennis profile and preferences</p>
+            <p className="text-gray-600 mt-2 text-base sm:text-lg font-medium">
+              Manage Your Tennis Profile & Preferences
+            </p>
           </div>
           <Button
             onClick={() => setIsEditing(!isEditing)}
             variant={isEditing ? "outline" : "default"}
-            className="shadow-lg"
+            className="shadow-lg hover:shadow-xl transition-all duration-300"
+            size="lg"
           >
             <Edit3 className="mr-2 h-4 w-4" />
             {isEditing ? "Cancel" : "Edit"}
@@ -274,7 +329,7 @@ const Profile = () => {
               </div>
 
               {isEditing && (
-                <div className="flex justify-end pt-6 border-t border-gray-200">
+                <div className="flex justify-center pt-6 border-t border-gray-200">
                   <Button 
                     onClick={handleSave} 
                     disabled={isLoading}
@@ -298,21 +353,21 @@ const Profile = () => {
             </div>
           </Card>
 
-          {/* Quick Stats */}
+          {/* Live Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
               <p className="text-sm opacity-90">Matches Won</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{liveStats.trainingSessions}</p>
               <p className="text-sm opacity-90">Training Sessions</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-purple-500 to-purple-600 text-white">
               <User className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{liveStats.keyOpponents}</p>
               <p className="text-sm opacity-90">Key Opponents</p>
             </Card>
           </div>
