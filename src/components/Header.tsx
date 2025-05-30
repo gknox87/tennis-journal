@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, LogOut, User, Users, Calendar } from "lucide-react";
+import { Plus, LogOut, User, Users, Calendar, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { ProfileDialog } from "./ProfileDialog";
 
@@ -73,6 +73,15 @@ export const Header = ({ userProfile }: HeaderProps) => {
           >
             <Plus className="mr-2 h-4 w-4" />
             Record Match
+          </Button>
+          <Button
+            onClick={() => navigate("/training-notes")}
+            variant="outline"
+            className="flex-1 sm:flex-none"
+            size="lg"
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            Training Notes
           </Button>
           <Button
             onClick={() => navigate("/key-opponents")}

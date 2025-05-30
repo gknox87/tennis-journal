@@ -226,6 +226,45 @@ export type Database = {
         }
         Relationships: []
       }
+      training_notes: {
+        Row: {
+          coach_name: string | null
+          created_at: string
+          id: string
+          training_date: string
+          training_time: string | null
+          updated_at: string
+          user_id: string
+          what_didnt_feel_good: string | null
+          what_felt_good: string | null
+          what_worked_on: string | null
+        }
+        Insert: {
+          coach_name?: string | null
+          created_at?: string
+          id?: string
+          training_date?: string
+          training_time?: string | null
+          updated_at?: string
+          user_id: string
+          what_didnt_feel_good?: string | null
+          what_felt_good?: string | null
+          what_worked_on?: string | null
+        }
+        Update: {
+          coach_name?: string | null
+          created_at?: string
+          id?: string
+          training_date?: string
+          training_time?: string | null
+          updated_at?: string
+          user_id?: string
+          what_didnt_feel_good?: string | null
+          what_felt_good?: string | null
+          what_worked_on?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
