@@ -14,6 +14,7 @@ import ImprovementNotes from "@/pages/ImprovementNotes";
 import Calendar from "@/pages/Calendar";
 import TrainingNotes from "@/pages/TrainingNotes";
 import Profile from "@/pages/Profile";
+import ServeAnalysis from "@/pages/ServeAnalysis";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -107,6 +108,10 @@ function App() {
           <Route
             path="/profile"
             element={session ? <Profile /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/serve-analysis"
+            element={session ? <ServeAnalysis /> : <Navigate to="/login" replace />}
           />
 
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
