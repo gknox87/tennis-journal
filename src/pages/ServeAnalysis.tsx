@@ -3,9 +3,9 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Activity, Camera, Upload, Play, Square, Save } from 'lucide-react';
+import { Activity, Link, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePose } from '@/hooks/usePose';
 import { useYoloWasm } from '@/hooks/useYoloWasm';
@@ -19,23 +19,29 @@ const ServeAnalysis = () => {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecorded, setHasRecorded] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [videoSource, setVideoSource] = useState<'camera' | 'file' | 'url'>('camera');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
   const { pose } = usePose(videoRef);
   const { racketBox } = useYoloWasm(videoRef);
   const { metrics, similarity, saveSession, resetMetrics } = useServeAnalysis(pose, racketBox);
 
   useEffect(() => {
-    startCamera();
+    if (videoSource === 'camera') {
+      startCamera();
+    }
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [videoSource]);
 
   const startCamera = async () => {
     try {
@@ -44,11 +50,13 @@ const ServeAnalysis = () => {
           width: { ideal: 1280 }, 
           height: { ideal: 720 },
           facingMode: 'environment' 
-        }
+        },
+        audio: true
       });
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        videoRef.current.play();
       }
     } catch (error) {
       toast({
@@ -61,20 +69,59 @@ const ServeAnalysis = () => {
 
   const toggleRecording = () => {
     if (isRecording) {
-      setIsRecording(false);
-      setHasRecorded(true);
-      toast({
-        title: "Recording Stopped",
-        description: "Analyzing your serve performance...",
-      });
+      stopRecording();
     } else {
+      startRecording();
+    }
+  };
+
+  const startRecording = () => {
+    if (!stream) return;
+    
+    try {
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      setRecordedChunks([]);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setRecordedChunks(prev => [...prev, event.data]);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        setHasRecorded(true);
+        setIsRecording(false);
+        toast({
+          title: "Recording Stopped",
+          description: "Analyzing your serve performance...",
+        });
+      };
+      
+      mediaRecorder.start(100); // Record in 100ms chunks
       setIsRecording(true);
       setHasRecorded(false);
       resetMetrics();
+      
       toast({
         title: "Recording Started",
         description: "Perform your serve now!",
       });
+    } catch (error) {
+      toast({
+        title: "Recording Error",
+        description: "Unable to start recording. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
     }
   };
 
@@ -84,9 +131,47 @@ const ServeAnalysis = () => {
       const url = URL.createObjectURL(file);
       videoRef.current.src = url;
       videoRef.current.load();
+      setVideoSource('file');
       setHasRecorded(true);
       resetMetrics();
+      
+      // Stop camera stream if active
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+      
+      toast({
+        title: "Video Uploaded",
+        description: "Video loaded successfully. Play to start analysis.",
+      });
     }
+  };
+
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  const handleYouTubeUrl = async () => {
+    const videoId = extractYouTubeVideoId(youtubeUrl);
+    if (!videoId) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid YouTube URL.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Use a proxy service or iframe embed
+    // For demo purposes, we'll show a message about YouTube restrictions
+    toast({
+      title: "YouTube Integration",
+      description: "Due to CORS restrictions, please download the video and upload it as a file.",
+      variant: "destructive"
+    });
   };
 
   const handleSaveToJournal = async () => {
@@ -106,6 +191,14 @@ const ServeAnalysis = () => {
     }
   };
 
+  const switchToCamera = () => {
+    setVideoSource('camera');
+    setYoutubeUrl('');
+    if (videoRef.current) {
+      videoRef.current.src = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 p-4">
       {/* Page Header */}
@@ -119,6 +212,54 @@ const ServeAnalysis = () => {
         </div>
       </div>
 
+      {/* Video Source Selection */}
+      <Card className="mb-6 bg-gradient-to-b from-white/60 via-white/40 to-white/10 backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg">Video Source</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={videoSource === 'camera' ? 'default' : 'secondary'}
+                onClick={switchToCamera}
+                className="flex-1 min-w-24"
+              >
+                Camera
+              </Button>
+              <Button
+                variant={videoSource === 'file' ? 'default' : 'secondary'}
+                onClick={() => setVideoSource('file')}
+                className="flex-1 min-w-24"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload
+              </Button>
+              <Button
+                variant={videoSource === 'url' ? 'default' : 'secondary'}
+                onClick={() => setVideoSource('url')}
+                className="flex-1 min-w-24"
+              >
+                <Link className="w-4 h-4 mr-2" />
+                URL
+              </Button>
+            </div>
+            
+            {videoSource === 'url' && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter YouTube URL or video URL"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <Button onClick={handleYouTubeUrl}>Load</Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Video Capture Card */}
       <VideoCaptureCard
         videoRef={videoRef}
@@ -128,6 +269,7 @@ const ServeAnalysis = () => {
         onFileUpload={handleFileUpload}
         pose={pose}
         racketBox={racketBox}
+        videoSource={videoSource}
       />
 
       {/* Metrics Grid */}

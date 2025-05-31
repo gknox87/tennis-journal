@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Square } from 'lucide-react';
+import { Camera, Upload, Square, Play, Pause } from 'lucide-react';
 
 interface VideoCaptureCardProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -12,6 +12,7 @@ interface VideoCaptureCardProps {
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   pose: any;
   racketBox: any;
+  videoSource: 'camera' | 'file' | 'url';
 }
 
 export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
@@ -21,8 +22,11 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
   onToggleRecording,
   onFileUpload,
   pose,
-  racketBox
+  racketBox,
+  videoSource
 }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
   useEffect(() => {
     const drawOverlay = () => {
       const canvas = canvasRef.current;
@@ -34,8 +38,8 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       if (!ctx) return;
       
       // Set canvas size to match video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth || video.clientWidth;
+      canvas.height = video.videoHeight || video.clientHeight;
       
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -47,7 +51,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         ctx.fillStyle = '#22C55E';
         
         // Draw key pose points
-        pose.landmarks.forEach((landmark: any, index: number) => {
+        pose.landmarks.forEach((landmark: any) => {
           const x = landmark.x * canvas.width;
           const y = landmark.y * canvas.height;
           
@@ -56,11 +60,12 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
           ctx.fill();
         });
         
-        // Draw skeleton connections
+        // Draw skeleton connections (simplified)
         const connections = [
-          [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
-          [11, 23], [12, 24], [23, 24], // Torso
-          [23, 25], [25, 27], [24, 26], [26, 28] // Legs
+          [0, 1], [1, 2], [2, 3], [3, 4], // Face outline
+          [5, 6], [5, 7], [7, 9], [6, 8], [8, 10], // Arms
+          [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Core and legs
+          [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]
         ];
         
         connections.forEach(([start, end]) => {
@@ -93,7 +98,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         ctx.fillStyle = '#EF4444';
         ctx.font = '14px Inter';
         ctx.fillText(
-          'Racket',
+          `Racket (${(racketBox.confidence * 100).toFixed(0)}%)`,
           racketBox.x * canvas.width,
           racketBox.y * canvas.height - 5
         );
@@ -108,6 +113,36 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
     return () => cancelAnimationFrame(animationFrame);
   }, [pose, racketBox, canvasRef, videoRef]);
 
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
+
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
   return (
     <Card className="rounded-2xl shadow-lg mb-6 bg-gradient-to-b from-white/60 via-white/40 to-white/10 backdrop-blur">
       <CardContent className="p-6">
@@ -117,9 +152,10 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
               <video
                 ref={videoRef}
-                autoPlay
+                autoPlay={videoSource === 'camera'}
                 muted
                 playsInline
+                controls={videoSource !== 'camera'}
                 className="w-full h-full object-cover"
               />
               <canvas
@@ -133,36 +169,53 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
                   <span className="text-sm font-medium">Recording</span>
                 </div>
               )}
+              {videoSource !== 'camera' && (
+                <div className="absolute bottom-4 left-4">
+                  <Button
+                    onClick={togglePlayPause}
+                    size="sm"
+                    className="bg-black/50 hover:bg-black/70 text-white"
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           
           {/* Controls */}
           <div className="md:w-64 space-y-4">
-            <Button
-              onClick={onToggleRecording}
-              className={`w-full h-12 ${
-                isRecording
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-blue-500 hover:bg-blue-600'
-              }`}
-            >
-              {isRecording ? (
-                <>
-                  <Square className="w-4 h-4 mr-2" />
-                  Stop Recording
-                </>
-              ) : (
-                <>
-                  <Camera className="w-4 h-4 mr-2" />
-                  Start Recording
-                </>
-              )}
-            </Button>
+            {videoSource === 'camera' && (
+              <Button
+                onClick={onToggleRecording}
+                className={`w-full h-12 ${
+                  isRecording
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-blue-500 hover:bg-blue-600'
+                }`}
+              >
+                {isRecording ? (
+                  <>
+                    <Square className="w-4 h-4 mr-2" />
+                    Stop Recording
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4 mr-2" />
+                    Start Recording
+                  </>
+                )}
+              </Button>
+            )}
             
             <div className="relative">
               <input
                 type="file"
-                accept="video/mp4,video/mov"
+                accept="video/mp4,video/mov,video/webm,video/avi"
                 onChange={onFileUpload}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 id="video-upload"
@@ -176,7 +229,10 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             </div>
             
             <p className="text-sm text-muted-foreground text-center">
-              Tip: hold the camera chest-high, 3 m in front.
+              {videoSource === 'camera' 
+                ? "Tip: hold the camera chest-high, 3 m in front."
+                : "Upload or select a video to analyze your serve technique."
+              }
             </p>
           </div>
         </div>
