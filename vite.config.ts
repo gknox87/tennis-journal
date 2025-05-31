@@ -22,4 +22,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Add fallback for SPA routing
+  preview: {
+    port: 8080,
+    host: "::",
+  },
 }));
