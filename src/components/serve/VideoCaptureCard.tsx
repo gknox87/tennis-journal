@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Square, Play, Pause } from 'lucide-react';
+import { Camera, Upload, Square, Play, Pause, FileVideo } from 'lucide-react';
 
 interface VideoCaptureCardProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -26,6 +26,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
   videoSource
 }) => {
   const [isPlaying, setIsPlaying] = React.useState(false);
+  const [hasVideo, setHasVideo] = React.useState(false);
 
   useEffect(() => {
     const drawOverlay = () => {
@@ -131,15 +132,31 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => setIsPlaying(false);
+    const handleLoadedData = () => {
+      setHasVideo(true);
+      console.log('Video loaded successfully:', {
+        duration: video.duration,
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight
+      });
+    };
+    const handleError = (e: Event) => {
+      console.error('Video error:', e);
+      setHasVideo(false);
+    };
 
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('ended', handleEnded);
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('error', handleError);
     };
   }, []);
 
@@ -182,6 +199,14 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
                       <Play className="w-4 h-4" />
                     )}
                   </Button>
+                </div>
+              )}
+              {!hasVideo && videoSource === 'file' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
+                  <div className="text-center text-white">
+                    <FileVideo className="w-12 h-12 mx-auto mb-2 opacity-60" />
+                    <p className="text-sm">Upload a video to start analysis</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -228,9 +253,16 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
               </Button>
             </div>
             
+            {hasVideo && videoSource === 'file' && (
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-700 font-medium">✓ Video loaded successfully</p>
+                <p className="text-xs text-green-600">Click play to start analysis</p>
+              </div>
+            )}
+            
             <p className="text-sm text-muted-foreground text-center">
               {videoSource === 'camera' 
-                ? "Tip: hold the camera chest-high, 3 m in front."
+                ? "Tip: position camera according to selected angle view."
                 : "Upload or select a video to analyze your serve technique."
               }
             </p>

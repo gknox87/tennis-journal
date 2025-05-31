@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Activity, Link, Upload } from 'lucide-react';
+import { Activity, Link, Upload, Camera, User, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePose } from '@/hooks/usePose';
 import { useYoloWasm } from '@/hooks/useYoloWasm';
@@ -13,6 +13,8 @@ import { useServeAnalysis } from '@/hooks/useServeAnalysis';
 import { MetricCard } from '@/components/serve/MetricCard';
 import { VideoCaptureCard } from '@/components/serve/VideoCaptureCard';
 import { ComparisonPanel } from '@/components/serve/ComparisonPanel';
+
+type CameraAngle = 'front' | 'side' | 'back';
 
 const ServeAnalysis = () => {
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ const ServeAnalysis = () => {
   const [hasRecorded, setHasRecorded] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [videoSource, setVideoSource] = useState<'camera' | 'file' | 'url'>('camera');
+  const [cameraAngle, setCameraAngle] = useState<CameraAngle>('front');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
@@ -199,6 +202,19 @@ const ServeAnalysis = () => {
     }
   };
 
+  const getCameraInstructions = (angle: CameraAngle) => {
+    switch (angle) {
+      case 'front':
+        return "Position camera facing the player, 3-4m from baseline";
+      case 'side':
+        return "Position camera to the side, 3-4m perpendicular to the court";
+      case 'back':
+        return "Position camera behind the player, elevated view preferred";
+      default:
+        return "Position camera for optimal serve analysis";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 p-4">
       {/* Page Header */}
@@ -211,6 +227,44 @@ const ServeAnalysis = () => {
           <p className="text-gray-600">Record a serve to see instant biomechanical feedback</p>
         </div>
       </div>
+
+      {/* Camera Angle Selection */}
+      <Card className="mb-6 bg-gradient-to-b from-white/60 via-white/40 to-white/10 backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg">Camera Angle</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <Button
+              variant={cameraAngle === 'front' ? 'default' : 'secondary'}
+              onClick={() => setCameraAngle('front')}
+              className="flex flex-col items-center p-4 h-auto"
+            >
+              <User className="w-6 h-6 mb-2" />
+              <span className="text-sm">Front View</span>
+            </Button>
+            <Button
+              variant={cameraAngle === 'side' ? 'default' : 'secondary'}
+              onClick={() => setCameraAngle('side')}
+              className="flex flex-col items-center p-4 h-auto"
+            >
+              <UserCheck className="w-6 h-6 mb-2" />
+              <span className="text-sm">Side View</span>
+            </Button>
+            <Button
+              variant={cameraAngle === 'back' ? 'default' : 'secondary'}
+              onClick={() => setCameraAngle('back')}
+              className="flex flex-col items-center p-4 h-auto"
+            >
+              <User className="w-6 h-6 mb-2 rotate-180" />
+              <span className="text-sm">Back View</span>
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            {getCameraInstructions(cameraAngle)}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Video Source Selection */}
       <Card className="mb-6 bg-gradient-to-b from-white/60 via-white/40 to-white/10 backdrop-blur">
@@ -335,7 +389,7 @@ const ServeAnalysis = () => {
             <AccordionItem value="setup">
               <AccordionTrigger>Camera Setup</AccordionTrigger>
               <AccordionContent>
-                Position your camera chest-high, about 3 meters in front of the service line. Ensure good lighting and the entire serve motion is visible in frame.
+                Choose your preferred camera angle and position accordingly. Front view is best for analyzing racket face and contact point, side view for body mechanics, and back view for service motion flow.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="accuracy">

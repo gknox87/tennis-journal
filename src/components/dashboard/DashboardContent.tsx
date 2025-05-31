@@ -9,7 +9,11 @@ import { NotesSection } from "@/components/dashboard/NotesSection";
 import { NotesDialog } from "@/components/NotesDialog";
 import { ImprovementChecklist } from "@/components/ImprovementChecklist";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity, Camera } from "lucide-react";
 import { useState, memo, Suspense, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const MemoizedStatsSection = memo(StatsSection);
@@ -37,6 +41,7 @@ export const DashboardContent = ({
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [editingNote, setEditingNote] = useState<PlayerNote | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<ScheduledEvent[]>([]);
+  const navigate = useNavigate();
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -78,6 +83,35 @@ export const DashboardContent = ({
           <MemoizedStatsSection matches={matches} />
         </Suspense>
       </div>
+
+      {/* Serve Analysis Quick Access */}
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-800">
+            <Activity className="h-6 w-6" />
+            Analyze Your Serve
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div>
+              <p className="text-green-700 mb-2">
+                Get instant biomechanical feedback on your tennis serve with AI-powered analysis.
+              </p>
+              <p className="text-sm text-green-600">
+                Record live, upload video, or analyze from different angles.
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate('/serve-analysis')}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 whitespace-nowrap"
+            >
+              <Camera className="h-4 w-4" />
+              Start Analysis
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-6">
         <Suspense fallback={
