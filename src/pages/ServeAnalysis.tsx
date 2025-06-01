@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Activity, Link, Upload, Camera, User, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,9 @@ import { useServeAnalytics } from '@/hooks/useServeAnalytics';
 import { MetricCard } from '@/components/serve/MetricCard';
 import { VideoCaptureCard } from '@/components/serve/VideoCaptureCard';
 import { ComparisonPanel } from '@/components/serve/ComparisonPanel';
+import { CoachingInsights } from '@/components/serve/CoachingInsights';
+import { PerformanceChart } from '@/components/serve/PerformanceChart';
+import { DrillRecommendations } from '@/components/serve/DrillRecommendations';
 
 type CameraAngle = 'front' | 'side' | 'back';
 
@@ -31,11 +35,11 @@ const ServeAnalysis = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  // Use the new adaptive AI hooks
+  // Use the adaptive AI hooks
   const { playerBounds, ballDetection, isAnalyzing } = usePlayerDetection(videoRef);
   const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef, playerBounds);
   const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef, playerBounds, pose);
-  const { metrics, similarity, servePhase, saveSession, resetMetrics } = useServeAnalytics(pose, racketBox, cameraAngle);
+  const { metrics, similarity, servePhase, saveSession, resetMetrics, metricsHistory } = useServeAnalytics(pose, racketBox, cameraAngle);
 
   const isAILoading = poseLoading || racketLoading || isAnalyzing;
 
@@ -262,7 +266,7 @@ const ServeAnalysis = () => {
             <Activity className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
             <h1 className="text-3xl font-bold text-gray-900">Adaptive Serve Analysis</h1>
           </div>
-          <p className="text-gray-600">AI-powered adaptive tracking system</p>
+          <p className="text-gray-600">AI-powered adaptive tracking system with coaching insights</p>
           
           {isAILoading && (
             <div className="flex items-center justify-center gap-2 mt-4 text-blue-600">
@@ -463,13 +467,43 @@ const ServeAnalysis = () => {
         />
       </div>
 
-      {/* Comparison Panel */}
+      {/* Analysis Tabs */}
       {hasRecorded && (
-        <ComparisonPanel
-          similarity={similarity}
-          metrics={metrics}
-          onSaveToJournal={handleSaveToJournal}
-        />
+        <Tabs defaultValue="insights" className="mb-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="charts">Charts</TabsTrigger>
+            <TabsTrigger value="drills">Drills</TabsTrigger>
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="insights" className="mt-4">
+            <CoachingInsights 
+              metrics={metrics}
+              servePhase={servePhase}
+              similarity={similarity}
+            />
+          </TabsContent>
+          
+          <TabsContent value="charts" className="mt-4">
+            <PerformanceChart 
+              metricsHistory={metricsHistory}
+              currentMetrics={metrics}
+            />
+          </TabsContent>
+          
+          <TabsContent value="drills" className="mt-4">
+            <DrillRecommendations metrics={metrics} />
+          </TabsContent>
+          
+          <TabsContent value="summary" className="mt-4">
+            <ComparisonPanel
+              similarity={similarity}
+              metrics={metrics}
+              onSaveToJournal={handleSaveToJournal}
+            />
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* How It Works Accordion */}
@@ -486,6 +520,13 @@ const ServeAnalysis = () => {
                 Analysis runs entirely in your browser for privacy and speed.
               </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="coaching">
+              <AccordionTrigger>Coaching Insights</AccordionTrigger>
+              <AccordionContent>
+                Our AI analyzes your serve biomechanics and provides personalized feedback based on professional player data.
+                Get specific recommendations for elbow position, knee bend, rotation, and contact point optimization.
+              </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="angles">
               <AccordionTrigger>Camera Angles</AccordionTrigger>
               <AccordionContent>
@@ -499,13 +540,6 @@ const ServeAnalysis = () => {
               <AccordionContent>
                 For best results: good lighting, minimal background clutter, contrasting clothing. 
                 Position camera 3-4 meters away at chest height.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="privacy">
-              <AccordionTrigger>Privacy & Data</AccordionTrigger>
-              <AccordionContent>
-                All analysis happens locally on your device. Videos are not uploaded to any server. 
-                Only anonymized metrics are saved to your profile.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
