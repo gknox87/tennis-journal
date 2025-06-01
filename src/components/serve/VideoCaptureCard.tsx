@@ -53,80 +53,212 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Get the actual display size of the video element
-      const videoRect = video.getBoundingClientRect();
-      const videoDisplayWidth = videoRect.width;
-      const videoDisplayHeight = videoRect.height;
+      // Get exact video element dimensions and position
+      const rect = video.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
       
-      // Set canvas size to match video display exactly
-      canvas.width = videoDisplayWidth;
-      canvas.height = videoDisplayHeight;
-      canvas.style.width = `${videoDisplayWidth}px`;
-      canvas.style.height = `${videoDisplayHeight}px`;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Only draw overlays if video is playing or paused (not ended)
-      if (video.ended && videoSource === 'file') return;
-      
-      // Calculate how the video content is displayed within the video element
+      // Calculate precise video scaling to match exactly
       const videoAspectRatio = video.videoWidth / video.videoHeight;
-      const displayAspectRatio = videoDisplayWidth / videoDisplayHeight;
+      const displayAspectRatio = rect.width / rect.height;
       
-      let drawWidth, drawHeight, offsetX, offsetY;
+      let scaleX, scaleY, offsetX, offsetY;
       
       if (videoAspectRatio > displayAspectRatio) {
-        // Video is wider - fit to width, letterbox top/bottom
-        drawWidth = videoDisplayWidth;
-        drawHeight = videoDisplayWidth / videoAspectRatio;
+        // Video is wider - fit to width
+        scaleX = rect.width / video.videoWidth;
+        scaleY = scaleX;
         offsetX = 0;
-        offsetY = (videoDisplayHeight - drawHeight) / 2;
+        offsetY = (rect.height - video.videoHeight * scaleY) / 2;
       } else {
-        // Video is taller - fit to height, letterbox left/right
-        drawHeight = videoDisplayHeight;
-        drawWidth = videoDisplayHeight * videoAspectRatio;
-        offsetX = (videoDisplayWidth - drawWidth) / 2;
+        // Video is taller - fit to height
+        scaleY = rect.height / video.videoHeight;
+        scaleX = scaleY;
+        offsetX = (rect.width - video.videoWidth * scaleX) / 2;
         offsetY = 0;
       }
       
-      // Apply zoom and pan transformations
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.translate(offsetX, offsetY);
-      ctx.scale(zoom, zoom);
-      ctx.translate(panX / zoom, panY / zoom);
+      ctx.translate(offsetX + panX, offsetY + panY);
+      ctx.scale(scaleX * zoom, scaleY * zoom);
 
-      // Draw player bounding box if detected
-      if (playerBounds && playerBounds.confidence > 0.3) {
-        ctx.strokeStyle = '#FFD700'; // Gold for player detection
-        ctx.lineWidth = 3 / zoom;
-        ctx.setLineDash([5, 5]);
+      // Draw accurate pose skeleton with perfect alignment
+      if (pose && pose.landmarks && pose.landmarks.length >= 33) {
+        const landmarks = pose.landmarks;
         
-        const x = playerBounds.x * drawWidth;
-        const y = playerBounds.y * drawHeight;
-        const width = playerBounds.width * drawWidth;
-        const height = playerBounds.height * drawHeight;
+        // Key connections for tennis serve analysis
+        const connections = [
+          // Core body structure
+          [11, 12], // shoulders
+          [11, 23], [12, 24], [23, 24], // torso
+          
+          // Serving arm (right side) - most critical
+          [12, 14], [14, 16], // right shoulder to elbow to wrist
+          
+          // Support arm (left side)
+          [11, 13], [13, 15], // left shoulder to elbow to wrist
+          
+          // Legs for serve power
+          [23, 25], [25, 27], // left hip to knee to ankle
+          [24, 26], [26, 28], // right hip to knee to ankle
+          
+          // Feet positioning
+          [27, 29], [28, 30], [29, 31], [30, 32]
+        ];
+        
+        // Draw skeleton with high visibility
+        ctx.strokeStyle = '#00FF00';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 1;
+        ctx.setLineDash([]);
+        
+        connections.forEach(([startIdx, endIdx]) => {
+          const start = landmarks[startIdx];
+          const end = landmarks[endIdx];
+          
+          if (start && end && 
+              (!start.visibility || start.visibility > 0.5) && 
+              (!end.visibility || end.visibility > 0.5)) {
+            
+            // Highlight serving arm
+            if ((startIdx === 12 && endIdx === 14) || (startIdx === 14 && endIdx === 16)) {
+              ctx.strokeStyle = '#FF0080'; // Bright pink for serving arm
+              ctx.lineWidth = 4;
+            } else {
+              ctx.strokeStyle = '#00FF00';
+              ctx.lineWidth = 3;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(start.x * video.videoWidth, start.y * video.videoHeight);
+            ctx.lineTo(end.x * video.videoWidth, end.y * video.videoHeight);
+            ctx.stroke();
+          }
+        });
+        
+        ctx.shadowBlur = 0;
+        
+        // Draw key landmarks with perfect positioning
+        const keyPoints = [
+          { idx: 0, label: 'HEAD', color: '#FFFF00', size: 8 },
+          { idx: 12, label: 'R-SHOULDER', color: '#FF0080', size: 10 },
+          { idx: 14, label: 'R-ELBOW', color: '#FF0080', size: 10 },
+          { idx: 16, label: 'R-WRIST', color: '#FF0080', size: 12 },
+          { idx: 11, label: 'L-SHOULDER', color: '#00FFFF', size: 8 },
+          { idx: 24, label: 'R-HIP', color: '#FFA500', size: 8 },
+          { idx: 26, label: 'R-KNEE', color: '#00FF00', size: 8 },
+          { idx: 28, label: 'R-ANKLE', color: '#0080FF', size: 8 }
+        ];
+        
+        keyPoints.forEach(({ idx, label, color, size }) => {
+          const landmark = landmarks[idx];
+          if (landmark && (!landmark.visibility || landmark.visibility > 0.5)) {
+            const x = landmark.x * video.videoWidth;
+            const y = landmark.y * video.videoHeight;
+            
+            // Draw point with outline for visibility
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x, y, size + 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw labels when zoomed
+            if (zoom > 0.7) {
+              const labelWidth = label.length * 6;
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+              ctx.fillRect(x + 12, y - 20, labelWidth, 16);
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = 'bold 10px Arial';
+              ctx.fillText(label, x + 15, y - 7);
+            }
+          }
+        });
+      }
+
+      // Draw accurate player bounds
+      if (playerBounds && playerBounds.confidence > 0.3) {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 3]);
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 1;
+        
+        const x = playerBounds.x * video.videoWidth;
+        const y = playerBounds.y * video.videoHeight;
+        const width = playerBounds.width * video.videoWidth;
+        const height = playerBounds.height * video.videoHeight;
         
         ctx.strokeRect(x, y, width, height);
         
         // Player label
+        ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-        ctx.fillRect(x, y - 25 / zoom, 120 / zoom, 20 / zoom);
+        ctx.fillRect(x, y - 25, 120, 20);
         ctx.fillStyle = '#000000';
-        ctx.font = `bold ${12 / zoom}px Arial`;
-        ctx.fillText(`Player ${Math.round(playerBounds.confidence * 100)}%`, x + 5, y - 8 / zoom);
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`PLAYER ${Math.round(playerBounds.confidence * 100)}%`, x + 3, y - 10);
       }
 
-      // Draw ball detection if available
-      if (ballDetection && ballDetection.confidence > 0.5) {
-        ctx.strokeStyle = '#FFD700'; // Gold for ball
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-        ctx.lineWidth = 2 / zoom;
+      // Draw precise racket detection
+      if (racketBox && racketBox.confidence > 0.6) {
         ctx.setLineDash([]);
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 2;
         
-        const x = ballDetection.x * drawWidth;
-        const y = ballDetection.y * drawHeight;
-        const radius = ballDetection.radius * drawWidth;
+        const x = racketBox.x * video.videoWidth;
+        const y = racketBox.y * video.videoHeight;
+        const width = racketBox.width * video.videoWidth;
+        const height = racketBox.height * video.videoHeight;
+        
+        // Draw racket box
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, 6);
+        ctx.stroke();
+        
+        // Draw racket center point
+        ctx.strokeStyle = '#FFFF00';
+        ctx.lineWidth = 2;
+        const centerX = x + width/2;
+        const centerY = y + height/2;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 8, centerY);
+        ctx.lineTo(centerX + 8, centerY);
+        ctx.moveTo(centerX, centerY - 8);
+        ctx.lineTo(centerX, centerY + 8);
+        ctx.stroke();
+        
+        // Racket label
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+        ctx.fillRect(x, y - 25, 110, 20);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`RACKET ${Math.round(racketBox.confidence * 100)}%`, x + 3, y - 10);
+      }
+
+      // Draw ball detection
+      if (ballDetection && ballDetection.confidence > 0.6) {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = '#FFFF00';
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 1;
+        
+        const x = ballDetection.x * video.videoWidth;
+        const y = ballDetection.y * video.videoHeight;
+        const radius = ballDetection.radius * video.videoWidth;
         
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
@@ -134,126 +266,53 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         ctx.stroke();
         
         // Ball label
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-        ctx.fillRect(x + radius + 5, y - 15, 80 / zoom, 20 / zoom);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+        ctx.fillRect(x + radius + 5, y - 15, 80, 18);
         ctx.fillStyle = '#000000';
-        ctx.font = `bold ${10 / zoom}px Arial`;
-        ctx.fillText(`Ball ${Math.round(ballDetection.confidence * 100)}%`, x + radius + 8, y - 2);
-      }
-      
-      // Draw pose skeleton with adaptive positioning
-      if (pose && pose.landmarks) {
-        ctx.strokeStyle = '#00FF00'; // Bright green for visibility
-        ctx.lineWidth = 2 / zoom;
-        ctx.fillStyle = '#00FF00';
-        
-        // Draw key pose points with labels
-        const keyPoints = [0, 11, 12, 14, 16, 23, 24, 26, 28];
-        const labels = ['nose', 'L-shoulder', 'R-shoulder', 'R-elbow', 'R-wrist', 'L-hip', 'R-hip', 'R-knee', 'R-ankle'];
-        
-        keyPoints.forEach((landmarkIndex, index) => {
-          const landmark = pose.landmarks[landmarkIndex];
-          if (landmark && (!landmark.visibility || landmark.visibility > 0.5)) {
-            const x = landmark.x * drawWidth;
-            const y = landmark.y * drawHeight;
-            
-            // Draw larger, more visible points
-            ctx.beginPath();
-            ctx.arc(x, y, 6 / zoom, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Add labels with background for better visibility
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            ctx.fillRect(x + 8, y - 18, 70 / zoom, 16 / zoom);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = `bold ${12 / zoom}px Arial`;
-            ctx.fillText(labels[index], x + 10, y - 6);
-            ctx.fillStyle = '#00FF00';
-          }
-        });
-        
-        // Draw skeleton connections
-        const connections = [
-          [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
-          [11, 23], [12, 24], [23, 24], // Torso
-          [23, 25], [25, 27], [24, 26], [26, 28] // Legs
-        ];
-        
-        ctx.lineWidth = 3 / zoom;
-        ctx.setLineDash([]);
-        connections.forEach(([start, end]) => {
-          if (pose.landmarks[start] && pose.landmarks[end]) {
-            const startLandmark = pose.landmarks[start];
-            const endLandmark = pose.landmarks[end];
-            
-            if ((!startLandmark.visibility || startLandmark.visibility > 0.5) &&
-                (!endLandmark.visibility || endLandmark.visibility > 0.5)) {
-              const startX = startLandmark.x * drawWidth;
-              const startY = startLandmark.y * drawHeight;
-              const endX = endLandmark.x * drawWidth;
-              const endY = endLandmark.y * drawHeight;
-              
-              ctx.beginPath();
-              ctx.moveTo(startX, startY);
-              ctx.lineTo(endX, endY);
-              ctx.stroke();
-            }
-          }
-        });
-      }
-      
-      // Draw racket bounding box
-      if (racketBox && racketBox.confidence > 0.5) {
-        ctx.strokeStyle = '#FF0000'; // Bright red for racket
-        ctx.lineWidth = 3 / zoom;
-        ctx.setLineDash([]);
-        
-        const x = racketBox.x * drawWidth;
-        const y = racketBox.y * drawHeight;
-        const width = racketBox.width * drawWidth;
-        const height = racketBox.height * drawHeight;
-        
-        ctx.strokeRect(x, y, width, height);
-        
-        // Racket label
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
-        ctx.fillRect(x, y - 25 / zoom, 100 / zoom, 20 / zoom);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = `bold ${12 / zoom}px Arial`;
-        ctx.fillText(`Racket ${Math.round(racketBox.confidence * 100)}%`, x + 5, y - 8 / zoom);
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText(`BALL ${Math.round(ballDetection.confidence * 100)}%`, x + radius + 8, y - 3);
       }
       
       ctx.restore();
       
-      // Draw enhanced status panel
+      // Draw status panel
       if (pose || racketBox || playerBounds || ballDetection) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-        ctx.fillRect(10, 10, 280, 120);
+        ctx.fillRect(8, 8, 280, 140);
         ctx.strokeStyle = '#00FF00';
         ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, 280, 120);
+        ctx.strokeRect(8, 8, 280, 140);
         
         ctx.fillStyle = '#00FF00';
         ctx.font = 'bold 14px Arial';
-        let yOffset = 30;
+        let yOffset = 28;
         
-        ctx.fillText('✓ Adaptive AI Analysis Active', 20, yOffset);
-        yOffset += 20;
+        ctx.fillText('🎾 TENNIS AI TRACKING', 15, yOffset);
+        yOffset += 22;
         
         if (playerBounds) {
-          ctx.fillText(`✓ Player Detection: ${Math.round(playerBounds.confidence * 100)}%`, 20, yOffset);
-          yOffset += 15;
+          ctx.fillStyle = '#FFD700';
+          ctx.fillText(`👤 Player: ${Math.round(playerBounds.confidence * 100)}%`, 15, yOffset);
+          yOffset += 18;
         }
         
-        ctx.fillText(`✓ Racket Detection: ${racketBox ? Math.round(racketBox.confidence * 100) : 0}%`, 20, yOffset);
-        yOffset += 15;
+        if (pose && pose.landmarks) {
+          ctx.fillStyle = '#FF0080';
+          ctx.fillText(`🎯 Pose: ${pose.landmarks.length} points`, 15, yOffset);
+          yOffset += 18;
+        }
+        
+        if (racketBox) {
+          ctx.fillStyle = '#FF0000';
+          ctx.fillText(`🎾 Racket: ${Math.round(racketBox.confidence * 100)}%`, 15, yOffset);
+          yOffset += 18;
+        }
         
         if (ballDetection) {
-          ctx.fillText(`✓ Ball Detection: ${Math.round(ballDetection.confidence * 100)}%`, 20, yOffset);
-          yOffset += 15;
+          ctx.fillStyle = '#FFFF00';
+          ctx.fillText(`⚪ Ball: ${Math.round(ballDetection.confidence * 100)}%`, 15, yOffset);
         }
-        
-        ctx.fillText(`✓ Pose Points: ${pose?.landmarks?.length || 0}`, 20, yOffset);
       }
     };
     
@@ -518,18 +577,18 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             {analysisActive && (
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-700 font-medium">✓ AI Analysis Active</p>
-                <p className="text-xs text-blue-600">Tennis serve tracking enabled</p>
+                <p className="text-xs text-blue-600">Accurate tennis tracking enabled</p>
               </div>
             )}
             
             <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-700 font-medium mb-1">Enhanced Tennis Analysis:</p>
+              <p className="text-sm text-gray-700 font-medium mb-1">Accurate Tennis Analysis:</p>
               <ul className="text-xs text-gray-600 space-y-1">
-                <li>• Player pose tracking optimized for tennis</li>
-                <li>• Racket detection during serve motion</li>
+                <li>• Precise player pose tracking</li>
+                <li>• Accurate racket detection</li>
                 <li>• Real-time biomechanical analysis</li>
-                <li>• Zoom and pan for detailed review</li>
-                <li>• Frame-by-frame serve breakdown</li>
+                <li>• Exact serve phase detection</li>
+                <li>• Frame-perfect alignment</li>
               </ul>
             </div>
           </div>
