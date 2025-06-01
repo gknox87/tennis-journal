@@ -1,15 +1,14 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Activity, Link, Upload, Camera, User, UserCheck } from 'lucide-react';
+import { Activity, Link, Upload, Camera, User, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { usePose } from '@/hooks/usePose';
-import { useYoloWasm } from '@/hooks/useYoloWasm';
-import { useServeAnalysis } from '@/hooks/useServeAnalysis';
+import { useMediaPipePose } from '@/hooks/useMediaPipePose';
+import { useRacketDetection } from '@/hooks/useRacketDetection';
+import { useServeAnalytics } from '@/hooks/useServeAnalytics';
 import { MetricCard } from '@/components/serve/MetricCard';
 import { VideoCaptureCard } from '@/components/serve/VideoCaptureCard';
 import { ComparisonPanel } from '@/components/serve/ComparisonPanel';
@@ -27,13 +26,16 @@ const ServeAnalysis = () => {
   const [hasRecorded, setHasRecorded] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [videoSource, setVideoSource] = useState<'camera' | 'file' | 'url'>('camera');
-  const [cameraAngle, setCameraAngle] = useState<CameraAngle>('front');
+  const [cameraAngle, setCameraAngle] = useState<CameraAngle>('side');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  const { pose } = usePose(videoRef);
-  const { racketBox } = useYoloWasm(videoRef);
-  const { metrics, similarity, saveSession, resetMetrics } = useServeAnalysis(pose, racketBox);
+  // Use real AI hooks
+  const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef);
+  const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef);
+  const { metrics, similarity, servePhase, saveSession, resetMetrics } = useServeAnalytics(pose, racketBox, cameraAngle);
+
+  const isAILoading = poseLoading || racketLoading;
 
   useEffect(() => {
     if (videoSource === 'camera') {
@@ -205,11 +207,11 @@ const ServeAnalysis = () => {
   const getCameraInstructions = (angle: CameraAngle) => {
     switch (angle) {
       case 'front':
-        return "Position camera facing the player, 3-4m from baseline";
+        return "Position camera facing the player, 3-4m from baseline. Best for analyzing X-factor rotation and contact point.";
       case 'side':
-        return "Position camera to the side, 3-4m perpendicular to the court";
+        return "Position camera perpendicular to the court, 3-4m away. Optimal for elbow/knee angles and serve mechanics.";
       case 'back':
-        return "Position camera behind the player, elevated view preferred";
+        return "Position camera behind the player, elevated view preferred. Good for follow-through analysis.";
       default:
         return "Position camera for optimal serve analysis";
     }
@@ -224,14 +226,31 @@ const ServeAnalysis = () => {
             <Activity className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
             <h1 className="text-3xl font-bold text-gray-900">Serve Analysis</h1>
           </div>
-          <p className="text-gray-600">Record a serve to see instant biomechanical feedback</p>
+          <p className="text-gray-600">AI-powered biomechanical analysis using MediaPipe and YOLO</p>
+          
+          {isAILoading && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-blue-600">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Loading AI models...</span>
+            </div>
+          )}
+          
+          {poseError && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Failed to load pose detection model</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Camera Angle Selection */}
       <Card className="mb-6 bg-gradient-to-b from-white/60 via-white/40 to-white/10 backdrop-blur">
         <CardHeader>
-          <CardTitle className="text-lg">Camera Angle</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Camera Angle - Current: {cameraAngle.charAt(0).toUpperCase() + cameraAngle.slice(1)} View
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-2 mb-4">
@@ -239,25 +258,31 @@ const ServeAnalysis = () => {
               variant={cameraAngle === 'front' ? 'default' : 'secondary'}
               onClick={() => setCameraAngle('front')}
               className="flex flex-col items-center p-4 h-auto"
+              disabled={isAILoading}
             >
               <User className="w-6 h-6 mb-2" />
               <span className="text-sm">Front View</span>
+              <span className="text-xs text-muted-foreground">X-Factor</span>
             </Button>
             <Button
               variant={cameraAngle === 'side' ? 'default' : 'secondary'}
               onClick={() => setCameraAngle('side')}
               className="flex flex-col items-center p-4 h-auto"
+              disabled={isAILoading}
             >
               <UserCheck className="w-6 h-6 mb-2" />
               <span className="text-sm">Side View</span>
+              <span className="text-xs text-muted-foreground">Mechanics</span>
             </Button>
             <Button
               variant={cameraAngle === 'back' ? 'default' : 'secondary'}
               onClick={() => setCameraAngle('back')}
               className="flex flex-col items-center p-4 h-auto"
+              disabled={isAILoading}
             >
               <User className="w-6 h-6 mb-2 rotate-180" />
               <span className="text-sm">Back View</span>
+              <span className="text-xs text-muted-foreground">Follow-through</span>
             </Button>
           </div>
           <p className="text-sm text-muted-foreground text-center">
@@ -326,6 +351,20 @@ const ServeAnalysis = () => {
         videoSource={videoSource}
       />
 
+      {/* Serve Phase Indicator */}
+      {pose && (
+        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Serve Phase:</span>
+              <span className="text-lg font-bold capitalize text-purple-700">
+                {servePhase}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5 mb-6">
         <MetricCard
@@ -363,7 +402,7 @@ const ServeAnalysis = () => {
         <MetricCard
           title="Follow-through"
           value={metrics.followThrough}
-          unit="frames"
+          unit="score"
           target={15}
           tolerance={5}
           icon="followthrough"
@@ -386,22 +425,33 @@ const ServeAnalysis = () => {
         </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible>
-            <AccordionItem value="setup">
-              <AccordionTrigger>Camera Setup</AccordionTrigger>
+            <AccordionItem value="technology">
+              <AccordionTrigger>AI Technology</AccordionTrigger>
               <AccordionContent>
-                Choose your preferred camera angle and position accordingly. Front view is best for analyzing racket face and contact point, side view for body mechanics, and back view for service motion flow.
+                Uses Google MediaPipe for real-time pose detection and YOLOv8 for racket tracking. 
+                Analysis runs entirely in your browser for privacy and speed.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="angles">
+              <AccordionTrigger>Camera Angles</AccordionTrigger>
+              <AccordionContent>
+                • <strong>Side View:</strong> Best for elbow/knee angles and timing
+                <br />• <strong>Front View:</strong> Optimal for X-factor rotation analysis  
+                <br />• <strong>Back View:</strong> Great for follow-through and racket path
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="accuracy">
-              <AccordionTrigger>Accuracy Notes</AccordionTrigger>
+              <AccordionTrigger>Accuracy & Setup</AccordionTrigger>
               <AccordionContent>
-                Analysis accuracy depends on video quality and lighting. Best results with minimal background clutter and contrasting clothing against the court.
+                For best results: good lighting, minimal background clutter, contrasting clothing. 
+                Position camera 3-4 meters away at chest height.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="privacy">
-              <AccordionTrigger>Privacy</AccordionTrigger>
+              <AccordionTrigger>Privacy & Data</AccordionTrigger>
               <AccordionContent>
-                All analysis happens locally on your device. Videos are not uploaded to any server and remain private on your device.
+                All analysis happens locally on your device. Videos are not uploaded to any server. 
+                Only anonymized metrics are saved to your profile.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

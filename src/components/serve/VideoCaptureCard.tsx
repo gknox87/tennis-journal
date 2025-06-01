@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,12 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [hasVideo, setHasVideo] = React.useState(false);
+  const [analysisActive, setAnalysisActive] = React.useState(false);
+
+  useEffect(() => {
+    // Set analysis active when we have pose data
+    setAnalysisActive(!!pose);
+  }, [pose]);
 
   useEffect(() => {
     const drawOverlay = () => {
@@ -45,64 +50,100 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Draw pose skeleton
+      // Draw pose skeleton with improved styling
       if (pose && pose.landmarks) {
         ctx.strokeStyle = '#22C55E';
         ctx.lineWidth = 3;
         ctx.fillStyle = '#22C55E';
+        ctx.shadowColor = '#22C55E';
+        ctx.shadowBlur = 5;
         
-        // Draw key pose points
-        pose.landmarks.forEach((landmark: any) => {
+        // Draw key pose points with glow effect
+        pose.landmarks.forEach((landmark: any, index: number) => {
           const x = landmark.x * canvas.width;
           const y = landmark.y * canvas.height;
           
-          ctx.beginPath();
-          ctx.arc(x, y, 4, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-        
-        // Draw skeleton connections (simplified)
-        const connections = [
-          [0, 1], [1, 2], [2, 3], [3, 4], // Face outline
-          [5, 6], [5, 7], [7, 9], [6, 8], [8, 10], // Arms
-          [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Core and legs
-          [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]
-        ];
-        
-        connections.forEach(([start, end]) => {
-          if (pose.landmarks[start] && pose.landmarks[end]) {
-            const startX = pose.landmarks[start].x * canvas.width;
-            const startY = pose.landmarks[start].y * canvas.height;
-            const endX = pose.landmarks[end].x * canvas.width;
-            const endY = pose.landmarks[end].y * canvas.height;
-            
+          // Only draw visible landmarks
+          if (landmark.visibility && landmark.visibility > 0.5) {
             ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Add landmark index for debugging (optional)
+            if (index % 5 === 0) {
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = '10px Arial';
+              ctx.fillText(index.toString(), x + 8, y + 3);
+              ctx.fillStyle = '#22C55E';
+            }
           }
         });
+        
+        // Draw skeleton connections with improved visibility
+        const connections = [
+          // Face
+          [0, 1], [1, 2], [2, 3], [3, 4],
+          // Arms
+          [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+          // Body
+          [11, 23], [12, 24], [23, 24],
+          // Legs  
+          [23, 25], [25, 27], [24, 26], [26, 28],
+          // Hands
+          [15, 17], [15, 19], [16, 18], [16, 20]
+        ];
+        
+        ctx.lineWidth = 2;
+        connections.forEach(([start, end]) => {
+          if (pose.landmarks[start] && pose.landmarks[end]) {
+            const startLandmark = pose.landmarks[start];
+            const endLandmark = pose.landmarks[end];
+            
+            // Only draw if both landmarks are visible
+            if ((!startLandmark.visibility || startLandmark.visibility > 0.5) &&
+                (!endLandmark.visibility || endLandmark.visibility > 0.5)) {
+              const startX = startLandmark.x * canvas.width;
+              const startY = startLandmark.y * canvas.height;
+              const endX = endLandmark.x * canvas.width;
+              const endY = endLandmark.y * canvas.height;
+              
+              ctx.beginPath();
+              ctx.moveTo(startX, startY);
+              ctx.lineTo(endX, endY);
+              ctx.stroke();
+            }
+          }
+        });
+        
+        ctx.shadowBlur = 0; // Reset shadow
       }
       
-      // Draw racket bounding box
-      if (racketBox) {
+      // Draw racket bounding box with improved styling
+      if (racketBox && racketBox.confidence > 0.5) {
         ctx.strokeStyle = '#EF4444';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-          racketBox.x * canvas.width,
-          racketBox.y * canvas.height,
-          racketBox.width * canvas.width,
-          racketBox.height * canvas.height
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#EF4444';
+        ctx.shadowBlur = 5;
+        
+        const x = racketBox.x * canvas.width;
+        const y = racketBox.y * canvas.height;
+        const width = racketBox.width * canvas.width;
+        const height = racketBox.height * canvas.height;
+        
+        ctx.strokeRect(x, y, width, height);
+        
+        // Add racket label with background
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        ctx.fillRect(x, y - 25, width, 20);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px Inter';
+        ctx.fillText(
+          `Racket ${(racketBox.confidence * 100).toFixed(0)}%`,
+          x + 5,
+          y - 10
         );
         
-        // Add racket label
-        ctx.fillStyle = '#EF4444';
-        ctx.font = '14px Inter';
-        ctx.fillText(
-          `Racket (${(racketBox.confidence * 100).toFixed(0)}%)`,
-          racketBox.x * canvas.width,
-          racketBox.y * canvas.height - 5
-        );
+        ctx.shadowBlur = 0; // Reset shadow
       }
     };
     
@@ -178,14 +219,24 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
               <canvas
                 ref={canvasRef}
                 className="absolute inset-0 w-full h-full pointer-events-none"
-                style={{ mixBlendMode: 'multiply' }}
+                style={{ mixBlendMode: 'screen' }}
               />
+              
+              {/* Analysis Status Indicator */}
+              {analysisActive && (
+                <div className="absolute top-4 right-4 flex items-center gap-2 bg-green-500 text-white px-3 py-1 rounded-full">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <span className="text-sm font-medium">AI Active</span>
+                </div>
+              )}
+              
               {isRecording && (
                 <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                   <span className="text-sm font-medium">Recording</span>
                 </div>
               )}
+              
               {videoSource !== 'camera' && (
                 <div className="absolute bottom-4 left-4">
                   <Button
@@ -257,6 +308,13 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
               <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                 <p className="text-sm text-green-700 font-medium">✓ Video loaded successfully</p>
                 <p className="text-xs text-green-600">Click play to start analysis</p>
+              </div>
+            )}
+            
+            {analysisActive && (
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-700 font-medium">✓ AI Analysis Active</p>
+                <p className="text-xs text-green-600">Real-time pose and racket tracking enabled</p>
               </div>
             )}
             
