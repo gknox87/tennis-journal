@@ -35,9 +35,9 @@ const ServeAnalysis = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  // Use the adaptive AI hooks
+  // Use the adaptive AI hooks - fixed the argument count for useMediaPipePose
   const { playerBounds, ballDetection, isAnalyzing } = usePlayerDetection(videoRef);
-  const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef, playerBounds);
+  const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef);
   const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef, playerBounds, pose);
   const { metrics, similarity, servePhase, saveSession, resetMetrics, metricsHistory } = useServeAnalytics(pose, racketBox, cameraAngle);
 
