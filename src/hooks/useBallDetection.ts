@@ -16,15 +16,12 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
   const lastDetectionRef = useRef<number>(0);
 
   useEffect(() => {
-    console.log('Initializing real ball detection...');
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Real ball detection ready');
-    }, 100);
+    console.log('Initializing optimized ball detection...');
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (isLoading || !videoRef.current) return;
+    if (isLoading) return;
 
     const detectBall = () => {
       const video = videoRef.current;
@@ -34,7 +31,7 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
       }
 
       const now = performance.now();
-      if (now - lastDetectionRef.current < 33) { // 30 FPS
+      if (now - lastDetectionRef.current < 150) { // 6-7 FPS for ball detection
         animationFrameRef.current = requestAnimationFrame(detectBall);
         return;
       }
@@ -46,7 +43,7 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
           return;
         }
 
-        // Create analysis canvas
+        // Create analysis canvas if needed
         if (!canvasRef.current) {
           canvasRef.current = document.createElement('canvas');
         }
@@ -55,23 +52,25 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        const ballDetection = detectBallFromPixels(data, canvas.width, canvas.height);
+        // Use lower resolution for faster processing
+        const scale = 0.5;
+        canvas.width = video.videoWidth * scale;
+        canvas.height = video.videoHeight * scale;
         
-        if (ballDetection && ballDetection.confidence > 0.7) {
-          setBallDetection(ballDetection);
-          console.log('Ball detected at:', ballDetection);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        const ball = detectBallOptimized(imageData.data, canvas.width, canvas.height);
+        
+        if (ball && ball.confidence > 0.6) {
+          setBallDetection(ball);
+          console.log('Ball detected:', ball);
         } else {
           setBallDetection(null);
         }
       } catch (error) {
         console.error('Ball detection error:', error);
+        setBallDetection(null);
       }
 
       animationFrameRef.current = requestAnimationFrame(detectBall);
@@ -86,37 +85,39 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
     };
   }, [isLoading, videoRef]);
 
-  const detectBallFromPixels = (data: Uint8ClampedArray, width: number, height: number): BallDetection | null => {
-    const ballCandidates: Array<{x: number, y: number, score: number}> = [];
+  const detectBallOptimized = (data: Uint8ClampedArray, width: number, height: number): BallDetection | null => {
+    const candidates: Array<{x: number, y: number, score: number}> = [];
     
-    // Scan for tennis ball colors and circular patterns
-    for (let y = 8; y < height - 8; y += 4) {
-      for (let x = 8; x < width - 8; x += 4) {
+    // Optimized scanning with larger steps
+    for (let y = 10; y < height - 10; y += 8) {
+      for (let x = 10; x < width - 10; x += 8) {
         const i = (y * width + x) * 4;
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         
+        // Quick tennis ball color check
         if (isTennisBallColor(r, g, b)) {
-          const circularityScore = checkBallCircularity(data, x, y, width, height);
-          if (circularityScore > 0.6) {
-            ballCandidates.push({x, y, score: circularityScore});
+          const circularityScore = checkCircularity(data, x, y, width, height);
+          if (circularityScore > 0.5) {
+            candidates.push({x, y, score: circularityScore});
           }
         }
       }
     }
 
-    if (ballCandidates.length > 0) {
-      const bestCandidate = ballCandidates.reduce((best, current) => 
-        current.score > best.score ? current : best
+    if (candidates.length > 0) {
+      // Find best candidate
+      const best = candidates.reduce((prev, current) => 
+        current.score > prev.score ? current : prev
       );
 
-      if (bestCandidate.score > 0.7) {
+      if (best.score > 0.6) {
         return {
-          x: bestCandidate.x / width,
-          y: bestCandidate.y / height,
-          radius: 0.012, // Realistic tennis ball size
-          confidence: bestCandidate.score
+          x: best.x / width,
+          y: best.y / height,
+          radius: 0.015,
+          confidence: Math.min(0.95, best.score)
         };
       }
     }
@@ -125,19 +126,21 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
   };
 
   const isTennisBallColor = (r: number, g: number, b: number): boolean => {
-    // Tennis ball fluorescent yellow-green
-    const isYellowGreen = g > 160 && r > 120 && r < 240 && b < 140;
-    const isProperRatio = g > r * 0.8 && g > b * 1.2;
-    return isYellowGreen && isProperRatio;
+    // Tennis ball fluorescent yellow-green detection
+    const brightness = (r + g + b) / 3;
+    const isYellow = g > 140 && r > 100 && r < 220 && b < 120;
+    const hasContrast = Math.max(r, g, b) - Math.min(r, g, b) > 30;
+    return isYellow && hasContrast && brightness > 120;
   };
 
-  const checkBallCircularity = (data: Uint8ClampedArray, cx: number, cy: number, width: number, height: number): number => {
-    let circularPixels = 0;
-    let totalPixels = 0;
-    const radius = 6; // Check 6-pixel radius for ball
+  const checkCircularity = (data: Uint8ClampedArray, cx: number, cy: number, width: number, height: number): number => {
+    let matches = 0;
+    let total = 0;
+    const radius = 4;
     
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
+    // Check circular pattern
+    for (let dy = -radius; dy <= radius; dy += 2) {
+      for (let dx = -radius; dx <= radius; dx += 2) {
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance <= radius) {
           const x = cx + dx;
@@ -149,15 +152,15 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
             const b = data[i + 2];
             
             if (isTennisBallColor(r, g, b)) {
-              circularPixels++;
+              matches++;
             }
-            totalPixels++;
+            total++;
           }
         }
       }
     }
     
-    return totalPixels > 0 ? circularPixels / totalPixels : 0;
+    return total > 0 ? matches / total : 0;
   };
 
   return { ballDetection, isLoading };
