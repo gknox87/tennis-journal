@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 
 interface ServeMetrics {
@@ -71,22 +70,23 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
     
     if (!rightWrist || !rightShoulder) return 'preparation';
     
-    // Simple phase detection based on wrist height relative to shoulder
+    // Enhanced phase detection based on wrist height and movement
     const wristHeight = rightWrist.y;
     const shoulderHeight = rightShoulder.y;
+    const heightDiff = wristHeight - shoulderHeight;
     
-    if (wristHeight > shoulderHeight + 0.1) return 'preparation';
-    if (wristHeight > shoulderHeight - 0.05) return 'loading';
-    if (wristHeight > shoulderHeight - 0.15) return 'acceleration';
-    if (wristHeight > shoulderHeight - 0.2) return 'contact';
+    if (heightDiff > 0.05) return 'preparation';
+    if (heightDiff > -0.05) return 'loading';
+    if (heightDiff > -0.15) return 'acceleration';
+    if (heightDiff > -0.25) return 'contact';
     return 'follow-through';
   };
 
   useEffect(() => {
     const now = performance.now();
     
-    // Throttle calculations to 10 FPS for performance
-    if (now - lastUpdateRef.current < 100) return;
+    // Throttle calculations to 15 FPS for better performance
+    if (now - lastUpdateRef.current < 67) return;
     lastUpdateRef.current = now;
 
     if (!pose || !pose.landmarks || pose.landmarks.length < 33) return;
@@ -98,83 +98,86 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
       const currentPhase = analyzeServePhase(landmarks);
       setServePhase(currentPhase as any);
 
-      // Calculate biomechanical metrics based on camera angle
-      let elbowAngle = 0;
-      let kneeAngle = 0;
-      let xFactorAngle = 0;
-      let contactHeight = 0;
-      let followThroughScore = 0;
+      // Calculate realistic biomechanical metrics
+      const rightShoulder = landmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
+      const rightElbow = landmarks[POSE_LANDMARKS.RIGHT_ELBOW];
+      const rightWrist = landmarks[POSE_LANDMARKS.RIGHT_WRIST];
+      const rightHip = landmarks[POSE_LANDMARKS.RIGHT_HIP];
+      const rightKnee = landmarks[POSE_LANDMARKS.RIGHT_KNEE];
+      const rightAnkle = landmarks[POSE_LANDMARKS.RIGHT_ANKLE];
+      const leftShoulder = landmarks[POSE_LANDMARKS.LEFT_SHOULDER];
+      const leftHip = landmarks[POSE_LANDMARKS.LEFT_HIP];
 
-      if (cameraAngle === 'side') {
-        // Side view is best for elbow and knee angles
-        const rightShoulder = landmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
-        const rightElbow = landmarks[POSE_LANDMARKS.RIGHT_ELBOW];
-        const rightWrist = landmarks[POSE_LANDMARKS.RIGHT_WRIST];
-        const rightHip = landmarks[POSE_LANDMARKS.RIGHT_HIP];
-        const rightKnee = landmarks[POSE_LANDMARKS.RIGHT_KNEE];
-        const rightAnkle = landmarks[POSE_LANDMARKS.RIGHT_ANKLE];
+      // Calculate actual angles from pose data
+      const elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+      const kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+      
+      // X-factor calculation (shoulder vs hip rotation)
+      const shoulderAngle = Math.atan2(
+        rightShoulder.y - leftShoulder.y,
+        rightShoulder.x - leftShoulder.x
+      ) * (180 / Math.PI);
+      
+      const hipAngle = Math.atan2(
+        rightHip.y - leftHip.y,
+        rightHip.x - leftHip.x
+      ) * (180 / Math.PI);
+      
+      const xFactorAngle = Math.abs(shoulderAngle - hipAngle);
+      
+      // Contact height estimation (convert normalized coordinates to realistic cm)
+      const contactHeight = 180 + (1 - rightWrist.y) * 120;
+      
+      // Follow-through score based on arm extension and racket position
+      const armExtension = calculateDistance(rightShoulder, rightWrist);
+      const followThroughScore = armExtension * 25;
 
-        elbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
-        kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
-        
-        // Contact height estimation (in cm, assuming average person height)
-        contactHeight = 180 + (1 - rightWrist.y) * 100;
-        
-      } else if (cameraAngle === 'front') {
-        // Front view is best for X-factor (shoulder-hip rotation)
-        const leftShoulder = landmarks[POSE_LANDMARKS.LEFT_SHOULDER];
-        const rightShoulder = landmarks[POSE_LANDMARKS.RIGHT_SHOULDER];
-        const leftHip = landmarks[POSE_LANDMARKS.LEFT_HIP];
-        const rightHip = landmarks[POSE_LANDMARKS.RIGHT_HIP];
+      // Apply realistic ranges and phase-based adjustments
+      const phaseMultipliers = {
+        'preparation': { elbow: 0.8, knee: 0.9 },
+        'loading': { elbow: 0.9, knee: 1.1 },
+        'acceleration': { elbow: 1.2, knee: 1.0 },
+        'contact': { elbow: 1.3, knee: 0.95 },
+        'follow-through': { elbow: 0.7, knee: 0.9 }
+      };
+      
+      const multiplier = phaseMultipliers[currentPhase] || { elbow: 1, knee: 1 };
 
-        // Calculate shoulder and hip line angles
-        const shoulderAngle = Math.atan2(
-          rightShoulder.y - leftShoulder.y,
-          rightShoulder.x - leftShoulder.x
-        ) * (180 / Math.PI);
-        
-        const hipAngle = Math.atan2(
-          rightHip.y - leftHip.y,
-          rightHip.x - leftHip.x
-        ) * (180 / Math.PI);
-        
-        xFactorAngle = Math.abs(shoulderAngle - hipAngle);
-        
-      } else if (cameraAngle === 'back') {
-        // Back view for follow-through and overall form
-        const rightWrist = landmarks[POSE_LANDMARKS.RIGHT_WRIST];
-        const leftWrist = landmarks[POSE_LANDMARKS.LEFT_WRIST];
-        
-        // Simple follow-through score based on arm extension
-        followThroughScore = calculateDistance(rightWrist, leftWrist) * 100;
-      }
-
-      // Combine metrics with realistic adjustments
       const newMetrics: ServeMetrics = {
-        elbow: Math.max(90, Math.min(180, elbowAngle || 140 + Math.random() * 20)),
-        knee: Math.max(120, Math.min(170, kneeAngle || 145 + Math.random() * 15)),
-        xFactor: Math.max(20, Math.min(70, xFactorAngle || 40 + Math.random() * 10)),
-        contactHeight: Math.max(180, Math.min(250, contactHeight || 210 + Math.random() * 20)),
-        followThrough: Math.max(5, Math.min(25, followThroughScore || 15 + Math.random() * 5))
+        elbow: Math.max(90, Math.min(180, (elbowAngle || 120) * multiplier.elbow + 20)),
+        knee: Math.max(120, Math.min(170, (kneeAngle || 130) * multiplier.knee + 10)),
+        xFactor: Math.max(15, Math.min(75, xFactorAngle || 35)),
+        contactHeight: Math.max(180, Math.min(260, contactHeight)),
+        followThrough: Math.max(5, Math.min(25, followThroughScore))
       };
 
       setMetrics(newMetrics);
       
-      // Store in history
+      // Store in history for trend analysis
       metricsHistoryRef.current.push(newMetrics);
-      if (metricsHistoryRef.current.length > 100) {
-        metricsHistoryRef.current = metricsHistoryRef.current.slice(-50);
+      if (metricsHistoryRef.current.length > 120) {
+        metricsHistoryRef.current = metricsHistoryRef.current.slice(-60);
       }
       
-      // Calculate similarity to professional template
-      const targetMetrics = { elbow: 150, knee: 140, xFactor: 45, contactHeight: 220, followThrough: 15 };
-      const deviations = Object.keys(newMetrics).map(key => {
+      // Enhanced similarity calculation with phase awareness
+      const targetMetrics = { 
+        elbow: 155, 
+        knee: 145, 
+        xFactor: 42, 
+        contactHeight: 225, 
+        followThrough: 16 
+      };
+      
+      const weights = { elbow: 1.2, knee: 1.0, xFactor: 1.5, contactHeight: 1.1, followThrough: 0.8 };
+      
+      const weightedDeviations = Object.keys(newMetrics).map(key => {
         const target = targetMetrics[key as keyof typeof targetMetrics];
         const actual = newMetrics[key as keyof typeof newMetrics];
-        return Math.abs(actual - target) / target;
+        const weight = weights[key as keyof typeof weights];
+        return (Math.abs(actual - target) / target) * weight;
       });
       
-      const avgDeviation = deviations.reduce((a, b) => a + b, 0) / deviations.length;
+      const avgDeviation = weightedDeviations.reduce((a, b) => a + b, 0) / weightedDeviations.length;
       const similarityScore = Math.max(0, Math.min(100, (1 - avgDeviation) * 100));
       setSimilarity(Math.round(similarityScore));
       
@@ -184,7 +187,6 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
   }, [pose, racketBox, cameraAngle]);
 
   const saveSession = async () => {
-    // TODO: Save to Supabase instead of localStorage
     const session = {
       timestamp: new Date().toISOString(),
       cameraAngle,
@@ -193,7 +195,7 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
       servePhase,
       metricsHistory: metricsHistoryRef.current.slice(-20),
       analysisType: 'tennis_serve',
-      duration: metricsHistoryRef.current.length * 0.1
+      duration: metricsHistoryRef.current.length * 0.067
     };
     
     try {
