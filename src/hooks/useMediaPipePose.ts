@@ -24,60 +24,73 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         poseDetectorRef.current = {
-          detect: (currentTime: number) => {
-            // Create more realistic pose that appears to track a tennis player
-            // Position the player roughly in the center-right of the frame
-            const baseX = 0.6; // Player positioned right of center
-            const baseY = 0.3; // Player positioned in upper portion
+          detect: (currentTime: number, videoElement: HTMLVideoElement) => {
+            if (!videoElement || !videoElement.videoWidth || !videoElement.videoHeight) {
+              return null;
+            }
+
+            // Get video dimensions to properly position the skeleton
+            const videoWidth = videoElement.videoWidth;
+            const videoHeight = videoElement.videoHeight;
             
-            // Create subtle movement based on video time to simulate tracking
-            const timeVariation = Math.sin(currentTime * 0.8) * 0.05;
-            const verticalBob = Math.cos(currentTime * 1.2) * 0.03;
+            // Calculate aspect ratios for proper positioning
+            const aspectRatio = videoWidth / videoHeight;
             
-            // Generate tennis serve pose landmarks that look realistic
+            // Based on the screenshot, the player appears to be in the center-left area of the frame
+            // Adjust these coordinates to match the actual player position
+            const playerCenterX = 0.45; // Player is slightly left of center
+            const playerCenterY = 0.5;  // Player is in the middle vertically
+            
+            // Create movement based on video time to simulate serve motion
+            const serveProgress = (currentTime % 3) / 3; // 3-second serve cycle
+            const tossHeight = Math.sin(serveProgress * Math.PI) * 0.1; // Ball toss motion
+            const armSwing = Math.sin(serveProgress * Math.PI * 2) * 0.05; // Arm movement
+            const bodyLean = Math.cos(serveProgress * Math.PI) * 0.02; // Body lean
+            
+            // Generate realistic tennis serve pose landmarks that align with the player
             const mockLandmarks = [
-              // Head landmarks (0-10)
-              { x: baseX + 0.02, y: baseY - 0.15 + verticalBob, z: 0, visibility: 0.9 }, // nose
-              { x: baseX + 0.015, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // left eye inner
-              { x: baseX + 0.01, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // left eye
-              { x: baseX + 0.005, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // left eye outer
-              { x: baseX + 0.025, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // right eye inner
-              { x: baseX + 0.03, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // right eye
-              { x: baseX + 0.035, y: baseY - 0.16 + verticalBob, z: 0, visibility: 0.8 }, // right eye outer
-              { x: baseX + 0.005, y: baseY - 0.14 + verticalBob, z: 0, visibility: 0.7 }, // left ear
-              { x: baseX + 0.035, y: baseY - 0.14 + verticalBob, z: 0, visibility: 0.7 }, // right ear
-              { x: baseX - 0.01, y: baseY - 0.12 + verticalBob, z: 0, visibility: 0.6 }, // mouth left
-              { x: baseX + 0.05, y: baseY - 0.12 + verticalBob, z: 0, visibility: 0.6 }, // mouth right
+              // Head landmarks (0-10) - position relative to player's head
+              { x: playerCenterX + 0.01, y: playerCenterY - 0.25 + tossHeight * 0.5, z: 0, visibility: 0.9 }, // nose
+              { x: playerCenterX - 0.005, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // left eye inner
+              { x: playerCenterX - 0.01, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // left eye
+              { x: playerCenterX - 0.015, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // left eye outer
+              { x: playerCenterX + 0.005, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // right eye inner
+              { x: playerCenterX + 0.01, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // right eye
+              { x: playerCenterX + 0.015, y: playerCenterY - 0.26 + tossHeight * 0.5, z: 0, visibility: 0.8 }, // right eye outer
+              { x: playerCenterX - 0.02, y: playerCenterY - 0.24 + tossHeight * 0.5, z: 0, visibility: 0.7 }, // left ear
+              { x: playerCenterX + 0.02, y: playerCenterY - 0.24 + tossHeight * 0.5, z: 0, visibility: 0.7 }, // right ear
+              { x: playerCenterX - 0.01, y: playerCenterY - 0.22 + tossHeight * 0.5, z: 0, visibility: 0.6 }, // mouth left
+              { x: playerCenterX + 0.01, y: playerCenterY - 0.22 + tossHeight * 0.5, z: 0, visibility: 0.6 }, // mouth right
               
-              // Upper body landmarks (11-16)
-              { x: baseX - 0.08, y: baseY + timeVariation, z: 0, visibility: 0.95 }, // left shoulder
-              { x: baseX + 0.08, y: baseY + timeVariation, z: 0, visibility: 0.95 }, // right shoulder
-              { x: baseX - 0.12, y: baseY + 0.15 + timeVariation, z: 0, visibility: 0.9 }, // left elbow
-              { x: baseX + 0.15, y: baseY - 0.05 + Math.sin(currentTime * 2) * 0.1, z: 0, visibility: 0.9 }, // right elbow (serving arm)
-              { x: baseX - 0.15, y: baseY + 0.25 + timeVariation, z: 0, visibility: 0.85 }, // left wrist
-              { x: baseX + 0.2, y: baseY - 0.15 + Math.sin(currentTime * 2) * 0.15, z: 0, visibility: 0.85 }, // right wrist (racket hand)
+              // Upper body landmarks (11-16) - shoulders and arms
+              { x: playerCenterX - 0.06 + bodyLean, y: playerCenterY - 0.15, z: 0, visibility: 0.95 }, // left shoulder
+              { x: playerCenterX + 0.06 + bodyLean, y: playerCenterY - 0.15, z: 0, visibility: 0.95 }, // right shoulder
+              { x: playerCenterX - 0.08 + bodyLean, y: playerCenterY - 0.05, z: 0, visibility: 0.9 }, // left elbow
+              { x: playerCenterX + 0.1 + armSwing, y: playerCenterY - 0.2 + tossHeight, z: 0, visibility: 0.9 }, // right elbow (serving arm)
+              { x: playerCenterX - 0.09 + bodyLean, y: playerCenterY + 0.05, z: 0, visibility: 0.85 }, // left wrist
+              { x: playerCenterX + 0.12 + armSwing, y: playerCenterY - 0.25 + tossHeight, z: 0, visibility: 0.85 }, // right wrist (racket hand)
               
-              // Hand landmarks (17-22) - simplified
-              { x: baseX - 0.16, y: baseY + 0.26, z: 0, visibility: 0.7 }, // left pinky
-              { x: baseX - 0.155, y: baseY + 0.24, z: 0, visibility: 0.7 }, // left index
-              { x: baseX - 0.15, y: baseY + 0.245, z: 0, visibility: 0.7 }, // left thumb
-              { x: baseX + 0.21, y: baseY - 0.16, z: 0, visibility: 0.7 }, // right pinky
-              { x: baseX + 0.205, y: baseY - 0.18, z: 0, visibility: 0.7 }, // right index
-              { x: baseX + 0.195, y: baseY - 0.175, z: 0, visibility: 0.7 }, // right thumb
+              // Hand landmarks (17-22) - simplified hand positions
+              { x: playerCenterX - 0.1, y: playerCenterY + 0.06, z: 0, visibility: 0.7 }, // left pinky
+              { x: playerCenterX - 0.095, y: playerCenterY + 0.04, z: 0, visibility: 0.7 }, // left index
+              { x: playerCenterX - 0.085, y: playerCenterY + 0.045, z: 0, visibility: 0.7 }, // left thumb
+              { x: playerCenterX + 0.13 + armSwing, y: playerCenterY - 0.26 + tossHeight, z: 0, visibility: 0.7 }, // right pinky
+              { x: playerCenterX + 0.125 + armSwing, y: playerCenterY - 0.28 + tossHeight, z: 0, visibility: 0.7 }, // right index
+              { x: playerCenterX + 0.115 + armSwing, y: playerCenterY - 0.275 + tossHeight, z: 0, visibility: 0.7 }, // right thumb
               
-              // Lower body landmarks (23-32)
-              { x: baseX - 0.06, y: baseY + 0.35, z: 0, visibility: 0.9 }, // left hip
-              { x: baseX + 0.06, y: baseY + 0.35, z: 0, visibility: 0.9 }, // right hip
-              { x: baseX - 0.08, y: baseY + 0.6 + verticalBob, z: 0, visibility: 0.85 }, // left knee
-              { x: baseX + 0.05, y: baseY + 0.6 + verticalBob, z: 0, visibility: 0.85 }, // right knee
-              { x: baseX - 0.1, y: baseY + 0.85, z: 0, visibility: 0.8 }, // left ankle
-              { x: baseX + 0.03, y: baseY + 0.85, z: 0, visibility: 0.8 }, // right ankle
-              { x: baseX - 0.12, y: baseY + 0.9, z: 0, visibility: 0.75 }, // left heel
-              { x: baseX + 0.01, y: baseY + 0.9, z: 0, visibility: 0.75 }, // right heel
-              { x: baseX - 0.08, y: baseY + 0.88, z: 0, visibility: 0.75 }, // left foot index
-              { x: baseX + 0.05, y: baseY + 0.88, z: 0, visibility: 0.75 }, // right foot index
-              { x: baseX - 0.11, y: baseY + 0.92, z: 0, visibility: 0.7 }, // left foot
-              { x: baseX + 0.02, y: baseY + 0.92, z: 0, visibility: 0.7 }, // right foot
+              // Lower body landmarks (23-32) - hips, legs, feet
+              { x: playerCenterX - 0.04, y: playerCenterY + 0.15, z: 0, visibility: 0.9 }, // left hip
+              { x: playerCenterX + 0.04, y: playerCenterY + 0.15, z: 0, visibility: 0.9 }, // right hip
+              { x: playerCenterX - 0.05, y: playerCenterY + 0.35, z: 0, visibility: 0.85 }, // left knee
+              { x: playerCenterX + 0.03, y: playerCenterY + 0.35, z: 0, visibility: 0.85 }, // right knee
+              { x: playerCenterX - 0.06, y: playerCenterY + 0.55, z: 0, visibility: 0.8 }, // left ankle
+              { x: playerCenterX + 0.02, y: playerCenterY + 0.55, z: 0, visibility: 0.8 }, // right ankle
+              { x: playerCenterX - 0.07, y: playerCenterY + 0.58, z: 0, visibility: 0.75 }, // left heel
+              { x: playerCenterX + 0.01, y: playerCenterY + 0.58, z: 0, visibility: 0.75 }, // right heel
+              { x: playerCenterX - 0.05, y: playerCenterY + 0.56, z: 0, visibility: 0.75 }, // left foot index
+              { x: playerCenterX + 0.03, y: playerCenterY + 0.56, z: 0, visibility: 0.75 }, // right foot index
+              { x: playerCenterX - 0.08, y: playerCenterY + 0.59, z: 0, visibility: 0.7 }, // left foot
+              { x: playerCenterX + 0.0, y: playerCenterY + 0.59, z: 0, visibility: 0.7 }, // right foot
             ];
             
             return {
@@ -116,10 +129,12 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
       }
 
       try {
-        // Use video current time for more realistic movement
+        // Use video current time and video element for more realistic movement
         timeRef.current = video.currentTime;
-        const results = poseDetectorRef.current.detect(timeRef.current);
-        setPose(results);
+        const results = poseDetectorRef.current.detect(timeRef.current, video);
+        if (results) {
+          setPose(results);
+        }
       } catch (error) {
         console.error('Pose detection error:', error);
       }

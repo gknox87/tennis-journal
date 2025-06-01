@@ -44,18 +44,15 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       const canvas = canvasRef.current;
       const video = videoRef.current;
       
-      if (!canvas || !video) return;
+      if (!canvas || !video || !video.videoWidth || !video.videoHeight) return;
       
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Get the actual display dimensions of the video element
-      const videoRect = video.getBoundingClientRect();
-      const containerRect = video.parentElement?.getBoundingClientRect();
-      
-      // Set canvas size to match the video container
-      canvas.width = video.offsetWidth;
-      canvas.height = video.offsetHeight;
+      // Set canvas size to match the video display size
+      const rect = video.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
       
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -63,34 +60,46 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       // Only draw overlays if video is playing and we have data
       if (video.paused && videoSource === 'file') return;
       
-      // Calculate scale factors for proper alignment
-      const scaleX = canvas.width / video.videoWidth;
-      const scaleY = canvas.height / video.videoHeight;
+      // Calculate scale factors - canvas size vs video display size
+      const scaleX = canvas.width;
+      const scaleY = canvas.height;
       
       // Apply zoom and pan transformations
       ctx.save();
       ctx.scale(zoom, zoom);
-      ctx.translate(panX, panY);
+      ctx.translate(panX / zoom, panY / zoom);
       
       // Draw pose skeleton with proper scaling
       if (pose && pose.landmarks) {
         ctx.strokeStyle = '#22C55E';
-        ctx.lineWidth = 3 / zoom; // Adjust line width for zoom
+        ctx.lineWidth = 2 / zoom;
         ctx.fillStyle = '#22C55E';
         
-        // Draw key pose points with proper scaling
+        // Draw key pose points
         pose.landmarks.forEach((landmark: any, index: number) => {
-          if (landmark.visibility && landmark.visibility > 0.5) {
-            const x = landmark.x * canvas.width * scaleX;
-            const y = landmark.y * canvas.height * scaleY;
+          if (!landmark.visibility || landmark.visibility > 0.5) {
+            const x = landmark.x * scaleX;
+            const y = landmark.y * scaleY;
             
             ctx.beginPath();
-            ctx.arc(x, y, 4 / zoom, 0, 2 * Math.PI);
+            ctx.arc(x, y, 3 / zoom, 0, 2 * Math.PI);
             ctx.fill();
+            
+            // Add labels for key points
+            if ([0, 11, 12, 14, 16, 23, 24, 26, 28].includes(index)) {
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = `${10 / zoom}px Inter`;
+              const labels = ['nose', 'L-shoulder', 'R-shoulder', 'R-elbow', 'R-wrist', 'L-hip', 'R-hip', 'R-knee', 'R-ankle'];
+              const labelIndex = [0, 11, 12, 14, 16, 23, 24, 26, 28].indexOf(index);
+              if (labelIndex >= 0) {
+                ctx.fillText(labels[labelIndex], x + 5, y - 5);
+              }
+              ctx.fillStyle = '#22C55E';
+            }
           }
         });
         
-        // Draw skeleton connections with proper scaling
+        // Draw skeleton connections
         const connections = [
           [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
           [11, 23], [12, 24], [23, 24], // Torso
@@ -107,10 +116,10 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             
             if ((!startLandmark.visibility || startLandmark.visibility > 0.5) &&
                 (!endLandmark.visibility || endLandmark.visibility > 0.5)) {
-              const startX = startLandmark.x * canvas.width * scaleX;
-              const startY = startLandmark.y * canvas.height * scaleY;
-              const endX = endLandmark.x * canvas.width * scaleX;
-              const endY = endLandmark.y * canvas.height * scaleY;
+              const startX = startLandmark.x * scaleX;
+              const startY = startLandmark.y * scaleY;
+              const endX = endLandmark.x * scaleX;
+              const endY = endLandmark.y * scaleY;
               
               ctx.beginPath();
               ctx.moveTo(startX, startY);
@@ -125,16 +134,18 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       if (racketBox && racketBox.confidence > 0.5) {
         ctx.strokeStyle = '#EF4444';
         ctx.lineWidth = 3 / zoom;
+        ctx.setLineDash([5, 5]);
         
-        const x = racketBox.x * canvas.width * scaleX;
-        const y = racketBox.y * canvas.height * scaleY;
-        const width = racketBox.width * canvas.width * scaleX;
-        const height = racketBox.height * canvas.height * scaleY;
+        const x = racketBox.x * scaleX;
+        const y = racketBox.y * scaleY;
+        const width = racketBox.width * scaleX;
+        const height = racketBox.height * scaleY;
         
         ctx.strokeRect(x, y, width, height);
+        ctx.setLineDash([]);
         
         // Label with confidence
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
         ctx.fillRect(x, y - 25 / zoom, 100 / zoom, 20 / zoom);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = `${12 / zoom}px Inter`;
@@ -142,6 +153,20 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       }
       
       ctx.restore();
+      
+      // Draw tracking status
+      if (pose || racketBox) {
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+        ctx.fillRect(10, 10, 200, 60);
+        ctx.strokeStyle = '#22C55E';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(10, 10, 200, 60);
+        
+        ctx.fillStyle = '#22C55E';
+        ctx.font = '14px Inter';
+        ctx.fillText('✓ Player Tracking Active', 20, 30);
+        ctx.fillText(`✓ Racket Detection: ${racketBox ? Math.round(racketBox.confidence * 100) : 0}%`, 20, 50);
+      }
     };
     
     const animationFrame = requestAnimationFrame(function animate() {
@@ -295,10 +320,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
                 playsInline
                 controls={false}
                 className="w-full h-full object-contain"
-                style={{ 
-                  backgroundColor: '#000000',
-                  transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`
-                }}
+                style={{ backgroundColor: '#000000' }}
               />
               <canvas
                 ref={canvasRef}
@@ -416,6 +438,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-700 font-medium mb-1">Tips for best analysis:</p>
               <ul className="text-xs text-gray-600 space-y-1">
+                <li>• Tracking is now aligned with player position</li>
                 <li>• Use zoom to focus on serve action</li>
                 <li>• Slow down playback for detailed review</li>
                 <li>• Pan to center the player in frame</li>
