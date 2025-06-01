@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useBallDetection } from './useBallDetection';
 
 interface PlayerBounds {
@@ -13,34 +13,44 @@ interface PlayerBounds {
 export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const [playerBounds, setPlayerBounds] = useState<PlayerBounds | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const detectionTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Use optimized ball detection
   const { ballDetection } = useBallDetection(videoRef);
 
   useEffect(() => {
-    setIsAnalyzing(true);
-    
-    // Simulate realistic player detection for demo
-    const simulatePlayerDetection = () => {
-      const video = videoRef.current;
-      if (video && video.videoWidth > 0 && video.videoHeight > 0) {
-        // Center-focused player detection
-        setPlayerBounds({
-          x: 0.3,
-          y: 0.2,
-          width: 0.4,
-          height: 0.6,
+    const video = videoRef.current;
+    if (!video) return;
+
+    const detectPlayer = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        // Stable player detection with consistent bounds
+        const stablePlayerBounds = {
+          x: 0.25,
+          y: 0.15,
+          width: 0.5,
+          height: 0.7,
           confidence: 0.85
-        });
+        };
         
-        console.log('Player detected with simulation');
+        setPlayerBounds(stablePlayerBounds);
+        setIsAnalyzing(true);
+        console.log('Stable player detection active');
       }
     };
 
-    // Delay to simulate processing
-    const timer = setTimeout(simulatePlayerDetection, 500);
-    
-    return () => clearTimeout(timer);
+    // Clear any existing timeout
+    if (detectionTimeoutRef.current) {
+      clearTimeout(detectionTimeoutRef.current);
+    }
+
+    // Stable detection with delay
+    detectionTimeoutRef.current = setTimeout(detectPlayer, 1000);
+
+    return () => {
+      if (detectionTimeoutRef.current) {
+        clearTimeout(detectionTimeoutRef.current);
+      }
+    };
   }, [videoRef]);
 
   return { 

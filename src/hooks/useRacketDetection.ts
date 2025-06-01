@@ -16,8 +16,8 @@ export const useRacketDetection = (
 ) => {
   const [racketBox, setRacketBox] = useState<RacketDetection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const animationFrameRef = useRef<number>();
   const lastDetectionRef = useRef<number>(0);
+  const stableDetectionRef = useRef<RacketDetection | null>(null);
 
   useEffect(() => {
     setIsLoading(false);
@@ -27,13 +27,13 @@ export const useRacketDetection = (
     const detectRacket = () => {
       const video = videoRef.current;
       if (!video || video.paused || video.ended || !video.videoWidth || !video.videoHeight) {
-        animationFrameRef.current = requestAnimationFrame(detectRacket);
+        requestAnimationFrame(detectRacket);
         return;
       }
 
       const now = performance.now();
-      if (now - lastDetectionRef.current < 100) { // 10 FPS for racket detection
-        animationFrameRef.current = requestAnimationFrame(detectRacket);
+      if (now - lastDetectionRef.current < 150) { // 6-7 FPS for stability
+        requestAnimationFrame(detectRacket);
         return;
       }
       lastDetectionRef.current = now;
@@ -41,64 +41,72 @@ export const useRacketDetection = (
       try {
         let racketDetection: RacketDetection | null = null;
 
-        // Primary: Use pose data for racket position
-        if (pose && pose.landmarks && pose.landmarks.length >= 22) {
-          const rightWrist = pose.landmarks[16]; // Right wrist
-          const rightElbow = pose.landmarks[14]; // Right elbow
+        // Primary: Use pose data for stable racket position
+        if (pose && pose.landmarks && pose.landmarks.length >= 17) {
+          const rightWrist = pose.landmarks[16];
+          const rightElbow = pose.landmarks[14];
           
-          if (rightWrist && rightElbow && rightWrist.visibility > 0.7) {
-            // Calculate racket position based on wrist and elbow
+          if (rightWrist && rightElbow && rightWrist.visibility > 0.5) {
             const wristX = rightWrist.x;
             const wristY = rightWrist.y;
             const elbowX = rightElbow.x;
             const elbowY = rightElbow.y;
             
-            // Extend from elbow through wrist to estimate racket position
+            // Calculate stable racket position
             const dx = wristX - elbowX;
             const dy = wristY - elbowY;
-            const racketX = wristX + dx * 0.3;
-            const racketY = wristY + dy * 0.3;
+            const racketX = wristX + dx * 0.25;
+            const racketY = wristY + dy * 0.25;
             
             racketDetection = {
-              x: Math.max(0, Math.min(1, racketX - 0.03)),
-              y: Math.max(0, Math.min(1, racketY - 0.05)),
-              width: 0.06,
-              height: 0.1,
-              confidence: rightWrist.visibility * 0.9
+              x: Math.max(0, Math.min(1, racketX - 0.04)),
+              y: Math.max(0, Math.min(1, racketY - 0.06)),
+              width: 0.08,
+              height: 0.12,
+              confidence: Math.min(0.9, rightWrist.visibility * 1.1)
             };
-            
-            console.log('Racket detected via pose analysis:', racketDetection);
           }
         }
 
-        // Fallback: Use player bounds for racket area estimation
-        if (!racketDetection && playerBounds && playerBounds.confidence > 0.6) {
+        // Fallback: Use player bounds for racket estimation
+        if (!racketDetection && playerBounds && playerBounds.confidence > 0.5) {
           racketDetection = {
-            x: playerBounds.x + playerBounds.width * 0.7,
-            y: playerBounds.y + playerBounds.height * 0.3,
-            width: playerBounds.width * 0.2,
-            height: playerBounds.height * 0.25,
-            confidence: playerBounds.confidence * 0.7
+            x: playerBounds.x + playerBounds.width * 0.65,
+            y: playerBounds.y + playerBounds.height * 0.25,
+            width: playerBounds.width * 0.25,
+            height: playerBounds.height * 0.3,
+            confidence: playerBounds.confidence * 0.8
           };
-          
-          console.log('Racket estimated via player bounds:', racketDetection);
+        }
+
+        // Smooth detection to prevent flickering
+        if (racketDetection) {
+          if (stableDetectionRef.current) {
+            // Smooth transition between detections
+            const smoothFactor = 0.7;
+            racketDetection = {
+              x: stableDetectionRef.current.x * smoothFactor + racketDetection.x * (1 - smoothFactor),
+              y: stableDetectionRef.current.y * smoothFactor + racketDetection.y * (1 - smoothFactor),
+              width: stableDetectionRef.current.width * smoothFactor + racketDetection.width * (1 - smoothFactor),
+              height: stableDetectionRef.current.height * smoothFactor + racketDetection.height * (1 - smoothFactor),
+              confidence: Math.max(stableDetectionRef.current.confidence, racketDetection.confidence)
+            };
+          }
+          stableDetectionRef.current = racketDetection;
         }
 
         setRacketBox(racketDetection);
       } catch (error) {
         console.error('Racket detection error:', error);
-        setRacketBox(null);
       }
 
-      animationFrameRef.current = requestAnimationFrame(detectRacket);
+      requestAnimationFrame(detectRacket);
     };
 
     detectRacket();
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      // Cleanup handled by requestAnimationFrame
     };
   }, [videoRef, playerBounds, pose]);
 

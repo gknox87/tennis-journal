@@ -30,11 +30,12 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   panY
 }) => {
   const lastDrawRef = useRef<number>(0);
+  const stableDetectionsRef = useRef<any>({});
 
   useEffect(() => {
     const drawOverlay = () => {
       const now = performance.now();
-      if (now - lastDrawRef.current < 33) { // 30 FPS max
+      if (now - lastDrawRef.current < 50) { // 20 FPS for smooth rendering
         requestAnimationFrame(drawOverlay);
         return;
       }
@@ -79,36 +80,47 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
       ctx.translate(offsetX + panX, offsetY + panY);
       ctx.scale(scaleX * zoom, scaleY * zoom);
 
-      // Draw pose skeleton with optimized rendering
+      // Store stable detections to prevent flickering
       if (pose && pose.landmarks && pose.landmarks.length >= 33) {
-        drawPoseSkeleton(ctx, pose.landmarks, video.videoWidth, video.videoHeight);
+        stableDetectionsRef.current.pose = pose;
+      }
+      if (playerBounds && playerBounds.confidence > 0.3) {
+        stableDetectionsRef.current.playerBounds = playerBounds;
+      }
+      if (racketBox && racketBox.confidence > 0.4) {
+        stableDetectionsRef.current.racketBox = racketBox;
+      }
+      if (ballDetection && ballDetection.confidence > 0.3) {
+        stableDetectionsRef.current.ballDetection = ballDetection;
       }
 
-      // Draw player bounds
-      if (playerBounds && playerBounds.confidence > 0.4) {
-        drawPlayerBounds(ctx, playerBounds, video.videoWidth, video.videoHeight);
+      // Draw stable detections
+      if (stableDetectionsRef.current.pose) {
+        drawPoseSkeleton(ctx, stableDetectionsRef.current.pose.landmarks, video.videoWidth, video.videoHeight);
       }
 
-      // Draw racket detection
-      if (racketBox && racketBox.confidence > 0.5) {
-        drawRacketBox(ctx, racketBox, video.videoWidth, video.videoHeight);
+      if (stableDetectionsRef.current.playerBounds) {
+        drawPlayerBounds(ctx, stableDetectionsRef.current.playerBounds, video.videoWidth, video.videoHeight);
       }
 
-      // Draw ball detection
-      if (ballDetection && ballDetection.confidence > 0.6) {
-        drawBallDetection(ctx, ballDetection, video.videoWidth, video.videoHeight);
+      if (stableDetectionsRef.current.racketBox) {
+        drawRacketBox(ctx, stableDetectionsRef.current.racketBox, video.videoWidth, video.videoHeight);
+      }
+
+      if (stableDetectionsRef.current.ballDetection) {
+        drawBallDetection(ctx, stableDetectionsRef.current.ballDetection, video.videoWidth, video.videoHeight);
       }
       
       ctx.restore();
       
-      // Draw status panel
-      drawStatusPanel(ctx, { pose, racketBox, playerBounds, ballDetection });
+      // Draw stable status panel
+      drawStatusPanel(ctx, stableDetectionsRef.current);
       
       requestAnimationFrame(drawOverlay);
     };
     
     drawOverlay();
-  }, [pose, racketBox, playerBounds, ballDetection, canvasRef, videoRef, zoom, panX, panY]);
+  }, [canvasRef, videoRef, zoom, panX, panY]);
 
   const drawPoseSkeleton = (ctx: CanvasRenderingContext2D, landmarks: any[], width: number, height: number) => {
     // Key connections for tennis analysis
@@ -121,23 +133,23 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
       [24, 26], [26, 28], // right leg
     ];
     
-    ctx.lineWidth = 3;
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 2;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 1;
     
     // Draw connections
     connections.forEach(([startIdx, endIdx]) => {
       const start = landmarks[startIdx];
       const end = landmarks[endIdx];
       
-      if (start && end && start.visibility > 0.6 && end.visibility > 0.6) {
+      if (start && end && start.visibility > 0.4 && end.visibility > 0.4) {
         // Highlight serving arm
         if ((startIdx === 12 && endIdx === 14) || (startIdx === 14 && endIdx === 16)) {
           ctx.strokeStyle = '#FF0080';
-          ctx.lineWidth = 4;
+          ctx.lineWidth = 3;
         } else {
           ctx.strokeStyle = '#00FF00';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 2;
         }
         
         ctx.beginPath();
@@ -151,15 +163,15 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     
     // Draw key points
     const keyPoints = [
-      { idx: 0, color: '#FFFF00', size: 6 }, // head
-      { idx: 12, color: '#FF0080', size: 8 }, // right shoulder
-      { idx: 14, color: '#FF0080', size: 8 }, // right elbow
-      { idx: 16, color: '#FF0080', size: 10 }, // right wrist
+      { idx: 0, color: '#FFFF00', size: 4 }, // head
+      { idx: 12, color: '#FF0080', size: 6 }, // right shoulder
+      { idx: 14, color: '#FF0080', size: 6 }, // right elbow
+      { idx: 16, color: '#FF0080', size: 8 }, // right wrist
     ];
     
     keyPoints.forEach(({ idx, color, size }) => {
       const point = landmarks[idx];
-      if (point && point.visibility > 0.6) {
+      if (point && point.visibility > 0.4) {
         ctx.fillStyle = '#000000';
         ctx.beginPath();
         ctx.arc(point.x * width, point.y * height, size + 1, 0, 2 * Math.PI);
@@ -196,7 +208,7 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
 
   const drawRacketBox = (ctx: CanvasRenderingContext2D, racket: any, width: number, height: number) => {
     ctx.strokeStyle = '#FF0000';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.setLineDash([]);
     
     const x = racket.x * width;
@@ -212,10 +224,10 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     ctx.strokeStyle = '#FFFF00';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(centerX - 10, centerY);
-    ctx.lineTo(centerX + 10, centerY);
-    ctx.moveTo(centerX, centerY - 10);
-    ctx.lineTo(centerX, centerY + 10);
+    ctx.moveTo(centerX - 8, centerY);
+    ctx.lineTo(centerX + 8, centerY);
+    ctx.moveTo(centerX, centerY - 8);
+    ctx.lineTo(centerX, centerY + 8);
     ctx.stroke();
     
     // Label
@@ -229,7 +241,7 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   const drawBallDetection = (ctx: CanvasRenderingContext2D, ball: any, width: number, height: number) => {
     ctx.strokeStyle = '#FFFF00';
     ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     
     const x = ball.x * width;
     const y = ball.y * height;
@@ -249,39 +261,39 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   };
 
   const drawStatusPanel = (ctx: CanvasRenderingContext2D, detections: any) => {
-    if (!detections.pose && !detections.racketBox && !detections.playerBounds && !detections.ballDetection) {
-      return;
-    }
+    const hasAnyDetection = detections.pose || detections.racketBox || detections.playerBounds || detections.ballDetection;
+    
+    if (!hasAnyDetection) return;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-    ctx.fillRect(10, 10, 300, 120);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(10, 10, 280, 110);
     ctx.strokeStyle = '#00FF00';
     ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 300, 120);
+    ctx.strokeRect(10, 10, 280, 110);
     
     ctx.fillStyle = '#00FF00';
     ctx.font = 'bold 14px Arial';
-    let yPos = 30;
+    let yPos = 28;
     
     ctx.fillText('🎾 REAL TENNIS AI TRACKING', 18, yPos);
-    yPos += 22;
+    yPos += 20;
     
     if (detections.playerBounds) {
       ctx.fillStyle = '#FFD700';
       ctx.fillText(`👤 Player: ${Math.round(detections.playerBounds.confidence * 100)}% detected`, 18, yPos);
-      yPos += 18;
+      yPos += 16;
     }
     
     if (detections.pose && detections.pose.landmarks) {
       ctx.fillStyle = '#FF0080';
       ctx.fillText(`🎯 Pose: ${detections.pose.landmarks.length} joints tracked`, 18, yPos);
-      yPos += 18;
+      yPos += 16;
     }
     
     if (detections.racketBox) {
       ctx.fillStyle = '#FF0000';
       ctx.fillText(`🎾 Racket: ${Math.round(detections.racketBox.confidence * 100)}% accuracy`, 18, yPos);
-      yPos += 18;
+      yPos += 16;
     }
     
     if (detections.ballDetection) {
