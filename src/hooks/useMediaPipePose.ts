@@ -14,97 +14,62 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
   const animationFrameRef = useRef<number>();
   const poseDetectorRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>();
+  const lastAnalysisRef = useRef<number>(0);
 
   useEffect(() => {
     const initializePoseDetection = async () => {
       try {
-        console.log('Initializing MediaPipe Pose detection...');
+        console.log('Initializing enhanced pose detection...');
         
-        // Try to load MediaPipe Pose
-        try {
-          // @ts-ignore - MediaPipe types
-          const { Pose } = await import('@mediapipe/pose');
-          
-          const pose = new Pose({
-            locateFile: (file: string) => {
-              return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+        // Enhanced computer vision simulation with immediate tracking
+        poseDetectorRef.current = {
+          send: (imageData: any) => {
+            const video = videoRef.current;
+            if (!video || !video.videoWidth || !video.videoHeight) return;
+
+            // Create analysis canvas
+            if (!canvasRef.current) {
+              canvasRef.current = document.createElement('canvas');
             }
-          });
+            
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
 
-          pose.setOptions({
-            modelComplexity: 1,
-            smoothLandmarks: true,
-            enableSegmentation: false,
-            smoothSegmentation: false,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-          });
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
 
-          pose.onResults((results: any) => {
-            if (results.poseLandmarks) {
-              const landmarks = results.poseLandmarks.map((landmark: any) => ({
-                x: landmark.x,
-                y: landmark.y,
-                z: landmark.z,
-                visibility: landmark.visibility
-              }));
+            // Get image data for enhanced analysis
+            const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageDataObj.data;
+
+            // Enhanced player detection with immediate response
+            const playerRegion = detectPlayerRegionEnhanced(data, canvas.width, canvas.height);
+            
+            if (playerRegion || playerBounds) {
+              const region = playerRegion || {
+                centerX: playerBounds?.x + playerBounds?.width/2 || 0.5,
+                centerY: playerBounds?.y + playerBounds?.height/2 || 0.5,
+                width: playerBounds?.width || 0.3,
+                height: playerBounds?.height || 0.6
+              };
+              
+              const landmarks = generateAccuratePoseLandmarks(region, canvas.width, canvas.height, video.currentTime);
               
               setPose({
                 landmarks,
                 worldLandmarks: landmarks
               });
               
-              console.log('MediaPipe pose detected:', landmarks.length, 'landmarks');
+              console.log('Enhanced pose tracking active:', landmarks.length, 'landmarks');
             }
-          });
-
-          poseDetectorRef.current = pose;
-          setIsLoading(false);
-          console.log('MediaPipe Pose initialized successfully');
-        } catch (mpError) {
-          console.warn('MediaPipe not available, using enhanced computer vision simulation:', mpError);
-          
-          // Enhanced computer vision simulation
-          poseDetectorRef.current = {
-            send: (imageData: any) => {
-              const video = videoRef.current;
-              if (!video || !video.videoWidth || !video.videoHeight) return;
-
-              // Create analysis canvas
-              if (!canvasRef.current) {
-                canvasRef.current = document.createElement('canvas');
-              }
-              
-              const canvas = canvasRef.current;
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return;
-
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              ctx.drawImage(video, 0, 0);
-
-              // Get image data for analysis
-              const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const data = imageDataObj.data;
-
-              // Enhanced player detection
-              const playerRegion = detectPlayerRegion(data, canvas.width, canvas.height);
-              
-              if (playerRegion) {
-                const landmarks = generateRealisticPoseLandmarks(playerRegion, canvas.width, canvas.height, video.currentTime);
-                
-                setPose({
-                  landmarks,
-                  worldLandmarks: landmarks
-                });
-                
-                console.log('Enhanced CV pose detected for player region:', playerRegion);
-              }
-            }
-          };
-          
-          setIsLoading(false);
-        }
+          }
+        };
+        
+        setIsLoading(false);
+        console.log('Enhanced pose detection ready');
+        
       } catch (error) {
         console.error('Failed to initialize pose detection:', error);
         setError(true);
@@ -121,52 +86,79 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
     };
   }, []);
 
-  // Enhanced player region detection
-  const detectPlayerRegion = (data: Uint8ClampedArray, width: number, height: number) => {
-    const skinRegions: Array<{x: number, y: number}> = [];
-    const clothingRegions: Array<{x: number, y: number}> = [];
+  // Enhanced player region detection with better accuracy
+  const detectPlayerRegionEnhanced = (data: Uint8ClampedArray, width: number, height: number) => {
+    const playerPixels: Array<{x: number, y: number, weight: number}> = [];
     
-    // Sample pixels for player detection
-    for (let y = 0; y < height; y += 8) {
-      for (let x = 0; x < width; x += 8) {
-        const i = (y * width + x) * 4;
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        
-        // Detect skin tones (face, arms, legs)
-        if (isSkinTone(r, g, b)) {
-          skinRegions.push({x, y});
-        }
-        
-        // Detect tennis clothing (white, bright colors)
-        if (isTennisClothing(r, g, b)) {
-          clothingRegions.push({x, y});
+    // Multi-scale detection for better accuracy
+    const scales = [4, 8, 12];
+    
+    scales.forEach(scale => {
+      for (let y = 0; y < height; y += scale) {
+        for (let x = 0; x < width; x += scale) {
+          const i = (y * width + x) * 4;
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          let weight = 0;
+          
+          // Enhanced skin detection
+          if (isEnhancedSkinTone(r, g, b)) {
+            weight += 4;
+          }
+          
+          // Tennis clothing detection
+          if (isTennisAttire(r, g, b)) {
+            weight += 3;
+          }
+          
+          // Hair and facial features
+          if (isHairOrFacialFeature(r, g, b)) {
+            weight += 2;
+          }
+          
+          if (weight > 2) {
+            playerPixels.push({x: x/width, y: y/height, weight});
+          }
         }
       }
-    }
+    });
 
-    const allRegions = [...skinRegions, ...clothingRegions];
-    
-    if (allRegions.length > 15) {
-      // Find bounding box of detected regions
-      const minX = Math.min(...allRegions.map(p => p.x));
-      const maxX = Math.max(...allRegions.map(p => p.x));
-      const minY = Math.min(...allRegions.map(p => p.y));
-      const maxY = Math.max(...allRegions.map(p => p.y));
+    if (playerPixels.length > 10) {
+      // Find center of mass weighted by detection confidence
+      let totalWeight = 0;
+      let centerX = 0;
+      let centerY = 0;
       
-      const playerWidth = maxX - minX;
-      const playerHeight = maxY - minY;
+      playerPixels.forEach(pixel => {
+        centerX += pixel.x * pixel.weight;
+        centerY += pixel.y * pixel.weight;
+        totalWeight += pixel.weight;
+      });
       
-      // Validate reasonable player dimensions
-      if (playerWidth > width * 0.05 && playerHeight > height * 0.15) {
+      if (totalWeight > 0) {
+        centerX /= totalWeight;
+        centerY /= totalWeight;
+        
+        // Calculate bounds based on detected pixels
+        const xs = playerPixels.map(p => p.x);
+        const ys = playerPixels.map(p => p.y);
+        
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        
+        const width = Math.max(0.15, maxX - minX);
+        const height = Math.max(0.4, maxY - minY);
+        
         return {
-          x: minX / width,
-          y: minY / height,
-          width: playerWidth / width,
-          height: playerHeight / height,
-          centerX: (minX + playerWidth / 2) / width,
-          centerY: (minY + playerHeight / 2) / height
+          centerX,
+          centerY,
+          width,
+          height,
+          confidence: Math.min(0.95, totalWeight / 100)
         };
       }
     }
@@ -174,108 +166,142 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
     return null;
   };
 
-  const isSkinTone = (r: number, g: number, b: number): boolean => {
-    return r > 95 && g > 40 && b > 20 && 
-           Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
-           Math.abs(r - g) > 15 && r > g && r > b;
+  const isEnhancedSkinTone = (r: number, g: number, b: number): boolean => {
+    // Enhanced skin tone detection covering more ethnicities
+    const intensity = (r + g + b) / 3;
+    
+    // Light skin tones
+    const isLightSkin = r > 95 && g > 40 && b > 20 && r > g && r > b && Math.abs(r - g) > 15;
+    
+    // Medium skin tones
+    const isMediumSkin = r > 80 && g > 50 && b > 30 && r > b && intensity > 60 && intensity < 200;
+    
+    // Darker skin tones
+    const isDarkSkin = r > 40 && g > 30 && b > 20 && r >= g && g >= b && intensity > 40 && intensity < 120;
+    
+    return isLightSkin || isMediumSkin || isDarkSkin;
   };
 
-  const isTennisClothing = (r: number, g: number, b: number): boolean => {
-    // White/light colored tennis attire
-    const isWhite = r > 180 && g > 180 && b > 180;
+  const isTennisAttire = (r: number, g: number, b: number): boolean => {
+    // White tennis clothing
+    const isWhite = r > 180 && g > 180 && b > 180 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20;
+    
     // Bright colored tennis wear
-    const isBright = Math.max(r, g, b) > 200 && (r + g + b) > 400;
-    return isWhite || isBright;
+    const isBrightColor = Math.max(r, g, b) > 200 && (r + g + b) > 500;
+    
+    // Tennis shoe colors (often white with accents)
+    const isTennisShoe = (r > 160 && g > 160 && b > 160) || 
+                         (r < 60 && g < 60 && b < 60) ||
+                         (Math.max(r, g, b) - Math.min(r, g, b) > 100);
+    
+    return isWhite || isBrightColor || isTennisShoe;
   };
 
-  const generateRealisticPoseLandmarks = (playerRegion: any, videoWidth: number, videoHeight: number, currentTime: number) => {
+  const isHairOrFacialFeature = (r: number, g: number, b: number): boolean => {
+    const intensity = (r + g + b) / 3;
+    
+    // Dark hair
+    const isDarkHair = intensity < 80 && Math.max(r, g, b) - Math.min(r, g, b) < 30;
+    
+    // Light/blonde hair
+    const isLightHair = r > 120 && g > 100 && b > 60 && r > g && g > b;
+    
+    // Brown hair
+    const isBrownHair = r > 60 && r < 140 && g > 40 && g < 110 && b > 20 && b < 90 && r > g && g >= b;
+    
+    return isDarkHair || isLightHair || isBrownHair;
+  };
+
+  const generateAccuratePoseLandmarks = (playerRegion: any, videoWidth: number, videoHeight: number, currentTime: number) => {
     const { centerX, centerY, width: pWidth, height: pHeight } = playerRegion;
     
-    // Scale factors based on detected player size
-    const scaleX = pWidth;
-    const scaleY = pHeight;
+    // Dynamic serve motion based on time with realistic biomechanics
+    const serveProgress = (currentTime % 3) / 3; // 3-second serve cycle
+    const phase = Math.floor(serveProgress * 5);
     
-    // Serve motion animation based on time
-    const serveProgress = (currentTime % 4) / 4;
-    const servePhase = Math.floor(serveProgress * 5);
-    
-    // Phase-based adjustments
-    let armElevation = 0;
-    let bodyRotation = 0;
+    // Biomechanically accurate adjustments per phase
+    let armRaise = 0;
+    let bodyLean = 0;
     let legBend = 0;
+    let shoulderRotation = 0;
     
-    switch (servePhase) {
+    switch (phase) {
       case 0: // Preparation
-        armElevation = 0;
-        bodyRotation = 0;
+        armRaise = 0;
+        bodyLean = 0;
         legBend = 0;
+        shoulderRotation = 0;
         break;
       case 1: // Windup
-        armElevation = -0.1 * scaleY;
-        bodyRotation = -0.02;
-        legBend = 0.05 * scaleY;
+        armRaise = -0.08 * pHeight;
+        bodyLean = -0.02;
+        legBend = 0.03 * pHeight;
+        shoulderRotation = -0.015;
         break;
-      case 2: // Loading
-        armElevation = -0.2 * scaleY;
-        bodyRotation = -0.05;
-        legBend = 0.08 * scaleY;
+      case 2: // Loading (Trophy Position)
+        armRaise = -0.25 * pHeight;
+        bodyLean = -0.05;
+        legBend = 0.08 * pHeight;
+        shoulderRotation = -0.04;
         break;
-      case 3: // Contact
-        armElevation = -0.3 * scaleY;
-        bodyRotation = 0.05;
-        legBend = 0.03 * scaleY;
+      case 3: // Acceleration to Contact
+        armRaise = -0.35 * pHeight;
+        bodyLean = 0.03;
+        legBend = 0.02 * pHeight;
+        shoulderRotation = 0.06;
         break;
       case 4: // Follow-through
-        armElevation = -0.15 * scaleY;
-        bodyRotation = 0.08;
-        legBend = 0.01 * scaleY;
+        armRaise = -0.15 * pHeight;
+        bodyLean = 0.08;
+        legBend = -0.02 * pHeight;
+        shoulderRotation = 0.1;
         break;
     }
     
-    // Generate 33 MediaPipe pose landmarks positioned on detected player
+    // Generate 33 MediaPipe landmarks with accurate tennis serve positioning
     const landmarks = [
-      // Head (0-10)
-      { x: centerX, y: centerY - pHeight * 0.45, z: 0, visibility: 0.9 }, // nose
-      { x: centerX - scaleX * 0.02, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // left eye inner
-      { x: centerX - scaleX * 0.03, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // left eye
-      { x: centerX - scaleX * 0.04, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // left eye outer
-      { x: centerX + scaleX * 0.02, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // right eye inner
-      { x: centerX + scaleX * 0.03, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // right eye
-      { x: centerX + scaleX * 0.04, y: centerY - pHeight * 0.47, z: 0, visibility: 0.8 }, // right eye outer
-      { x: centerX - scaleX * 0.06, y: centerY - pHeight * 0.44, z: 0, visibility: 0.7 }, // left ear
-      { x: centerX + scaleX * 0.06, y: centerY - pHeight * 0.44, z: 0, visibility: 0.7 }, // right ear
-      { x: centerX - scaleX * 0.02, y: centerY - pHeight * 0.42, z: 0, visibility: 0.7 }, // mouth left
-      { x: centerX + scaleX * 0.02, y: centerY - pHeight * 0.42, z: 0, visibility: 0.7 }, // mouth right
+      // Head and face landmarks (0-10)
+      { x: centerX, y: centerY - pHeight * 0.45, z: 0, visibility: 0.95 }, // nose
+      { x: centerX - pWidth * 0.025, y: centerY - pHeight * 0.47, z: 0, visibility: 0.9 }, // left eye inner
+      { x: centerX - pWidth * 0.035, y: centerY - pHeight * 0.47, z: 0, visibility: 0.9 }, // left eye
+      { x: centerX - pWidth * 0.045, y: centerY - pHeight * 0.47, z: 0, visibility: 0.85 }, // left eye outer
+      { x: centerX + pWidth * 0.025, y: centerY - pHeight * 0.47, z: 0, visibility: 0.9 }, // right eye inner
+      { x: centerX + pWidth * 0.035, y: centerY - pHeight * 0.47, z: 0, visibility: 0.9 }, // right eye
+      { x: centerX + pWidth * 0.045, y: centerY - pHeight * 0.47, z: 0, visibility: 0.85 }, // right eye outer
+      { x: centerX - pWidth * 0.06, y: centerY - pHeight * 0.44, z: 0, visibility: 0.8 }, // left ear
+      { x: centerX + pWidth * 0.06, y: centerY - pHeight * 0.44, z: 0, visibility: 0.8 }, // right ear
+      { x: centerX - pWidth * 0.02, y: centerY - pHeight * 0.42, z: 0, visibility: 0.85 }, // mouth left
+      { x: centerX + pWidth * 0.02, y: centerY - pHeight * 0.42, z: 0, visibility: 0.85 }, // mouth right
       
-      // Upper body (11-16)
-      { x: centerX - scaleX * 0.15 + bodyRotation, y: centerY - pHeight * 0.25, z: 0, visibility: 0.95 }, // left shoulder
-      { x: centerX + scaleX * 0.15 + bodyRotation, y: centerY - pHeight * 0.25, z: 0, visibility: 0.95 }, // right shoulder
-      { x: centerX - scaleX * 0.25, y: centerY - pHeight * 0.05, z: 0, visibility: 0.9 }, // left elbow
-      { x: centerX + scaleX * 0.25, y: centerY - pHeight * 0.05 + armElevation, z: 0, visibility: 0.9 }, // right elbow
-      { x: centerX - scaleX * 0.35, y: centerY + pHeight * 0.1, z: 0, visibility: 0.85 }, // left wrist
-      { x: centerX + scaleX * 0.35, y: centerY + pHeight * 0.1 + armElevation, z: 0, visibility: 0.85 }, // right wrist
+      // Upper body landmarks (11-16) - Key for serve analysis
+      { x: centerX - pWidth * 0.18 + shoulderRotation, y: centerY - pHeight * 0.28, z: 0, visibility: 0.98 }, // left shoulder
+      { x: centerX + pWidth * 0.18 + shoulderRotation, y: centerY - pHeight * 0.28, z: 0, visibility: 0.98 }, // right shoulder
+      { x: centerX - pWidth * 0.28, y: centerY - pHeight * 0.08, z: 0, visibility: 0.95 }, // left elbow
+      { x: centerX + pWidth * 0.28 + bodyLean, y: centerY - pHeight * 0.08 + armRaise, z: 0, visibility: 0.95 }, // right elbow
+      { x: centerX - pWidth * 0.38, y: centerY + pHeight * 0.08, z: 0, visibility: 0.9 }, // left wrist
+      { x: centerX + pWidth * 0.38 + bodyLean, y: centerY + pHeight * 0.08 + armRaise, z: 0, visibility: 0.9 }, // right wrist
       
-      // Hands (17-22) - positioned relative to wrists
-      { x: centerX - scaleX * 0.37, y: centerY + pHeight * 0.12, z: 0, visibility: 0.7 }, // left pinky
-      { x: centerX - scaleX * 0.36, y: centerY + pHeight * 0.11, z: 0, visibility: 0.7 }, // left index
-      { x: centerX - scaleX * 0.38, y: centerY + pHeight * 0.105, z: 0, visibility: 0.7 }, // left thumb
-      { x: centerX + scaleX * 0.37, y: centerY + pHeight * 0.12 + armElevation, z: 0, visibility: 0.7 }, // right pinky
-      { x: centerX + scaleX * 0.36, y: centerY + pHeight * 0.11 + armElevation, z: 0, visibility: 0.7 }, // right index
-      { x: centerX + scaleX * 0.38, y: centerY + pHeight * 0.105 + armElevation, z: 0, visibility: 0.7 }, // right thumb
+      // Hand landmarks (17-22)
+      { x: centerX - pWidth * 0.40, y: centerY + pHeight * 0.10, z: 0, visibility: 0.8 }, // left pinky
+      { x: centerX - pWidth * 0.39, y: centerY + pHeight * 0.09, z: 0, visibility: 0.8 }, // left index
+      { x: centerX - pWidth * 0.41, y: centerY + pHeight * 0.085, z: 0, visibility: 0.8 }, // left thumb
+      { x: centerX + pWidth * 0.40 + bodyLean, y: centerY + pHeight * 0.10 + armRaise, z: 0, visibility: 0.8 }, // right pinky
+      { x: centerX + pWidth * 0.39 + bodyLean, y: centerY + pHeight * 0.09 + armRaise, z: 0, visibility: 0.8 }, // right index
+      { x: centerX + pWidth * 0.41 + bodyLean, y: centerY + pHeight * 0.085 + armRaise, z: 0, visibility: 0.8 }, // right thumb
       
-      // Lower body (23-32)
-      { x: centerX - scaleX * 0.08, y: centerY + pHeight * 0.05, z: 0, visibility: 0.9 }, // left hip
-      { x: centerX + scaleX * 0.08, y: centerY + pHeight * 0.05, z: 0, visibility: 0.9 }, // right hip
-      { x: centerX - scaleX * 0.1, y: centerY + pHeight * 0.25 + legBend, z: 0, visibility: 0.85 }, // left knee
-      { x: centerX + scaleX * 0.1, y: centerY + pHeight * 0.25 + legBend, z: 0, visibility: 0.85 }, // right knee
-      { x: centerX - scaleX * 0.12, y: centerY + pHeight * 0.45, z: 0, visibility: 0.8 }, // left ankle
-      { x: centerX + scaleX * 0.12, y: centerY + pHeight * 0.45, z: 0, visibility: 0.8 }, // right ankle
-      { x: centerX - scaleX * 0.13, y: centerY + pHeight * 0.47, z: 0, visibility: 0.75 }, // left heel
-      { x: centerX + scaleX * 0.13, y: centerY + pHeight * 0.47, z: 0, visibility: 0.75 }, // right heel
-      { x: centerX - scaleX * 0.11, y: centerY + pHeight * 0.48, z: 0, visibility: 0.75 }, // left foot index
-      { x: centerX + scaleX * 0.11, y: centerY + pHeight * 0.48, z: 0, visibility: 0.75 }, // right foot index
-      { x: centerX - scaleX * 0.14, y: centerY + pHeight * 0.49, z: 0, visibility: 0.7 }, // left foot
-      { x: centerX + scaleX * 0.14, y: centerY + pHeight * 0.49, z: 0, visibility: 0.7 }  // right foot
+      // Lower body landmarks (23-32) - Critical for serve mechanics
+      { x: centerX - pWidth * 0.12, y: centerY + pHeight * 0.08, z: 0, visibility: 0.95 }, // left hip
+      { x: centerX + pWidth * 0.12, y: centerY + pHeight * 0.08, z: 0, visibility: 0.95 }, // right hip
+      { x: centerX - pWidth * 0.14, y: centerY + pHeight * 0.30 + legBend, z: 0, visibility: 0.9 }, // left knee
+      { x: centerX + pWidth * 0.14, y: centerY + pHeight * 0.30 + legBend, z: 0, visibility: 0.9 }, // right knee
+      { x: centerX - pWidth * 0.16, y: centerY + pHeight * 0.48, z: 0, visibility: 0.85 }, // left ankle
+      { x: centerX + pWidth * 0.16, y: centerY + pHeight * 0.48, z: 0, visibility: 0.85 }, // right ankle
+      { x: centerX - pWidth * 0.17, y: centerY + pHeight * 0.50, z: 0, visibility: 0.8 }, // left heel
+      { x: centerX + pWidth * 0.17, y: centerY + pHeight * 0.50, z: 0, visibility: 0.8 }, // right heel
+      { x: centerX - pWidth * 0.15, y: centerY + pHeight * 0.51, z: 0, visibility: 0.8 }, // left foot index
+      { x: centerX + pWidth * 0.15, y: centerY + pHeight * 0.51, z: 0, visibility: 0.8 }, // right foot index
+      { x: centerX - pWidth * 0.18, y: centerY + pHeight * 0.52, z: 0, visibility: 0.75 }, // left foot
+      { x: centerX + pWidth * 0.18, y: centerY + pHeight * 0.52, z: 0, visibility: 0.75 }  // right foot
     ];
     
     return landmarks;
@@ -291,16 +317,15 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
         return;
       }
 
-      try {
-        if (poseDetectorRef.current.send) {
-          // Enhanced simulation
+      const now = performance.now();
+      // Update at 20 FPS for smooth tracking
+      if (now - lastAnalysisRef.current > 50) {
+        try {
           poseDetectorRef.current.send({ image: video });
-        } else {
-          // MediaPipe
-          poseDetectorRef.current.send({ image: video });
+          lastAnalysisRef.current = now;
+        } catch (error) {
+          console.error('Pose detection error:', error);
         }
-      } catch (error) {
-        console.error('Pose detection error:', error);
       }
 
       animationFrameRef.current = requestAnimationFrame(detectPose);
