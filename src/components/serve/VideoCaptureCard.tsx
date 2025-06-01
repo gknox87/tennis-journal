@@ -13,6 +13,8 @@ interface VideoCaptureCardProps {
   pose: any;
   racketBox: any;
   videoSource: 'camera' | 'file' | 'url';
+  playerBounds?: any;
+  ballDetection?: any;
 }
 
 export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
@@ -23,7 +25,9 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
   onFileUpload,
   pose,
   racketBox,
-  videoSource
+  videoSource,
+  playerBounds,
+  ballDetection
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasVideo, setHasVideo] = useState(false);
@@ -91,15 +95,60 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       ctx.translate(offsetX, offsetY);
       ctx.scale(zoom, zoom);
       ctx.translate(panX / zoom, panY / zoom);
+
+      // Draw player bounding box if detected
+      if (playerBounds && playerBounds.confidence > 0.3) {
+        ctx.strokeStyle = '#FFD700'; // Gold for player detection
+        ctx.lineWidth = 3 / zoom;
+        ctx.setLineDash([5, 5]);
+        
+        const x = playerBounds.x * drawWidth;
+        const y = playerBounds.y * drawHeight;
+        const width = playerBounds.width * drawWidth;
+        const height = playerBounds.height * drawHeight;
+        
+        ctx.strokeRect(x, y, width, height);
+        
+        // Player label
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+        ctx.fillRect(x, y - 25 / zoom, 120 / zoom, 20 / zoom);
+        ctx.fillStyle = '#000000';
+        ctx.font = `bold ${12 / zoom}px Arial`;
+        ctx.fillText(`Player ${Math.round(playerBounds.confidence * 100)}%`, x + 5, y - 8 / zoom);
+      }
+
+      // Draw ball detection if available
+      if (ballDetection && ballDetection.confidence > 0.5) {
+        ctx.strokeStyle = '#FFD700'; // Gold for ball
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        ctx.lineWidth = 2 / zoom;
+        ctx.setLineDash([]);
+        
+        const x = ballDetection.x * drawWidth;
+        const y = ballDetection.y * drawHeight;
+        const radius = ballDetection.radius * drawWidth;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Ball label
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+        ctx.fillRect(x + radius + 5, y - 15, 80 / zoom, 20 / zoom);
+        ctx.fillStyle = '#000000';
+        ctx.font = `bold ${10 / zoom}px Arial`;
+        ctx.fillText(`Ball ${Math.round(ballDetection.confidence * 100)}%`, x + radius + 8, y - 2);
+      }
       
-      // Draw pose skeleton with proper tennis colors
+      // Draw pose skeleton with adaptive positioning
       if (pose && pose.landmarks) {
         ctx.strokeStyle = '#00FF00'; // Bright green for visibility
         ctx.lineWidth = 2 / zoom;
         ctx.fillStyle = '#00FF00';
         
-        // Draw key pose points with larger, more visible markers
-        const keyPoints = [0, 11, 12, 14, 16, 23, 24, 26, 28]; // Key tennis landmarks
+        // Draw key pose points with labels
+        const keyPoints = [0, 11, 12, 14, 16, 23, 24, 26, 28];
         const labels = ['nose', 'L-shoulder', 'R-shoulder', 'R-elbow', 'R-wrist', 'L-hip', 'R-hip', 'R-knee', 'R-ankle'];
         
         keyPoints.forEach((landmarkIndex, index) => {
@@ -123,7 +172,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
           }
         });
         
-        // Draw skeleton connections with thicker lines
+        // Draw skeleton connections
         const connections = [
           [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
           [11, 23], [12, 24], [23, 24], // Torso
@@ -131,6 +180,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         ];
         
         ctx.lineWidth = 3 / zoom;
+        ctx.setLineDash([]);
         connections.forEach(([start, end]) => {
           if (pose.landmarks[start] && pose.landmarks[end]) {
             const startLandmark = pose.landmarks[start];
@@ -152,7 +202,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         });
       }
       
-      // Draw racket bounding box with high visibility
+      // Draw racket bounding box
       if (racketBox && racketBox.confidence > 0.5) {
         ctx.strokeStyle = '#FF0000'; // Bright red for racket
         ctx.lineWidth = 3 / zoom;
@@ -163,32 +213,47 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         const width = racketBox.width * drawWidth;
         const height = racketBox.height * drawHeight;
         
-        // Draw racket bounding box
         ctx.strokeRect(x, y, width, height);
         
-        // Racket label with background
+        // Racket label
         ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
         ctx.fillRect(x, y - 25 / zoom, 100 / zoom, 20 / zoom);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = `bold ${12 / zoom}px Arial`;
-        ctx.fillText(`Racket ${(racketBox.confidence * 100).toFixed(0)}%`, x + 5, y - 8 / zoom);
+        ctx.fillText(`Racket ${Math.round(racketBox.confidence * 100)}%`, x + 5, y - 8 / zoom);
       }
       
       ctx.restore();
       
-      // Draw status panel (outside of zoom/pan transform)
-      if (pose || racketBox) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(10, 10, 250, 80);
+      // Draw enhanced status panel
+      if (pose || racketBox || playerBounds || ballDetection) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(10, 10, 280, 120);
         ctx.strokeStyle = '#00FF00';
         ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, 250, 80);
+        ctx.strokeRect(10, 10, 280, 120);
         
         ctx.fillStyle = '#00FF00';
         ctx.font = 'bold 14px Arial';
-        ctx.fillText('✓ Player Tracking Active', 20, 30);
-        ctx.fillText(`✓ Racket Detection: ${racketBox ? Math.round(racketBox.confidence * 100) : 0}%`, 20, 50);
-        ctx.fillText(`✓ Pose Points: ${pose?.landmarks?.length || 0}`, 20, 70);
+        let yOffset = 30;
+        
+        ctx.fillText('✓ Adaptive AI Analysis Active', 20, yOffset);
+        yOffset += 20;
+        
+        if (playerBounds) {
+          ctx.fillText(`✓ Player Detection: ${Math.round(playerBounds.confidence * 100)}%`, 20, yOffset);
+          yOffset += 15;
+        }
+        
+        ctx.fillText(`✓ Racket Detection: ${racketBox ? Math.round(racketBox.confidence * 100) : 0}%`, 20, yOffset);
+        yOffset += 15;
+        
+        if (ballDetection) {
+          ctx.fillText(`✓ Ball Detection: ${Math.round(ballDetection.confidence * 100)}%`, 20, yOffset);
+          yOffset += 15;
+        }
+        
+        ctx.fillText(`✓ Pose Points: ${pose?.landmarks?.length || 0}`, 20, yOffset);
       }
     };
     
@@ -198,7 +263,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
     });
     
     return () => cancelAnimationFrame(animationFrame);
-  }, [pose, racketBox, canvasRef, videoRef, isPlaying, videoSource, zoom, panX, panY]);
+  }, [pose, racketBox, playerBounds, ballDetection, canvasRef, videoRef, isPlaying, videoSource, zoom, panX, panY]);
 
   const togglePlayPause = () => {
     if (videoRef.current) {

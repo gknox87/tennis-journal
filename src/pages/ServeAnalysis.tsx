@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Activity, Link, Upload, Camera, User, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { usePlayerDetection } from '@/hooks/usePlayerDetection';
 import { useMediaPipePose } from '@/hooks/useMediaPipePose';
 import { useRacketDetection } from '@/hooks/useRacketDetection';
 import { useServeAnalytics } from '@/hooks/useServeAnalytics';
@@ -30,12 +31,13 @@ const ServeAnalysis = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  // Use AI hooks with proper error handling
-  const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef);
-  const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef);
+  // Use the new adaptive AI hooks
+  const { playerBounds, ballDetection, isAnalyzing } = usePlayerDetection(videoRef);
+  const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef, playerBounds);
+  const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef, playerBounds, pose);
   const { metrics, similarity, servePhase, saveSession, resetMetrics } = useServeAnalytics(pose, racketBox, cameraAngle);
 
-  const isAILoading = poseLoading || racketLoading;
+  const isAILoading = poseLoading || racketLoading || isAnalyzing;
 
   useEffect(() => {
     if (videoSource === 'camera') {
@@ -107,7 +109,7 @@ const ServeAnalysis = () => {
         });
       };
       
-      mediaRecorder.start(100); // Record in 100ms chunks
+      mediaRecorder.start(100);
       setIsRecording(true);
       setHasRecorded(false);
       resetMetrics();
@@ -136,21 +138,17 @@ const ServeAnalysis = () => {
     if (file && videoRef.current) {
       console.log('Uploading file:', file.name, file.type, file.size);
       
-      // Stop camera stream if active
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
       }
       
-      // Create object URL for the video
       const url = URL.createObjectURL(file);
       const video = videoRef.current;
       
-      // Clear any existing source
       video.src = '';
       video.srcObject = null;
       
-      // Set up event listeners before setting source
       const handleLoadedData = () => {
         console.log('Video file loaded successfully:', {
           duration: video.duration,
@@ -161,15 +159,13 @@ const ServeAnalysis = () => {
         resetMetrics();
         toast({
           title: "Video Uploaded",
-          description: `${file.name} loaded successfully. The video will start automatically.`,
+          description: `${file.name} loaded successfully. AI analysis will adapt to your video.`,
         });
         
-        // Try to auto-play
         video.play().catch(error => {
           console.log('Auto-play prevented, user interaction required:', error);
         });
         
-        // Clean up event listeners
         video.removeEventListener('loadeddata', handleLoadedData);
         video.removeEventListener('error', handleError);
       };
@@ -182,7 +178,6 @@ const ServeAnalysis = () => {
           variant: "destructive"
         });
         
-        // Clean up event listeners
         video.removeEventListener('loadeddata', handleLoadedData);
         video.removeEventListener('error', handleError);
       };
@@ -190,7 +185,6 @@ const ServeAnalysis = () => {
       video.addEventListener('loadeddata', handleLoadedData);
       video.addEventListener('error', handleError);
       
-      // Set the source and load
       video.src = url;
       video.load();
       setVideoSource('file');
@@ -214,8 +208,6 @@ const ServeAnalysis = () => {
       return;
     }
 
-    // Use a proxy service or iframe embed
-    // For demo purposes, we'll show a message about YouTube restrictions
     toast({
       title: "YouTube Integration",
       description: "Due to CORS restrictions, please download the video and upload it as a file.",
@@ -268,21 +260,37 @@ const ServeAnalysis = () => {
         <div className="bg-gradient-to-b from-blue-100 to-purple-100 rounded-2xl p-6 mb-4">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Activity className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
-            <h1 className="text-3xl font-bold text-gray-900">Serve Analysis</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Adaptive Serve Analysis</h1>
           </div>
-          <p className="text-gray-600">AI-powered biomechanical analysis (Demo Mode)</p>
+          <p className="text-gray-600">AI-powered adaptive tracking system</p>
           
           {isAILoading && (
             <div className="flex items-center justify-center gap-2 mt-4 text-blue-600">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading AI models...</span>
+              <span className="text-sm">Initializing adaptive AI detection...</span>
+            </div>
+          )}
+
+          {/* Player Detection Status */}
+          {playerBounds && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-green-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm">Player detected with {Math.round(playerBounds.confidence * 100)}% confidence</span>
+            </div>
+          )}
+
+          {/* Ball Detection Status */}
+          {ballDetection && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-yellow-600">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+              <span className="text-sm">Ball detected with {Math.round(ballDetection.confidence * 100)}% confidence</span>
             </div>
           )}
           
           {poseError && (
             <div className="flex items-center justify-center gap-2 mt-4 text-amber-600">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Running in demo mode - pose detection simulated</span>
+              <span className="text-sm">Running in adaptive simulation mode</span>
             </div>
           )}
         </div>
@@ -393,6 +401,8 @@ const ServeAnalysis = () => {
         pose={pose}
         racketBox={racketBox}
         videoSource={videoSource}
+        playerBounds={playerBounds}
+        ballDetection={ballDetection}
       />
 
       {/* Serve Phase Indicator */}
