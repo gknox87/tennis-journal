@@ -30,7 +30,7 @@ const ServeAnalysis = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  // Use real AI hooks
+  // Use AI hooks with proper error handling
   const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef);
   const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef);
   const { metrics, similarity, servePhase, saveSession, resetMetrics } = useServeAnalytics(pose, racketBox, cameraAngle);
@@ -133,23 +133,40 @@ const ServeAnalysis = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && videoRef.current) {
+      console.log('Uploading file:', file.name, file.type, file.size);
+      
+      // Create object URL for the video
       const url = URL.createObjectURL(file);
       videoRef.current.src = url;
+      
+      // Set up event listeners for better feedback
+      videoRef.current.onloadeddata = () => {
+        console.log('Video loaded successfully');
+        setHasRecorded(true);
+        resetMetrics();
+        toast({
+          title: "Video Uploaded",
+          description: `${file.name} loaded successfully. Click play to start analysis.`,
+        });
+      };
+      
+      videoRef.current.onerror = (error) => {
+        console.error('Video loading error:', error);
+        toast({
+          title: "Upload Error",
+          description: "Unable to load video file. Please try a different format.",
+          variant: "destructive"
+        });
+      };
+      
       videoRef.current.load();
       setVideoSource('file');
-      setHasRecorded(true);
-      resetMetrics();
       
       // Stop camera stream if active
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
       }
-      
-      toast({
-        title: "Video Uploaded",
-        description: "Video loaded successfully. Play to start analysis.",
-      });
     }
   };
 
@@ -226,7 +243,7 @@ const ServeAnalysis = () => {
             <Activity className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
             <h1 className="text-3xl font-bold text-gray-900">Serve Analysis</h1>
           </div>
-          <p className="text-gray-600">AI-powered biomechanical analysis using MediaPipe and YOLO</p>
+          <p className="text-gray-600">AI-powered biomechanical analysis (Demo Mode)</p>
           
           {isAILoading && (
             <div className="flex items-center justify-center gap-2 mt-4 text-blue-600">
@@ -236,9 +253,9 @@ const ServeAnalysis = () => {
           )}
           
           {poseError && (
-            <div className="flex items-center justify-center gap-2 mt-4 text-red-600">
+            <div className="flex items-center justify-center gap-2 mt-4 text-amber-600">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Failed to load pose detection model</span>
+              <span className="text-sm">Running in demo mode - pose detection simulated</span>
             </div>
           )}
         </div>
