@@ -19,7 +19,6 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
   const [error, setError] = useState<string | null>(null);
   const poseRef = useRef<any>(null);
   const processingRef = useRef<boolean>(false);
-  const frameCountRef = useRef<number>(0);
 
   useEffect(() => {
     let mounted = true;
@@ -39,25 +38,34 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
           }
         });
 
-        // Configure for best full-body detection
+        // Optimized settings for better detection
         await poseInstance.setOptions({
-          modelComplexity: 2, // Increased for better accuracy
+          modelComplexity: 1, // Balance between accuracy and speed
           smoothLandmarks: true,
           enableSegmentation: false,
           smoothSegmentation: false,
-          minDetectionConfidence: 0.3, // Lower threshold for better detection
-          minTrackingConfidence: 0.3
+          minDetectionConfidence: 0.7, // Higher confidence threshold
+          minTrackingConfidence: 0.5
         });
 
         poseInstance.onResults((results) => {
-          if (!mounted || !results.poseLandmarks) return;
+          if (!mounted || !results.poseLandmarks || results.poseLandmarks.length === 0) {
+            console.log('No pose landmarks detected');
+            return;
+          }
           
-          console.log('MediaPipe results:', {
-            landmarkCount: results.poseLandmarks.length,
-            firstLandmark: results.poseLandmarks[0],
-            lastLandmark: results.poseLandmarks[results.poseLandmarks.length - 1]
-          });
+          console.log('MediaPipe detected pose with', results.poseLandmarks.length, 'landmarks');
           
+          // Validate landmarks have reasonable visibility
+          const validLandmarks = results.poseLandmarks.filter(landmark => 
+            landmark.visibility && landmark.visibility > 0.3
+          );
+          
+          if (validLandmarks.length < 10) {
+            console.log('Not enough visible landmarks:', validLandmarks.length);
+            return;
+          }
+
           const landmarks: PoseLandmark[] = results.poseLandmarks.map((landmark) => ({
             x: landmark.x,
             y: landmark.y,
@@ -73,6 +81,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
           })) || landmarks;
 
           setPose({ landmarks, worldLandmarks });
+          console.log('Pose updated successfully');
         });
 
         await poseInstance.initialize();
@@ -85,57 +94,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
         console.error('MediaPipe initialization failed:', err);
         setError('MediaPipe initialization failed');
         setIsLoading(false);
-        
-        // Fallback to simulated pose
-        if (mounted) {
-          console.log('Using fallback pose detection');
-          startFallbackPoseDetection();
-        }
       }
-    };
-
-    const startFallbackPoseDetection = () => {
-      const generateFallbackPose = () => {
-        const video = videoRef.current;
-        if (!video || !mounted) return;
-        
-        // Generate realistic 33-point pose landmarks
-        const landmarks: PoseLandmark[] = Array.from({ length: 33 }, (_, i) => {
-          const baseX = 0.5;
-          const baseY = 0.5;
-          
-          // Define approximate landmark positions based on MediaPipe pose model
-          const landmarkPositions = {
-            0: { x: baseX, y: baseY - 0.25 }, // nose
-            11: { x: baseX - 0.1, y: baseY - 0.1 }, // left shoulder
-            12: { x: baseX + 0.1, y: baseY - 0.1 }, // right shoulder
-            13: { x: baseX - 0.15, y: baseY + 0.05 }, // left elbow
-            14: { x: baseX + 0.15, y: baseY + 0.05 }, // right elbow
-            15: { x: baseX - 0.2, y: baseY + 0.15 }, // left wrist
-            16: { x: baseX + 0.2, y: baseY + 0.15 }, // right wrist
-            23: { x: baseX - 0.08, y: baseY + 0.2 }, // left hip
-            24: { x: baseX + 0.08, y: baseY + 0.2 }, // right hip
-            25: { x: baseX - 0.08, y: baseY + 0.35 }, // left knee
-            26: { x: baseX + 0.08, y: baseY + 0.35 }, // right knee
-            27: { x: baseX - 0.08, y: baseY + 0.5 }, // left ankle
-            28: { x: baseX + 0.08, y: baseY + 0.5 }, // right ankle
-          };
-          
-          const pos = landmarkPositions[i] || { x: baseX, y: baseY };
-          
-          return {
-            x: Math.max(0, Math.min(1, pos.x + (Math.random() - 0.5) * 0.02)),
-            y: Math.max(0, Math.min(1, pos.y + (Math.random() - 0.5) * 0.02)),
-            z: 0,
-            visibility: 0.8
-          };
-        });
-        
-        setPose({ landmarks, worldLandmarks: landmarks });
-      };
-      
-      const interval = setInterval(generateFallbackPose, 100);
-      return () => clearInterval(interval);
     };
 
     const processVideo = async () => {
@@ -145,13 +104,6 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
       const poseInstance = poseRef.current;
       
       if (!video || !poseInstance || video.paused || video.ended || !video.videoWidth) {
-        requestAnimationFrame(processVideo);
-        return;
-      }
-
-      // Process every 2nd frame for better performance
-      frameCountRef.current++;
-      if (frameCountRef.current % 2 !== 0) {
         requestAnimationFrame(processVideo);
         return;
       }
@@ -166,7 +118,8 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
         processingRef.current = false;
       }
 
-      requestAnimationFrame(processVideo);
+      // Process at 15 FPS for better performance
+      setTimeout(() => requestAnimationFrame(processVideo), 66);
     };
 
     initializeMediaPipe().then(() => {
