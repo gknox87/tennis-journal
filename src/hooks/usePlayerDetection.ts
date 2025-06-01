@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
+import { useBallDetection } from './useBallDetection';
 
 interface PlayerBounds {
   x: number;
@@ -9,19 +10,15 @@ interface PlayerBounds {
   confidence: number;
 }
 
-interface BallDetection {
-  x: number;
-  y: number;
-  radius: number;
-  confidence: number;
-}
-
 export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const [playerBounds, setPlayerBounds] = useState<PlayerBounds | null>(null);
-  const [ballDetection, setBallDetection] = useState<BallDetection | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>();
   const animationFrameRef = useRef<number>();
+  const lastAnalysisRef = useRef<number>(0);
+
+  // Use the separate ball detection hook
+  const { ballDetection } = useBallDetection(videoRef);
 
   const analyzeFrame = () => {
     const video = videoRef.current;
@@ -29,6 +26,13 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       animationFrameRef.current = requestAnimationFrame(analyzeFrame);
       return;
     }
+
+    const now = performance.now();
+    if (now - lastAnalysisRef.current < 33) { // 30 FPS
+      animationFrameRef.current = requestAnimationFrame(analyzeFrame);
+      return;
+    }
+    lastAnalysisRef.current = now;
 
     try {
       // Create analysis canvas
@@ -49,17 +53,10 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       const data = imageData.data;
 
       // Enhanced player detection
-      const playerDetection = detectPlayer(data, canvas.width, canvas.height);
-      if (playerDetection) {
+      const playerDetection = detectPlayerFromPixels(data, canvas.width, canvas.height);
+      if (playerDetection && playerDetection.confidence > 0.5) {
         setPlayerBounds(playerDetection);
         console.log('Player detected:', playerDetection);
-      }
-
-      // Ball detection
-      const ballDetection = detectBall(data, canvas.width, canvas.height);
-      if (ballDetection) {
-        setBallDetection(ballDetection);
-        console.log('Ball detected:', ballDetection);
       }
 
     } catch (error) {
@@ -69,10 +66,10 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
     animationFrameRef.current = requestAnimationFrame(analyzeFrame);
   };
 
-  const detectPlayer = (data: Uint8ClampedArray, width: number, height: number): PlayerBounds | null => {
+  const detectPlayerFromPixels = (data: Uint8ClampedArray, width: number, height: number): PlayerBounds | null => {
     const playerRegions: Array<{x: number, y: number, weight: number}> = [];
     
-    // Multi-pass detection for better accuracy
+    // Scan every 6th pixel for performance while maintaining accuracy
     for (let y = 0; y < height; y += 6) {
       for (let x = 0; x < width; x += 6) {
         const i = (y * width + x) * 4;
@@ -82,12 +79,12 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
         
         let weight = 0;
         
-        // Detect skin tones (higher weight)
+        // Detect skin tones
         if (isSkinTone(r, g, b)) {
           weight += 3;
         }
         
-        // Detect tennis clothing (white/bright colors)
+        // Detect tennis clothing
         if (isTennisClothing(r, g, b)) {
           weight += 2;
         }
@@ -103,18 +100,18 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       }
     }
 
-    if (playerRegions.length > 20) {
-      // Cluster detection - find main player cluster
+    if (playerRegions.length > 25) {
+      // Cluster detection
       const clusters = clusterRegions(playerRegions, width * 0.1);
       const mainCluster = clusters.reduce((largest, current) => 
         current.length > largest.length ? current : largest, []);
       
-      if (mainCluster.length > 15) {
+      if (mainCluster.length > 20) {
         const bounds = getBoundingBox(mainCluster);
         
         // Validate player dimensions
-        if (bounds && bounds.width > width * 0.08 && bounds.height > height * 0.2) {
-          const confidence = Math.min(0.95, mainCluster.length / 50);
+        if (bounds && bounds.width > width * 0.1 && bounds.height > height * 0.25) {
+          const confidence = Math.min(0.95, mainCluster.length / 60);
           
           return {
             x: bounds.x / width,
@@ -125,42 +122,6 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
           };
         }
       }
-    }
-
-    return null;
-  };
-
-  const detectBall = (data: Uint8ClampedArray, width: number, height: number): BallDetection | null => {
-    const ballCandidates: Array<{x: number, y: number, score: number}> = [];
-    
-    // Look for tennis ball (bright yellow/green, circular)
-    for (let y = 5; y < height - 5; y += 4) {
-      for (let x = 5; x < width - 5; x += 4) {
-        const i = (y * width + x) * 4;
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        
-        if (isTennisBallColor(r, g, b)) {
-          const circularityScore = checkCircularity(data, x, y, width, height, 4);
-          if (circularityScore > 0.7) {
-            ballCandidates.push({x, y, score: circularityScore});
-          }
-        }
-      }
-    }
-
-    if (ballCandidates.length > 0) {
-      const bestCandidate = ballCandidates.reduce((best, current) => 
-        current.score > best.score ? current : best
-      );
-
-      return {
-        x: bestCandidate.x / width,
-        y: bestCandidate.y / height,
-        radius: 0.015,
-        confidence: bestCandidate.score
-      };
     }
 
     return null;
@@ -186,39 +147,6 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
     const isBrown = r > 60 && r < 150 && g > 40 && g < 120 && b > 20 && b < 100;
     const isBlonde = r > 150 && g > 120 && b > 80 && r > g && g > b;
     return isDark || isBrown || isBlonde;
-  };
-
-  const isTennisBallColor = (r: number, g: number, b: number): boolean => {
-    // Tennis ball fluorescent yellow-green
-    return g > 180 && r > 120 && r < 255 && b < 120 && g > r * 0.9;
-  };
-
-  const checkCircularity = (data: Uint8ClampedArray, cx: number, cy: number, width: number, height: number, radius: number): number => {
-    let circularPixels = 0;
-    let totalPixels = 0;
-    
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance <= radius) {
-          const x = cx + dx;
-          const y = cy + dy;
-          if (x >= 0 && x < width && y >= 0 && y < height) {
-            const i = (y * width + x) * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            if (isTennisBallColor(r, g, b)) {
-              circularPixels++;
-            }
-            totalPixels++;
-          }
-        }
-      }
-    }
-    
-    return totalPixels > 0 ? circularPixels / totalPixels : 0;
   };
 
   const clusterRegions = (regions: Array<{x: number, y: number, weight: number}>, maxDistance: number) => {
