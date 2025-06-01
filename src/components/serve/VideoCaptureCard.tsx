@@ -49,50 +49,82 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Set canvas size to match the video display size
-      const rect = video.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      // Get the actual display size of the video element
+      const videoRect = video.getBoundingClientRect();
+      const videoDisplayWidth = videoRect.width;
+      const videoDisplayHeight = videoRect.height;
+      
+      // Set canvas size to match video display exactly
+      canvas.width = videoDisplayWidth;
+      canvas.height = videoDisplayHeight;
+      canvas.style.width = `${videoDisplayWidth}px`;
+      canvas.style.height = `${videoDisplayHeight}px`;
       
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Only draw overlays if video is playing and we have data
-      if (video.paused && videoSource === 'file') return;
+      // Only draw overlays if video is playing or paused (not ended)
+      if (video.ended && videoSource === 'file') return;
       
-      // Calculate scale factors - canvas size vs video display size
-      const scaleX = canvas.width;
-      const scaleY = canvas.height;
+      // Calculate how the video is displayed within the video element
+      const videoAspectRatio = video.videoWidth / video.videoHeight;
+      const displayAspectRatio = videoDisplayWidth / videoDisplayHeight;
+      
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (videoAspectRatio > displayAspectRatio) {
+        // Video is wider - fit to width, letterbox top/bottom
+        drawWidth = videoDisplayWidth;
+        drawHeight = videoDisplayWidth / videoAspectRatio;
+        offsetX = 0;
+        offsetY = (videoDisplayHeight - drawHeight) / 2;
+      } else {
+        // Video is taller - fit to height, letterbox left/right
+        drawHeight = videoDisplayHeight;
+        drawWidth = videoDisplayHeight * videoAspectRatio;
+        offsetX = (videoDisplayWidth - drawWidth) / 2;
+        offsetY = 0;
+      }
+      
+      console.log('Canvas overlay setup:', {
+        videoSize: `${video.videoWidth}x${video.videoHeight}`,
+        displaySize: `${videoDisplayWidth}x${videoDisplayHeight}`,
+        drawSize: `${drawWidth}x${drawHeight}`,
+        offset: `${offsetX},${offsetY}`
+      });
       
       // Apply zoom and pan transformations
       ctx.save();
+      ctx.translate(offsetX, offsetY);
       ctx.scale(zoom, zoom);
       ctx.translate(panX / zoom, panY / zoom);
       
-      // Draw pose skeleton with proper scaling
+      // Draw pose skeleton
       if (pose && pose.landmarks) {
         ctx.strokeStyle = '#22C55E';
-        ctx.lineWidth = 2 / zoom;
+        ctx.lineWidth = 3 / zoom;
         ctx.fillStyle = '#22C55E';
         
-        // Draw key pose points
+        // Draw pose points
         pose.landmarks.forEach((landmark: any, index: number) => {
           if (!landmark.visibility || landmark.visibility > 0.5) {
-            const x = landmark.x * scaleX;
-            const y = landmark.y * scaleY;
+            const x = landmark.x * drawWidth;
+            const y = landmark.y * drawHeight;
             
             ctx.beginPath();
-            ctx.arc(x, y, 3 / zoom, 0, 2 * Math.PI);
+            ctx.arc(x, y, 4 / zoom, 0, 2 * Math.PI);
             ctx.fill();
             
             // Add labels for key points
             if ([0, 11, 12, 14, 16, 23, 24, 26, 28].includes(index)) {
               ctx.fillStyle = '#FFFFFF';
-              ctx.font = `${10 / zoom}px Inter`;
+              ctx.font = `${12 / zoom}px Inter`;
+              ctx.fillRect(x + 5, y - 15, 60 / zoom, 12 / zoom);
+              ctx.fillStyle = '#000000';
               const labels = ['nose', 'L-shoulder', 'R-shoulder', 'R-elbow', 'R-wrist', 'L-hip', 'R-hip', 'R-knee', 'R-ankle'];
               const labelIndex = [0, 11, 12, 14, 16, 23, 24, 26, 28].indexOf(index);
               if (labelIndex >= 0) {
-                ctx.fillText(labels[labelIndex], x + 5, y - 5);
+                ctx.fillText(labels[labelIndex], x + 7, y - 6);
               }
               ctx.fillStyle = '#22C55E';
             }
@@ -108,7 +140,7 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
           [0, 4], [4, 5], [5, 6], [6, 8] // Head
         ];
         
-        ctx.lineWidth = 2 / zoom;
+        ctx.lineWidth = 3 / zoom;
         connections.forEach(([start, end]) => {
           if (pose.landmarks[start] && pose.landmarks[end]) {
             const startLandmark = pose.landmarks[start];
@@ -116,10 +148,10 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
             
             if ((!startLandmark.visibility || startLandmark.visibility > 0.5) &&
                 (!endLandmark.visibility || endLandmark.visibility > 0.5)) {
-              const startX = startLandmark.x * scaleX;
-              const startY = startLandmark.y * scaleY;
-              const endX = endLandmark.x * scaleX;
-              const endY = endLandmark.y * scaleY;
+              const startX = startLandmark.x * drawWidth;
+              const startY = startLandmark.y * drawHeight;
+              const endX = endLandmark.x * drawWidth;
+              const endY = endLandmark.y * drawHeight;
               
               ctx.beginPath();
               ctx.moveTo(startX, startY);
@@ -130,42 +162,45 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
         });
       }
       
-      // Draw racket bounding box with proper scaling
+      // Draw racket bounding box
       if (racketBox && racketBox.confidence > 0.5) {
         ctx.strokeStyle = '#EF4444';
-        ctx.lineWidth = 3 / zoom;
-        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 4 / zoom;
+        ctx.setLineDash([8, 4]);
         
-        const x = racketBox.x * scaleX;
-        const y = racketBox.y * scaleY;
-        const width = racketBox.width * scaleX;
-        const height = racketBox.height * scaleY;
+        const x = racketBox.x * drawWidth;
+        const y = racketBox.y * drawHeight;
+        const width = racketBox.width * drawWidth;
+        const height = racketBox.height * drawHeight;
         
         ctx.strokeRect(x, y, width, height);
         ctx.setLineDash([]);
         
-        // Label with confidence
+        // Racket label
         ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
-        ctx.fillRect(x, y - 25 / zoom, 100 / zoom, 20 / zoom);
+        ctx.fillRect(x, y - 30 / zoom, 120 / zoom, 25 / zoom);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = `${12 / zoom}px Inter`;
-        ctx.fillText(`Racket ${(racketBox.confidence * 100).toFixed(0)}%`, x + 2, y - 8 / zoom);
+        ctx.font = `${14 / zoom}px Inter`;
+        ctx.fillText(`Racket ${(racketBox.confidence * 100).toFixed(0)}%`, x + 5, y - 10 / zoom);
+        
+        console.log('Drew racket at:', x, y, width, height);
       }
       
       ctx.restore();
       
-      // Draw tracking status
+      // Draw tracking status (outside of zoom/pan transform)
       if (pose || racketBox) {
         ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-        ctx.fillRect(10, 10, 200, 60);
+        ctx.fillRect(10, 10, 220, 70);
         ctx.strokeStyle = '#22C55E';
         ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, 200, 60);
+        ctx.strokeRect(10, 10, 220, 70);
         
         ctx.fillStyle = '#22C55E';
-        ctx.font = '14px Inter';
+        ctx.font = 'bold 14px Inter';
         ctx.fillText('✓ Player Tracking Active', 20, 30);
         ctx.fillText(`✓ Racket Detection: ${racketBox ? Math.round(racketBox.confidence * 100) : 0}%`, 20, 50);
+        ctx.fillText(`✓ Pose Points: ${pose?.landmarks?.length || 0}`, 20, 70);
       }
     };
     
@@ -265,7 +300,6 @@ export const VideoCaptureCard: React.FC<VideoCaptureCardProps> = ({
       setHasVideo(true);
       setDuration(video.duration);
       
-      // Auto-play uploaded videos
       if (videoSource === 'file' && video.readyState >= 3) {
         video.play().then(() => {
           console.log('Auto-play started for uploaded video');

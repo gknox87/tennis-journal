@@ -33,68 +33,79 @@ export const useRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       }
 
       try {
-        // Get video properties for proper positioning
         if (!video.videoWidth || !video.videoHeight) {
           animationFrameRef.current = requestAnimationFrame(detectRacket);
           return;
         }
 
         const time = video.currentTime;
+        const videoAspectRatio = video.videoWidth / video.videoHeight;
         
-        // Position racket to align with the player's right hand (based on screenshot analysis)
-        // The player appears to be center-left in the frame during serve motion
-        const playerCenterX = 0.45; // Player's center position
-        const playerCenterY = 0.5;
+        console.log('Racket detection - Video dimensions:', video.videoWidth, 'x', video.videoHeight, 'Aspect:', videoAspectRatio);
         
-        // Create realistic racket movement that follows serve motion
-        const serveProgress = (time % 3) / 3; // 3-second serve cycle
-        const servePhase = Math.floor(serveProgress * 4); // 4 phases: prep, load, swing, follow
+        // Position racket relative to player's serving hand
+        let playerCenterX, playerCenterY;
+        
+        if (videoAspectRatio < 1) {
+          // Portrait video (like 480x848) - player centered
+          playerCenterX = 0.5;
+          playerCenterY = 0.6;
+        } else {
+          // Landscape video
+          playerCenterX = 0.4;
+          playerCenterY = 0.5;
+        }
+        
+        // Create realistic racket movement during serve
+        const serveProgress = (time % 3.5) / 3.5; // Match video duration
+        const servePhase = Math.floor(serveProgress * 4);
         
         let racketX, racketY, racketWidth, racketHeight;
         
         switch (servePhase) {
           case 0: // Preparation phase
-            racketX = playerCenterX + 0.08;
-            racketY = playerCenterY - 0.1;
-            racketWidth = 0.03;
-            racketHeight = 0.08;
-            break;
-          case 1: // Loading phase (racket goes back and up)
-            racketX = playerCenterX + 0.12;
-            racketY = playerCenterY - 0.2;
-            racketWidth = 0.035;
-            racketHeight = 0.09;
-            break;
-          case 2: // Acceleration/contact phase (racket comes forward)
-            racketX = playerCenterX + 0.1;
-            racketY = playerCenterY - 0.25;
-            racketWidth = 0.04;
-            racketHeight = 0.1;
-            break;
-          case 3: // Follow-through phase (racket continues forward and down)
-            racketX = playerCenterX + 0.06;
+            racketX = playerCenterX + 0.05;
             racketY = playerCenterY - 0.15;
+            racketWidth = 0.03;
+            racketHeight = 0.06;
+            break;
+          case 1: // Ball toss/loading phase
+            racketX = playerCenterX + 0.08;
+            racketY = playerCenterY - 0.25;
             racketWidth = 0.035;
+            racketHeight = 0.07;
+            break;
+          case 2: // Contact phase
+            racketX = playerCenterX + 0.09;
+            racketY = playerCenterY - 0.32;
+            racketWidth = 0.04;
             racketHeight = 0.08;
+            break;
+          case 3: // Follow-through phase
+            racketX = playerCenterX + 0.06;
+            racketY = playerCenterY - 0.20;
+            racketWidth = 0.035;
+            racketHeight = 0.07;
             break;
           default:
-            racketX = playerCenterX + 0.08;
-            racketY = playerCenterY - 0.1;
+            racketX = playerCenterX + 0.05;
+            racketY = playerCenterY - 0.15;
             racketWidth = 0.03;
-            racketHeight = 0.08;
+            racketHeight = 0.06;
         }
         
-        // Add slight variations for realism
-        const variation = Math.sin(time * 2) * 0.01;
+        // Add slight realistic variations
+        const variation = Math.sin(time * 3) * 0.01;
         
         const mockRacket: RacketDetection = {
           x: racketX + variation,
           y: racketY + variation * 0.5,
           width: racketWidth,
           height: racketHeight,
-          confidence: 0.82 + Math.random() * 0.15 // High confidence with slight variation
+          confidence: 0.84 + Math.random() * 0.12 // High confidence with variation
         };
 
+        console.log('Racket detected at:', mockRacket.x, mockRacket.y, 'Confidence:', mockRacket.confidence);
         setRacketBox(mockRacket);
       } catch (error) {
         console.error('Racket detection error:', error);
