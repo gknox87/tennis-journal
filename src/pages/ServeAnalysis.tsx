@@ -64,6 +64,7 @@ const ServeAnalysis = () => {
         videoRef.current.play();
       }
     } catch (error) {
+      console.error('Camera access error:', error);
       toast({
         title: "Camera Error",
         description: "Unable to access camera. Please check permissions.",
@@ -135,38 +136,64 @@ const ServeAnalysis = () => {
     if (file && videoRef.current) {
       console.log('Uploading file:', file.name, file.type, file.size);
       
-      // Create object URL for the video
-      const url = URL.createObjectURL(file);
-      videoRef.current.src = url;
-      
-      // Set up event listeners for better feedback
-      videoRef.current.onloadeddata = () => {
-        console.log('Video loaded successfully');
-        setHasRecorded(true);
-        resetMetrics();
-        toast({
-          title: "Video Uploaded",
-          description: `${file.name} loaded successfully. Click play to start analysis.`,
-        });
-      };
-      
-      videoRef.current.onerror = (error) => {
-        console.error('Video loading error:', error);
-        toast({
-          title: "Upload Error",
-          description: "Unable to load video file. Please try a different format.",
-          variant: "destructive"
-        });
-      };
-      
-      videoRef.current.load();
-      setVideoSource('file');
-      
       // Stop camera stream if active
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
       }
+      
+      // Create object URL for the video
+      const url = URL.createObjectURL(file);
+      const video = videoRef.current;
+      
+      // Clear any existing source
+      video.src = '';
+      video.srcObject = null;
+      
+      // Set up event listeners before setting source
+      const handleLoadedData = () => {
+        console.log('Video file loaded successfully:', {
+          duration: video.duration,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight
+        });
+        setHasRecorded(true);
+        resetMetrics();
+        toast({
+          title: "Video Uploaded",
+          description: `${file.name} loaded successfully. The video will start automatically.`,
+        });
+        
+        // Try to auto-play
+        video.play().catch(error => {
+          console.log('Auto-play prevented, user interaction required:', error);
+        });
+        
+        // Clean up event listeners
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('error', handleError);
+      };
+      
+      const handleError = (error: Event) => {
+        console.error('Video loading error:', error, video.error);
+        toast({
+          title: "Upload Error",
+          description: "Unable to load video file. Please try a different format (MP4, MOV, WebM).",
+          variant: "destructive"
+        });
+        
+        // Clean up event listeners
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('error', handleError);
+      };
+      
+      video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('error', handleError);
+      
+      // Set the source and load
+      video.src = url;
+      video.load();
+      setVideoSource('file');
     }
   };
 
