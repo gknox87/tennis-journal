@@ -1,6 +1,5 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { Pose, Results } from '@mediapipe/pose';
 
 interface PoseLandmark {
   x: number;
@@ -14,20 +13,25 @@ interface PoseResults {
   worldLandmarks: PoseLandmark[];
 }
 
-export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, playerBounds?: any) => {
+export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const [pose, setPose] = useState<PoseResults | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const poseRef = useRef<Pose | null>(null);
+  const poseRef = useRef<any>(null);
   const processingRef = useRef<boolean>(false);
-  const lastProcessTimeRef = useRef<number>(0);
+  const frameRef = useRef<number>(0);
 
   useEffect(() => {
     let mounted = true;
     
     const initializeMediaPipe = async () => {
       try {
-        console.log('Initializing stable MediaPipe Pose...');
+        console.log('Starting MediaPipe initialization...');
+        
+        // Import MediaPipe dynamically
+        const { Pose } = await import('@mediapipe/pose');
+        
+        if (!mounted) return;
         
         const poseInstance = new Pose({
           locateFile: (file) => {
@@ -35,17 +39,19 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
           }
         });
 
-        poseInstance.setOptions({
+        await poseInstance.setOptions({
           modelComplexity: 1,
           smoothLandmarks: true,
           enableSegmentation: false,
           smoothSegmentation: false,
-          minDetectionConfidence: 0.3,
-          minTrackingConfidence: 0.3
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
         });
 
-        poseInstance.onResults((results: Results) => {
+        poseInstance.onResults((results) => {
           if (!mounted) return;
+          
+          console.log('Pose results received:', results.poseLandmarks?.length || 0, 'landmarks');
           
           if (results.poseLandmarks && results.poseLandmarks.length > 0) {
             const landmarks: PoseLandmark[] = results.poseLandmarks.map((landmark) => ({
@@ -64,9 +70,12 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
                 visibility: landmark.visibility || 1
               })) || landmarks
             });
+          } else {
+            setPose(null);
           }
         });
 
+        await poseInstance.initialize();
         poseRef.current = poseInstance;
         setIsLoading(false);
         setError(null);
@@ -90,14 +99,14 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>, pl
         return;
       }
 
-      const now = performance.now();
-      if (now - lastProcessTimeRef.current < 100) { // 10 FPS for stability
+      // Process every 3rd frame for better performance
+      frameRef.current++;
+      if (frameRef.current % 3 !== 0) {
         requestAnimationFrame(processVideo);
         return;
       }
 
       processingRef.current = true;
-      lastProcessTimeRef.current = now;
 
       try {
         await poseInstance.send({ image: video });

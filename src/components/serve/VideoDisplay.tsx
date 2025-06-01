@@ -29,157 +29,117 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   panX,
   panY
 }) => {
-  const lastDrawRef = useRef<number>(0);
-  const stableDetectionsRef = useRef<any>({});
+  const renderRef = useRef<number>(0);
 
   useEffect(() => {
     const drawOverlay = () => {
-      const now = performance.now();
-      if (now - lastDrawRef.current < 50) { // 20 FPS for smooth rendering
-        requestAnimationFrame(drawOverlay);
-        return;
-      }
-      lastDrawRef.current = now;
-
       const canvas = canvasRef.current;
       const video = videoRef.current;
       
       if (!canvas || !video || !video.videoWidth || !video.videoHeight) {
-        requestAnimationFrame(drawOverlay);
+        renderRef.current = requestAnimationFrame(drawOverlay);
         return;
       }
       
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      // Get display dimensions
+      // Match canvas size to video element
       const rect = video.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
       
-      // Calculate scaling
-      const videoAspectRatio = video.videoWidth / video.videoHeight;
-      const displayAspectRatio = rect.width / rect.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      let scaleX, scaleY, offsetX, offsetY;
+      // Calculate video display scaling
+      const videoAspect = video.videoWidth / video.videoHeight;
+      const canvasAspect = canvas.width / canvas.height;
       
-      if (videoAspectRatio > displayAspectRatio) {
-        scaleX = rect.width / video.videoWidth;
-        scaleY = scaleX;
+      let scale, offsetX, offsetY;
+      if (videoAspect > canvasAspect) {
+        scale = canvas.width / video.videoWidth;
         offsetX = 0;
-        offsetY = (rect.height - video.videoHeight * scaleY) / 2;
+        offsetY = (canvas.height - video.videoHeight * scale) / 2;
       } else {
-        scaleY = rect.height / video.videoHeight;
-        scaleX = scaleY;
-        offsetX = (rect.width - video.videoWidth * scaleX) / 2;
+        scale = canvas.height / video.videoHeight;
+        offsetX = (canvas.width - video.videoWidth * scale) / 2;
         offsetY = 0;
       }
       
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
       ctx.translate(offsetX + panX, offsetY + panY);
-      ctx.scale(scaleX * zoom, scaleY * zoom);
+      ctx.scale(scale * zoom, scale * zoom);
 
-      // Store stable detections to prevent flickering
-      if (pose && pose.landmarks && pose.landmarks.length >= 33) {
-        stableDetectionsRef.current.pose = pose;
-      }
-      if (playerBounds && playerBounds.confidence > 0.3) {
-        stableDetectionsRef.current.playerBounds = playerBounds;
-      }
-      if (racketBox && racketBox.confidence > 0.4) {
-        stableDetectionsRef.current.racketBox = racketBox;
-      }
-      if (ballDetection && ballDetection.confidence > 0.3) {
-        stableDetectionsRef.current.ballDetection = ballDetection;
+      // Draw pose skeleton
+      if (pose && pose.landmarks) {
+        drawPoseSkeleton(ctx, pose.landmarks, video.videoWidth, video.videoHeight);
       }
 
-      // Draw stable detections
-      if (stableDetectionsRef.current.pose) {
-        drawPoseSkeleton(ctx, stableDetectionsRef.current.pose.landmarks, video.videoWidth, video.videoHeight);
+      // Draw player bounds
+      if (playerBounds) {
+        drawPlayerBounds(ctx, playerBounds, video.videoWidth, video.videoHeight);
       }
 
-      if (stableDetectionsRef.current.playerBounds) {
-        drawPlayerBounds(ctx, stableDetectionsRef.current.playerBounds, video.videoWidth, video.videoHeight);
+      // Draw racket
+      if (racketBox) {
+        drawRacketBox(ctx, racketBox, video.videoWidth, video.videoHeight);
       }
 
-      if (stableDetectionsRef.current.racketBox) {
-        drawRacketBox(ctx, stableDetectionsRef.current.racketBox, video.videoWidth, video.videoHeight);
-      }
-
-      if (stableDetectionsRef.current.ballDetection) {
-        drawBallDetection(ctx, stableDetectionsRef.current.ballDetection, video.videoWidth, video.videoHeight);
+      // Draw ball
+      if (ballDetection) {
+        drawBallDetection(ctx, ballDetection, video.videoWidth, video.videoHeight);
       }
       
       ctx.restore();
       
-      // Draw stable status panel
-      drawStatusPanel(ctx, stableDetectionsRef.current);
+      // Draw status info
+      drawStatusInfo(ctx, { pose, racketBox, playerBounds, ballDetection });
       
-      requestAnimationFrame(drawOverlay);
+      renderRef.current = requestAnimationFrame(drawOverlay);
     };
     
-    drawOverlay();
-  }, [canvasRef, videoRef, zoom, panX, panY]);
+    renderRef.current = requestAnimationFrame(drawOverlay);
+    
+    return () => {
+      if (renderRef.current) {
+        cancelAnimationFrame(renderRef.current);
+      }
+    };
+  }, [canvasRef, videoRef, pose, racketBox, playerBounds, ballDetection, zoom, panX, panY]);
 
   const drawPoseSkeleton = (ctx: CanvasRenderingContext2D, landmarks: any[], width: number, height: number) => {
-    // Key connections for tennis analysis
+    console.log('Drawing pose with', landmarks.length, 'landmarks');
+    
+    // Key pose connections
     const connections = [
-      [11, 12], // shoulders
-      [11, 23], [12, 24], [23, 24], // torso
-      [12, 14], [14, 16], // right arm (serving)
+      [11, 12], [11, 23], [12, 24], [23, 24], // torso
+      [12, 14], [14, 16], // right arm
       [11, 13], [13, 15], // left arm
-      [23, 25], [25, 27], // left leg
-      [24, 26], [26, 28], // right leg
     ];
     
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 1;
+    ctx.strokeStyle = '#00FF00';
+    ctx.lineWidth = 3;
     
     // Draw connections
-    connections.forEach(([startIdx, endIdx]) => {
-      const start = landmarks[startIdx];
-      const end = landmarks[endIdx];
+    connections.forEach(([start, end]) => {
+      const startPoint = landmarks[start];
+      const endPoint = landmarks[end];
       
-      if (start && end && start.visibility > 0.4 && end.visibility > 0.4) {
-        // Highlight serving arm
-        if ((startIdx === 12 && endIdx === 14) || (startIdx === 14 && endIdx === 16)) {
-          ctx.strokeStyle = '#FF0080';
-          ctx.lineWidth = 3;
-        } else {
-          ctx.strokeStyle = '#00FF00';
-          ctx.lineWidth = 2;
-        }
-        
+      if (startPoint && endPoint && startPoint.visibility > 0.5 && endPoint.visibility > 0.5) {
         ctx.beginPath();
-        ctx.moveTo(start.x * width, start.y * height);
-        ctx.lineTo(end.x * width, end.y * height);
+        ctx.moveTo(startPoint.x * width, startPoint.y * height);
+        ctx.lineTo(endPoint.x * width, endPoint.y * height);
         ctx.stroke();
       }
     });
     
-    ctx.shadowBlur = 0;
-    
     // Draw key points
-    const keyPoints = [
-      { idx: 0, color: '#FFFF00', size: 4 }, // head
-      { idx: 12, color: '#FF0080', size: 6 }, // right shoulder
-      { idx: 14, color: '#FF0080', size: 6 }, // right elbow
-      { idx: 16, color: '#FF0080', size: 8 }, // right wrist
-    ];
-    
-    keyPoints.forEach(({ idx, color, size }) => {
+    [0, 11, 12, 14, 16].forEach(idx => {
       const point = landmarks[idx];
-      if (point && point.visibility > 0.4) {
-        ctx.fillStyle = '#000000';
+      if (point && point.visibility > 0.5) {
+        ctx.fillStyle = '#FF0000';
         ctx.beginPath();
-        ctx.arc(point.x * width, point.y * height, size + 1, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(point.x * width, point.y * height, size, 0, 2 * Math.PI);
+        ctx.arc(point.x * width, point.y * height, 6, 0, 2 * Math.PI);
         ctx.fill();
       }
     });
@@ -188,7 +148,7 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   const drawPlayerBounds = (ctx: CanvasRenderingContext2D, bounds: any, width: number, height: number) => {
     ctx.strokeStyle = '#FFD700';
     ctx.lineWidth = 2;
-    ctx.setLineDash([8, 4]);
+    ctx.setLineDash([5, 5]);
     
     const x = bounds.x * width;
     const y = bounds.y * height;
@@ -197,19 +157,11 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     
     ctx.strokeRect(x, y, w, h);
     ctx.setLineDash([]);
-    
-    // Label
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-    ctx.fillRect(x, y - 25, 120, 20);
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText(`PLAYER ${Math.round(bounds.confidence * 100)}%`, x + 4, y - 8);
   };
 
   const drawRacketBox = (ctx: CanvasRenderingContext2D, racket: any, width: number, height: number) => {
     ctx.strokeStyle = '#FF0000';
     ctx.lineWidth = 2;
-    ctx.setLineDash([]);
     
     const x = racket.x * width;
     const y = racket.y * height;
@@ -218,24 +170,15 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     
     ctx.strokeRect(x, y, w, h);
     
-    // Crosshair
+    // Center crosshair
     const centerX = x + w/2;
     const centerY = y + h/2;
-    ctx.strokeStyle = '#FFFF00';
-    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(centerX - 8, centerY);
-    ctx.lineTo(centerX + 8, centerY);
-    ctx.moveTo(centerX, centerY - 8);
-    ctx.lineTo(centerX, centerY + 8);
+    ctx.moveTo(centerX - 10, centerY);
+    ctx.lineTo(centerX + 10, centerY);
+    ctx.moveTo(centerX, centerY - 10);
+    ctx.lineTo(centerX, centerY + 10);
     ctx.stroke();
-    
-    // Label
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
-    ctx.fillRect(x, y - 25, 110, 20);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText(`RACKET ${Math.round(racket.confidence * 100)}%`, x + 4, y - 8);
   };
 
   const drawBallDetection = (ctx: CanvasRenderingContext2D, ball: any, width: number, height: number) => {
@@ -251,54 +194,29 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
-    
-    // Label
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
-    ctx.fillRect(x + radius + 5, y - 15, 85, 18);
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 11px Arial';
-    ctx.fillText(`BALL ${Math.round(ball.confidence * 100)}%`, x + radius + 8, y - 3);
   };
 
-  const drawStatusPanel = (ctx: CanvasRenderingContext2D, detections: any) => {
-    const hasAnyDetection = detections.pose || detections.racketBox || detections.playerBounds || detections.ballDetection;
-    
-    if (!hasAnyDetection) return;
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(10, 10, 280, 110);
-    ctx.strokeStyle = '#00FF00';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 280, 110);
+  const drawStatusInfo = (ctx: CanvasRenderingContext2D, detections: any) => {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, 10, 200, 80);
     
     ctx.fillStyle = '#00FF00';
-    ctx.font = 'bold 14px Arial';
-    let yPos = 28;
+    ctx.font = '12px Arial';
+    let y = 25;
     
-    ctx.fillText('🎾 REAL TENNIS AI TRACKING', 18, yPos);
-    yPos += 20;
+    ctx.fillText('🎾 Tennis AI Tracking', 15, y);
+    y += 15;
     
-    if (detections.playerBounds) {
-      ctx.fillStyle = '#FFD700';
-      ctx.fillText(`👤 Player: ${Math.round(detections.playerBounds.confidence * 100)}% detected`, 18, yPos);
-      yPos += 16;
+    if (detections.pose) {
+      ctx.fillText('✓ Pose: Active', 15, y);
+      y += 12;
     }
-    
-    if (detections.pose && detections.pose.landmarks) {
-      ctx.fillStyle = '#FF0080';
-      ctx.fillText(`🎯 Pose: ${detections.pose.landmarks.length} joints tracked`, 18, yPos);
-      yPos += 16;
-    }
-    
     if (detections.racketBox) {
-      ctx.fillStyle = '#FF0000';
-      ctx.fillText(`🎾 Racket: ${Math.round(detections.racketBox.confidence * 100)}% accuracy`, 18, yPos);
-      yPos += 16;
+      ctx.fillText('✓ Racket: Detected', 15, y);
+      y += 12;
     }
-    
     if (detections.ballDetection) {
-      ctx.fillStyle = '#FFFF00';
-      ctx.fillText(`⚪ Ball: ${Math.round(detections.ballDetection.confidence * 100)}% tracked`, 18, yPos);
+      ctx.fillText('✓ Ball: Tracked', 15, y);
     }
   };
 
