@@ -48,18 +48,18 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
-      // Advanced player detection using color and motion analysis
+      // Enhanced player detection
       const playerDetection = detectPlayer(data, canvas.width, canvas.height);
       if (playerDetection) {
         setPlayerBounds(playerDetection);
-        console.log('Player detected at:', playerDetection);
+        console.log('Player detected:', playerDetection);
       }
 
-      // Ball detection using circular Hough transform simulation
+      // Ball detection
       const ballDetection = detectBall(data, canvas.width, canvas.height);
       if (ballDetection) {
         setBallDetection(ballDetection);
-        console.log('Ball detected at:', ballDetection);
+        console.log('Ball detected:', ballDetection);
       }
 
     } catch (error) {
@@ -70,42 +70,60 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
   };
 
   const detectPlayer = (data: Uint8ClampedArray, width: number, height: number): PlayerBounds | null => {
-    // Look for skin tones and white clothing (tennis attire)
-    const skinRegions: Array<{x: number, y: number}> = [];
-    const whiteRegions: Array<{x: number, y: number}> = [];
+    const playerRegions: Array<{x: number, y: number, weight: number}> = [];
     
-    for (let y = 0; y < height; y += 4) {
-      for (let x = 0; x < width; x += 4) {
+    // Multi-pass detection for better accuracy
+    for (let y = 0; y < height; y += 6) {
+      for (let x = 0; x < width; x += 6) {
         const i = (y * width + x) * 4;
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Detect skin tones
+        let weight = 0;
+        
+        // Detect skin tones (higher weight)
         if (isSkinTone(r, g, b)) {
-          skinRegions.push({x, y});
+          weight += 3;
         }
         
-        // Detect white/light colored clothing
-        if (isWhiteClothing(r, g, b)) {
-          whiteRegions.push({x, y});
+        // Detect tennis clothing (white/bright colors)
+        if (isTennisClothing(r, g, b)) {
+          weight += 2;
+        }
+        
+        // Detect hair colors
+        if (isHairColor(r, g, b)) {
+          weight += 1;
+        }
+        
+        if (weight > 0) {
+          playerRegions.push({x, y, weight});
         }
       }
     }
 
-    // Find largest connected region (likely the player)
-    if (skinRegions.length > 10 || whiteRegions.length > 20) {
-      const allRegions = [...skinRegions, ...whiteRegions];
-      const bounds = getBoundingBox(allRegions);
+    if (playerRegions.length > 20) {
+      // Cluster detection - find main player cluster
+      const clusters = clusterRegions(playerRegions, width * 0.1);
+      const mainCluster = clusters.reduce((largest, current) => 
+        current.length > largest.length ? current : largest, []);
       
-      if (bounds && bounds.width > width * 0.05 && bounds.height > height * 0.1) {
-        return {
-          x: bounds.x / width,
-          y: bounds.y / height,
-          width: bounds.width / width,
-          height: bounds.height / height,
-          confidence: Math.min(0.9, (skinRegions.length + whiteRegions.length) / 100)
-        };
+      if (mainCluster.length > 15) {
+        const bounds = getBoundingBox(mainCluster);
+        
+        // Validate player dimensions
+        if (bounds && bounds.width > width * 0.08 && bounds.height > height * 0.2) {
+          const confidence = Math.min(0.95, mainCluster.length / 50);
+          
+          return {
+            x: bounds.x / width,
+            y: bounds.y / height,
+            width: bounds.width / width,
+            height: bounds.height / height,
+            confidence
+          };
+        }
       }
     }
 
@@ -113,20 +131,19 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
   };
 
   const detectBall = (data: Uint8ClampedArray, width: number, height: number): BallDetection | null => {
-    // Look for bright yellow/green circular objects (tennis ball)
     const ballCandidates: Array<{x: number, y: number, score: number}> = [];
     
-    for (let y = 10; y < height - 10; y += 3) {
-      for (let x = 10; x < width - 10; x += 3) {
+    // Look for tennis ball (bright yellow/green, circular)
+    for (let y = 5; y < height - 5; y += 4) {
+      for (let x = 5; x < width - 5; x += 4) {
         const i = (y * width + x) * 4;
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Check for tennis ball colors (yellow-green)
         if (isTennisBallColor(r, g, b)) {
-          const circularityScore = checkCircularity(data, x, y, width, height, 3);
-          if (circularityScore > 0.6) {
+          const circularityScore = checkCircularity(data, x, y, width, height, 4);
+          if (circularityScore > 0.7) {
             ballCandidates.push({x, y, score: circularityScore});
           }
         }
@@ -134,7 +151,6 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
     }
 
     if (ballCandidates.length > 0) {
-      // Get the best candidate
       const bestCandidate = ballCandidates.reduce((best, current) => 
         current.score > best.score ? current : best
       );
@@ -142,7 +158,7 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
       return {
         x: bestCandidate.x / width,
         y: bestCandidate.y / height,
-        radius: 0.01, // Approximate ball radius
+        radius: 0.015,
         confidence: bestCandidate.score
       };
     }
@@ -156,14 +172,25 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
            Math.abs(r - g) > 15 && r > g && r > b;
   };
 
-  const isWhiteClothing = (r: number, g: number, b: number): boolean => {
-    return r > 180 && g > 180 && b > 180 && 
-           Math.abs(r - g) < 30 && Math.abs(g - b) < 30;
+  const isTennisClothing = (r: number, g: number, b: number): boolean => {
+    // White tennis attire
+    const isWhite = r > 170 && g > 170 && b > 170 && Math.abs(r - g) < 30;
+    // Bright colored tennis wear
+    const isBright = Math.max(r, g, b) > 180 && (r + g + b) > 450;
+    return isWhite || isBright;
+  };
+
+  const isHairColor = (r: number, g: number, b: number): boolean => {
+    // Various hair colors
+    const isDark = r < 80 && g < 80 && b < 80;
+    const isBrown = r > 60 && r < 150 && g > 40 && g < 120 && b > 20 && b < 100;
+    const isBlonde = r > 150 && g > 120 && b > 80 && r > g && g > b;
+    return isDark || isBrown || isBlonde;
   };
 
   const isTennisBallColor = (r: number, g: number, b: number): boolean => {
-    // Tennis ball yellow-green color range
-    return g > 150 && r > 100 && r < 255 && b < 150 && g > r * 0.8;
+    // Tennis ball fluorescent yellow-green
+    return g > 180 && r > 120 && r < 255 && b < 120 && g > r * 0.9;
   };
 
   const checkCircularity = (data: Uint8ClampedArray, cx: number, cy: number, width: number, height: number, radius: number): number => {
@@ -192,6 +219,36 @@ export const usePlayerDetection = (videoRef: React.RefObject<HTMLVideoElement>) 
     }
     
     return totalPixels > 0 ? circularPixels / totalPixels : 0;
+  };
+
+  const clusterRegions = (regions: Array<{x: number, y: number, weight: number}>, maxDistance: number) => {
+    const clusters: Array<Array<{x: number, y: number, weight: number}>> = [];
+    const visited = new Set<number>();
+    
+    for (let i = 0; i < regions.length; i++) {
+      if (visited.has(i)) continue;
+      
+      const cluster = [regions[i]];
+      visited.add(i);
+      
+      for (let j = i + 1; j < regions.length; j++) {
+        if (visited.has(j)) continue;
+        
+        const distance = Math.sqrt(
+          Math.pow(regions[i].x - regions[j].x, 2) + 
+          Math.pow(regions[i].y - regions[j].y, 2)
+        );
+        
+        if (distance <= maxDistance) {
+          cluster.push(regions[j]);
+          visited.add(j);
+        }
+      }
+      
+      clusters.push(cluster);
+    }
+    
+    return clusters;
   };
 
   const getBoundingBox = (points: Array<{x: number, y: number}>) => {

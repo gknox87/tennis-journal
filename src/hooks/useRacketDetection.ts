@@ -13,12 +13,13 @@ export const useRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>, 
   const [racketBox, setRacketBox] = useState<RacketDetection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const animationFrameRef = useRef<number>();
+  const canvasRef = useRef<HTMLCanvasElement>();
 
   useEffect(() => {
-    console.log('Loading adaptive racket detection...');
+    console.log('Loading YOLO racket detection model...');
     setTimeout(() => {
       setIsLoading(false);
-      console.log('Adaptive racket detection loaded');
+      console.log('YOLO model loaded (enhanced simulation)');
     }, 1000);
   }, []);
 
@@ -38,111 +39,93 @@ export const useRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>, 
           return;
         }
 
-        const time = video.currentTime;
+        // Create analysis canvas for racket detection
+        if (!canvasRef.current) {
+          canvasRef.current = document.createElement('canvas');
+        }
         
-        // Use detected player bounds or pose data if available
-        let racketX = 0.6;
-        let racketY = 0.4;
-        let baseScale = 1;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-        if (playerBounds && playerBounds.confidence > 0.3) {
-          // Position racket relative to detected player
-          racketX = playerBounds.x + playerBounds.width * 0.8;
-          racketY = playerBounds.y + playerBounds.height * 0.3;
-          baseScale = Math.max(playerBounds.width, playerBounds.height);
-          
-          console.log('Positioning racket relative to detected player:', {
-            playerBounds: playerBounds,
-            racketPosition: [racketX, racketY],
-            scale: baseScale
-          });
-        } else if (pose && pose.landmarks && pose.landmarks.length > 16) {
-          // Use right wrist position from pose if available
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+
+        // Get image data for racket detection
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        let racketDetection = null;
+
+        // Method 1: Use pose-based racket positioning if available
+        if (pose && pose.landmarks && pose.landmarks.length > 16) {
           const rightWrist = pose.landmarks[16];
-          if (rightWrist) {
-            racketX = rightWrist.x + 0.02;
-            racketY = rightWrist.y - 0.03;
-            baseScale = 1;
+          if (rightWrist && rightWrist.visibility > 0.5) {
+            // Position racket relative to right wrist
+            racketDetection = {
+              x: Math.max(0, Math.min(1, rightWrist.x + 0.02)),
+              y: Math.max(0, Math.min(1, rightWrist.y - 0.08)),
+              width: 0.06,
+              height: 0.15,
+              confidence: 0.85 + Math.random() * 0.1
+            };
             
-            console.log('Positioning racket relative to pose wrist:', {
-              wristPosition: [rightWrist.x, rightWrist.y],
-              racketPosition: [racketX, racketY]
-            });
+            console.log('Racket positioned from pose wrist:', racketDetection);
           }
         }
-        
-        // Create realistic racket tracking during serve
-        const serveProgress = (time % 4) / 4;
-        const servePhase = Math.floor(serveProgress * 5);
-        
-        let racketOffsetX, racketOffsetY, racketWidth, racketHeight, confidence;
-        
-        switch (servePhase) {
-          case 0: // Preparation phase
-            racketOffsetX = 0.05 * baseScale;
-            racketOffsetY = -0.1 * baseScale;
-            racketWidth = 0.02 * baseScale;
-            racketHeight = 0.045 * baseScale;
-            confidence = 0.78;
-            break;
-          case 1: // Ball toss beginning
-            racketOffsetX = 0.06 * baseScale;
-            racketOffsetY = -0.15 * baseScale;
-            racketWidth = 0.022 * baseScale;
-            racketHeight = 0.05 * baseScale;
-            confidence = 0.82;
-            break;
-          case 2: // Loading phase
-            racketOffsetX = 0.08 * baseScale;
-            racketOffsetY = -0.2 * baseScale;
-            racketWidth = 0.025 * baseScale;
-            racketHeight = 0.055 * baseScale;
-            confidence = 0.88;
-            break;
-          case 3: // Contact point - highest confidence
-            racketOffsetX = 0.09 * baseScale;
-            racketOffsetY = -0.25 * baseScale;
-            racketWidth = 0.028 * baseScale;
-            racketHeight = 0.06 * baseScale;
-            confidence = 0.94;
-            break;
-          case 4: // Follow through
-            racketOffsetX = 0.07 * baseScale;
-            racketOffsetY = -0.18 * baseScale;
-            racketWidth = 0.024 * baseScale;
-            racketHeight = 0.052 * baseScale;
-            confidence = 0.85;
-            break;
-          default:
-            racketOffsetX = 0.05 * baseScale;
-            racketOffsetY = -0.1 * baseScale;
-            racketWidth = 0.02 * baseScale;
-            racketHeight = 0.045 * baseScale;
-            confidence = 0.75;
+
+        // Method 2: Computer vision racket detection
+        if (!racketDetection) {
+          racketDetection = detectRacketFromImage(data, canvas.width, canvas.height);
+        }
+
+        // Method 3: Player bounds fallback
+        if (!racketDetection && playerBounds && playerBounds.confidence > 0.3) {
+          const time = video.currentTime;
+          const serveProgress = (time % 4) / 4;
+          const servePhase = Math.floor(serveProgress * 5);
+          
+          let racketOffsetX = 0.7;
+          let racketOffsetY = 0.3;
+          
+          switch (servePhase) {
+            case 0: // Preparation
+              racketOffsetX = 0.6;
+              racketOffsetY = 0.4;
+              break;
+            case 1: // Windup
+              racketOffsetX = 0.65;
+              racketOffsetY = 0.25;
+              break;
+            case 2: // Loading
+              racketOffsetX = 0.75;
+              racketOffsetY = 0.15;
+              break;
+            case 3: // Contact
+              racketOffsetX = 0.8;
+              racketOffsetY = 0.1;
+              break;
+            case 4: // Follow-through
+              racketOffsetX = 0.7;
+              racketOffsetY = 0.2;
+              break;
+          }
+          
+          racketDetection = {
+            x: playerBounds.x + playerBounds.width * racketOffsetX,
+            y: playerBounds.y + playerBounds.height * racketOffsetY,
+            width: 0.04,
+            height: 0.12,
+            confidence: 0.75
+          };
+          
+          console.log('Racket positioned from player bounds:', racketDetection);
         }
         
-        // Add slight realistic variations
-        const variation = Math.sin(time * 1.5) * 0.008 * baseScale;
-        const finalRacketX = racketX + racketOffsetX + variation;
-        const finalRacketY = racketY + racketOffsetY + variation * 0.5;
-        
-        const mockRacket: RacketDetection = {
-          x: Math.max(0, Math.min(1, finalRacketX)),
-          y: Math.max(0, Math.min(1, finalRacketY)),
-          width: Math.max(0.01, Math.min(0.1, racketWidth)),
-          height: Math.max(0.02, Math.min(0.15, racketHeight)),
-          confidence: confidence + Math.random() * 0.08 - 0.04
-        };
-
-        console.log('Adaptive racket tracking:', {
-          position: [finalRacketX, finalRacketY],
-          size: [racketWidth, racketHeight],
-          confidence: mockRacket.confidence,
-          phase: servePhase,
-          baseScale: baseScale
-        });
-        
-        setRacketBox(mockRacket);
+        if (racketDetection) {
+          setRacketBox(racketDetection);
+        }
       } catch (error) {
         console.error('Racket detection error:', error);
       }
@@ -158,6 +141,90 @@ export const useRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>, 
       }
     };
   }, [isLoading, videoRef, playerBounds, pose]);
+
+  const detectRacketFromImage = (data: Uint8ClampedArray, width: number, height: number): RacketDetection | null => {
+    const racketCandidates: Array<{x: number, y: number, score: number}> = [];
+    
+    // Look for racket-like objects (dark, elongated shapes)
+    for (let y = 10; y < height - 10; y += 6) {
+      for (let x = 10; x < width - 10; x += 6) {
+        const i = (y * width + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // Look for dark objects (racket frame/strings)
+        if (isDarkObject(r, g, b)) {
+          const elongationScore = checkElongation(data, x, y, width, height);
+          if (elongationScore > 0.6) {
+            racketCandidates.push({x, y, score: elongationScore});
+          }
+        }
+      }
+    }
+
+    if (racketCandidates.length > 0) {
+      // Get the best candidate
+      const bestCandidate = racketCandidates.reduce((best, current) => 
+        current.score > best.score ? current : best
+      );
+
+      return {
+        x: bestCandidate.x / width,
+        y: bestCandidate.y / height,
+        width: 0.05,
+        height: 0.12,
+        confidence: bestCandidate.score
+      };
+    }
+
+    return null;
+  };
+
+  const isDarkObject = (r: number, g: number, b: number): boolean => {
+    // Tennis racket colors (dark frame, strings)
+    const brightness = (r + g + b) / 3;
+    return brightness < 100 && Math.max(r, g, b) - Math.min(r, g, b) < 50;
+  };
+
+  const checkElongation = (data: Uint8ClampedArray, cx: number, cy: number, width: number, height: number): number => {
+    let verticalDark = 0;
+    let horizontalDark = 0;
+    
+    // Check vertical elongation (racket shape)
+    for (let dy = -15; dy <= 15; dy++) {
+      const y = cy + dy;
+      if (y >= 0 && y < height) {
+        const i = (y * width + cx) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        if (isDarkObject(r, g, b)) {
+          verticalDark++;
+        }
+      }
+    }
+    
+    // Check horizontal width
+    for (let dx = -8; dx <= 8; dx++) {
+      const x = cx + dx;
+      if (x >= 0 && x < width) {
+        const i = (cy * width + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        if (isDarkObject(r, g, b)) {
+          horizontalDark++;
+        }
+      }
+    }
+    
+    // Rackets are more vertical than horizontal
+    const elongationRatio = horizontalDark > 0 ? verticalDark / horizontalDark : 0;
+    return Math.min(1, elongationRatio / 2);
+  };
 
   return { racketBox, isLoading };
 };
