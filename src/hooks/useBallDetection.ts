@@ -27,8 +27,8 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
       }
 
       frameCountRef.current++;
-      // Process every 3rd frame for performance
-      if (frameCountRef.current % 3 !== 0) {
+      // Process every 2nd frame for better performance
+      if (frameCountRef.current % 2 !== 0) {
         return;
       }
 
@@ -41,8 +41,8 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Use smaller canvas for performance but maintain aspect ratio
-        const scale = Math.min(320 / video.videoWidth, 240 / video.videoHeight);
+        // Use reasonable canvas size for processing
+        const scale = Math.min(400 / video.videoWidth, 300 / video.videoHeight);
         canvas.width = video.videoWidth * scale;
         canvas.height = video.videoHeight * scale;
         
@@ -51,28 +51,30 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
         
         const ball = findTennisBall(imageData.data, canvas.width, canvas.height);
         
-        if (ball && ball.confidence > 0.4) {
+        if (ball && ball.confidence > 0.3) {
           // Add to history for smoothing
           detectionHistoryRef.current.push(ball);
-          if (detectionHistoryRef.current.length > 8) {
+          if (detectionHistoryRef.current.length > 5) {
             detectionHistoryRef.current.shift();
           }
           
           // Apply smoothing
           const smoothedBall = smoothBallDetection(detectionHistoryRef.current);
           setBallDetection(smoothedBall);
-          console.log('Ball detected and smoothed:', smoothedBall);
-        } else if (detectionHistoryRef.current.length > 0) {
-          // Gradually reduce confidence if no recent detections
-          detectionHistoryRef.current = detectionHistoryRef.current.slice(-3);
+          console.log('Ball detected:', smoothedBall);
+        } else {
+          // Gradually fade detection if no recent ball found
           if (detectionHistoryRef.current.length > 0) {
-            const lastBall = detectionHistoryRef.current[detectionHistoryRef.current.length - 1];
-            setBallDetection({
-              ...lastBall,
-              confidence: lastBall.confidence * 0.8
-            });
-          } else {
-            setBallDetection(null);
+            detectionHistoryRef.current = detectionHistoryRef.current.slice(-2);
+            if (detectionHistoryRef.current.length > 0) {
+              const lastBall = detectionHistoryRef.current[detectionHistoryRef.current.length - 1];
+              setBallDetection({
+                ...lastBall,
+                confidence: lastBall.confidence * 0.7
+              });
+            } else {
+              setBallDetection(null);
+            }
           }
         }
       } catch (error) {
@@ -80,8 +82,8 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
       }
     };
 
-    // Run ball detection at 10 FPS
-    const interval = setInterval(detectBall, 100);
+    // Run ball detection at 15 FPS
+    const interval = setInterval(detectBall, 66);
 
     return () => {
       clearInterval(interval);
@@ -89,34 +91,37 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
   }, [videoRef]);
 
   const findTennisBall = (data: Uint8ClampedArray, width: number, height: number): BallDetection | null => {
-    const candidates: Array<{x: number, y: number, score: number}> = [];
+    const candidates: Array<{x: number, y: number, score: number, size: number}> = [];
     
-    // Scan for yellow/green tennis ball colors
-    for (let y = 5; y < height - 5; y += 2) {
-      for (let x = 5; x < width - 5; x += 2) {
+    // Scan for tennis ball colors with improved detection
+    for (let y = 10; y < height - 10; y += 3) {
+      for (let x = 10; x < width - 10; x += 3) {
         const i = (y * width + x) * 4;
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         
-        // Check for tennis ball colors (yellow-green spectrum)
+        // Enhanced tennis ball color detection
         const isTennisBallColor = (
-          // Classic tennis ball yellow
-          (g > 140 && r > 100 && r < 220 && b < 100 && Math.abs(g - r) < 80) ||
-          // Bright yellow
-          (g > 180 && r > 160 && b < 120) ||
-          // Yellow-green
-          (g > 150 && r > 120 && r < 200 && b < 120 && g > r)
+          // Bright yellow-green tennis ball
+          (g > 160 && r > 140 && r < 240 && b < 100 && Math.abs(g - r) < 60) ||
+          // Fluorescent yellow
+          (g > 180 && r > 170 && b < 120 && g > r) ||
+          // Yellow-green spectrum
+          (g > 150 && r > 120 && r < 200 && b < 110 && (g - r) > -20 && (g - r) < 40) ||
+          // Bright lime/neon colors
+          (g > 200 && r > 150 && b < 80)
         );
         
         if (isTennisBallColor) {
-          // Check surrounding pixels for circular pattern
-          const circularScore = checkCircularPattern(data, x, y, width, height);
-          if (circularScore > 0.3) {
+          // Check for circular pattern around this point
+          const circularData = analyzeCircularRegion(data, x, y, width, height);
+          if (circularData.score > 0.25) {
             candidates.push({
               x: x / width,
               y: y / height,
-              score: circularScore
+              score: circularData.score,
+              size: circularData.estimatedRadius
             });
           }
         }
@@ -124,54 +129,114 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
     }
     
     if (candidates.length > 0) {
-      // Find best candidate
-      const best = candidates.reduce((max, current) => 
-        current.score > max.score ? current : max
-      );
+      // Filter out candidates that are too close to each other
+      const filteredCandidates = filterNearbyDetections(candidates);
       
-      return {
-        x: best.x,
-        y: best.y,
-        radius: 0.02, // Approximate ball size
-        confidence: Math.min(0.9, best.score)
-      };
+      if (filteredCandidates.length > 0) {
+        // Find best candidate based on score and size
+        const best = filteredCandidates.reduce((max, current) => {
+          const sizeBonus = (current.size > 2 && current.size < 15) ? 0.2 : 0;
+          const totalScore = current.score + sizeBonus;
+          const maxSizeBonus = (max.size > 2 && max.size < 15) ? 0.2 : 0;
+          const maxTotalScore = max.score + maxSizeBonus;
+          return totalScore > maxTotalScore ? current : max;
+        });
+        
+        return {
+          x: best.x,
+          y: best.y,
+          radius: Math.max(0.015, Math.min(0.04, best.size / Math.min(width, height))),
+          confidence: Math.min(0.95, best.score + 0.1)
+        };
+      }
     }
     
     return null;
   };
 
-  const checkCircularPattern = (data: Uint8ClampedArray, centerX: number, centerY: number, width: number, height: number): number => {
-    let matchingPixels = 0;
-    let totalChecked = 0;
-    const radius = 3;
+  const analyzeCircularRegion = (data: Uint8ClampedArray, centerX: number, centerY: number, width: number, height: number) => {
+    let yellowPixels = 0;
+    let totalPixels = 0;
+    let radiusSum = 0;
+    let radiusCount = 0;
     
-    for (let dy = -radius; dy <= radius; dy++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance <= radius) {
-          const x = centerX + dx;
-          const y = centerY + dy;
+    const maxRadius = 12;
+    
+    for (let radius = 2; radius <= maxRadius; radius += 2) {
+      let circleYellowPixels = 0;
+      let circlePixels = 0;
+      
+      // Check pixels in a circle at this radius
+      const angleStep = Math.PI / (radius * 2);
+      for (let angle = 0; angle < 2 * Math.PI; angle += angleStep) {
+        const x = Math.round(centerX + radius * Math.cos(angle));
+        const y = Math.round(centerY + radius * Math.sin(angle));
+        
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+          const i = (y * width + x) * 4;
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
           
-          if (x >= 0 && x < width && y >= 0 && y < height) {
-            const i = (y * width + x) * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            if (g > 120 && r > 80 && b < 120) {
-              matchingPixels++;
-            }
-            totalChecked++;
+          circlePixels++;
+          totalPixels++;
+          
+          // Check if this pixel matches tennis ball color
+          if (g > 130 && r > 100 && b < 120 && Math.abs(g - r) < 70) {
+            circleYellowPixels++;
+            yellowPixels++;
           }
         }
       }
+      
+      // If this radius has a good proportion of yellow pixels, it might be the ball edge
+      if (circlePixels > 0 && (circleYellowPixels / circlePixels) > 0.4) {
+        radiusSum += radius;
+        radiusCount++;
+      }
     }
     
-    return totalChecked > 0 ? matchingPixels / totalChecked : 0;
+    const yellowRatio = totalPixels > 0 ? yellowPixels / totalPixels : 0;
+    const estimatedRadius = radiusCount > 0 ? radiusSum / radiusCount : 5;
+    
+    // Score based on yellow pixel ratio and circular consistency
+    const circularScore = radiusCount > 1 ? 0.3 : 0;
+    const colorScore = yellowRatio * 0.7;
+    
+    return {
+      score: colorScore + circularScore,
+      estimatedRadius
+    };
+  };
+
+  const filterNearbyDetections = (candidates: Array<{x: number, y: number, score: number, size: number}>) => {
+    const filtered = [];
+    const minDistance = 0.05; // Minimum distance between detections
+    
+    for (const candidate of candidates) {
+      let tooClose = false;
+      for (const existing of filtered) {
+        const distance = Math.sqrt(
+          Math.pow(candidate.x - existing.x, 2) + Math.pow(candidate.y - existing.y, 2)
+        );
+        if (distance < minDistance) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (!tooClose) {
+        filtered.push(candidate);
+      }
+    }
+    
+    return filtered;
   };
 
   const smoothBallDetection = (history: BallDetection[]): BallDetection => {
-    const weights = history.map((_, i) => i + 1); // More recent detections have higher weight
+    if (history.length === 1) return history[0];
+    
+    // Use weighted average with more weight on recent detections
+    const weights = history.map((_, i) => Math.pow(1.5, i)); // Exponential weighting
     const totalWeight = weights.reduce((sum, w) => sum + w, 0);
     
     const x = history.reduce((sum, ball, i) => sum + ball.x * weights[i], 0) / totalWeight;
