@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { detectRacketFromPixels } from './racketPatternAnalysis';
 
@@ -45,16 +44,18 @@ export const useRacketDetectionCore = (
         }
         
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+          console.warn('Canvas 2D context not available');
+          return;
+        }
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const racketDetection = detectRacketFromPixels(imageData.data, canvas.width, canvas.height, playerRegion);
-        
+        console.log('[RacketDetectionCore] Detection result:', racketDetection);
         if (racketDetection && racketDetection.confidence > 0.6) {
           setRacketBox(racketDetection);
           console.log('Real racket detected:', racketDetection);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 
 interface ServeMetrics {
@@ -16,7 +15,7 @@ interface LandmarkPoint {
   visibility?: number;
 }
 
-export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front' | 'side' | 'back') => {
+export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front' | 'side' | 'back', ballDetection?: any) => {
   const [metrics, setMetrics] = useState<ServeMetrics>({
     elbow: 0,
     knee: 0,
@@ -26,8 +25,12 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
   });
   const [similarity, setSimilarity] = useState(0);
   const [servePhase, setServePhase] = useState<'preparation' | 'loading' | 'acceleration' | 'contact' | 'follow-through'>('preparation');
+  const [tossHeight, setTossHeight] = useState<number | null>(null);
+  const [contactTiming, setContactTiming] = useState<number | null>(null);
   const metricsHistoryRef = useRef<ServeMetrics[]>([]);
   const lastUpdateRef = useRef<number>(0);
+  const ballYHistoryRef = useRef<number[]>([]);
+  const contactFrameRef = useRef<number | null>(null);
 
   // MediaPipe pose landmark indices
   const POSE_LANDMARKS = {
@@ -272,10 +275,46 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
       
       setSimilarity(Math.round(similarityScore));
       
+      // Ball-based metrics
+      if (ballDetection && ballDetection.confidence > 0.5) {
+        // Track toss height (max y before contact phase)
+        if (servePhase !== 'contact' && servePhase !== 'follow-through') {
+          ballYHistoryRef.current.push(ballDetection.y);
+          if (ballYHistoryRef.current.length > 30) {
+            ballYHistoryRef.current.shift();
+          }
+          setTossHeight(Math.min(...ballYHistoryRef.current)); // y is normalized, min y is highest point
+        }
+        // Detect contact timing (when racket and ball are closest during contact phase)
+        if (servePhase === 'contact' && racketBox) {
+          const racketCenter = {
+            x: racketBox.x + racketBox.width / 2,
+            y: racketBox.y + racketBox.height / 2
+          };
+          const dist = Math.sqrt(
+            Math.pow(ballDetection.x - racketCenter.x, 2) +
+            Math.pow(ballDetection.y - racketCenter.y, 2)
+          );
+          if (contactFrameRef.current === null || dist < contactFrameRef.current) {
+            contactFrameRef.current = dist;
+            setContactTiming(now);
+          }
+        }
+        if (servePhase === 'follow-through') {
+          contactFrameRef.current = null;
+          ballYHistoryRef.current = [];
+        }
+      } else {
+        setTossHeight(null);
+        setContactTiming(null);
+        ballYHistoryRef.current = [];
+        contactFrameRef.current = null;
+      }
+      
     } catch (error) {
       console.error('Enhanced serve analytics calculation error:', error);
     }
-  }, [pose, racketBox, cameraAngle]);
+  }, [pose, racketBox, cameraAngle, ballDetection, servePhase]);
 
   const saveSession = async () => {
     const session = {
@@ -288,7 +327,9 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
       cameraAngle,
       duration: metricsHistoryRef.current.length * 0.033, // 30 FPS
       racketDetected: !!racketBox,
-      racketConfidence: racketBox?.confidence || 0
+      racketConfidence: racketBox?.confidence || 0,
+      tossHeight,
+      contactTiming
     };
     
     try {
@@ -332,6 +373,8 @@ export const useServeAnalytics = (pose: any, racketBox: any, cameraAngle: 'front
     servePhase, 
     saveSession, 
     resetMetrics, 
-    metricsHistory: metricsHistoryRef.current 
+    metricsHistory: metricsHistoryRef.current,
+    tossHeight,
+    contactTiming
   };
 };

@@ -19,6 +19,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
   const [error, setError] = useState<string | null>(null);
   const poseRef = useRef<any>(null);
   const processingRef = useRef<boolean>(false);
+  const lastProcessTimeRef = useRef<number>(0);
 
   useEffect(() => {
     let mounted = true;
@@ -38,14 +39,14 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
           }
         });
 
-        // Optimized settings for better detection
+        // Optimized settings for real-time performance
         await poseInstance.setOptions({
-          modelComplexity: 1, // Balance between accuracy and speed
+          modelComplexity: 0, // Use fastest model (0 = lite, 1 = full, 2 = heavy)
           smoothLandmarks: true,
-          enableSegmentation: false,
+          enableSegmentation: false, // Disable segmentation for better performance
           smoothSegmentation: false,
-          minDetectionConfidence: 0.7, // Higher confidence threshold
-          minTrackingConfidence: 0.5
+          minDetectionConfidence: 0.6, // Slightly lower for better detection rate
+          minTrackingConfidence: 0.4   // Lower for better tracking consistency
         });
 
         poseInstance.onResults((results) => {
@@ -58,11 +59,10 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
           
           // Validate landmarks have reasonable visibility
           const validLandmarks = results.poseLandmarks.filter(landmark => 
-            landmark.visibility && landmark.visibility > 0.3
+            landmark.visibility && landmark.visibility > 0.2 // Lower threshold for better detection
           );
           
-          if (validLandmarks.length < 10) {
-            console.log('Not enough visible landmarks:', validLandmarks.length);
+          if (validLandmarks.length < 8) { // Reduced minimum for better responsiveness
             return;
           }
 
@@ -104,9 +104,18 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
       const poseInstance = poseRef.current;
       
       if (!video || !poseInstance || video.paused || video.ended || !video.videoWidth) {
-        requestAnimationFrame(processVideo);
+        // Use timeout instead of requestAnimationFrame for better control
+        setTimeout(() => processVideo(), 50); // 20 FPS check rate
         return;
       }
+
+      // Throttle processing to 10 FPS for better performance
+      const now = performance.now();
+      if (now - lastProcessTimeRef.current < 100) {
+        setTimeout(() => processVideo(), 50);
+        return;
+      }
+      lastProcessTimeRef.current = now;
 
       processingRef.current = true;
 
@@ -118,8 +127,8 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
         processingRef.current = false;
       }
 
-      // Process at 15 FPS for better performance
-      setTimeout(() => requestAnimationFrame(processVideo), 66);
+      // Continue processing with controlled rate
+      setTimeout(() => processVideo(), 100); // 10 FPS processing rate
     };
 
     initializeMediaPipe().then(() => {

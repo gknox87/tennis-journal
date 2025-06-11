@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { FileVideo } from 'lucide-react';
 
@@ -30,70 +29,65 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   panY
 }) => {
   const renderRef = useRef<number>(0);
+  const lastRenderTime = useRef<number>(0);
 
   useEffect(() => {
-    const drawOverlay = () => {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      
-      if (!canvas || !video || !video.videoWidth || !video.videoHeight) {
+    const drawOverlay = (currentTime: number) => {
+      // Throttle rendering to 15 FPS for better performance
+      if (currentTime - lastRenderTime.current < 67) { // 67ms = ~15 FPS
         renderRef.current = requestAnimationFrame(drawOverlay);
         return;
       }
+      lastRenderTime.current = currentTime;
       
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      if (!canvas || !video) {
+        renderRef.current = requestAnimationFrame(drawOverlay);
+        return;
+      }
+
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      
-      // Set canvas size to match video element exactly
-      const videoRect = video.getBoundingClientRect();
-      canvas.style.width = `${videoRect.width}px`;
-      canvas.style.height = `${videoRect.height}px`;
-      canvas.width = videoRect.width;
-      canvas.height = videoRect.height;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Calculate proper scaling for overlays
-      const videoAspect = video.videoWidth / video.videoHeight;
-      const canvasAspect = canvas.width / canvas.height;
-      
-      let scale, offsetX, offsetY;
-      if (videoAspect > canvasAspect) {
-        // Video is wider - scale to fit height
-        scale = canvas.height / video.videoHeight;
-        offsetX = (canvas.width - video.videoWidth * scale) / 2;
-        offsetY = 0;
-      } else {
-        // Video is taller - scale to fit width
-        scale = canvas.width / video.videoWidth;
-        offsetX = 0;
-        offsetY = (canvas.height - video.videoHeight * scale) / 2;
+      if (!ctx) {
+        renderRef.current = requestAnimationFrame(drawOverlay);
+        return;
       }
+
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth || video.clientWidth;
+      canvas.height = video.videoHeight || video.clientHeight;
       
+      const { width, height } = canvas;
+      
+      // Clear previous drawings
+      ctx.clearRect(0, 0, width, height);
+
+      // Apply zoom and pan transformations
       ctx.save();
-      ctx.translate(offsetX + panX, offsetY + panY);
-      ctx.scale(scale * zoom, scale * zoom);
+      ctx.scale(zoom, zoom);
+      ctx.translate(panX, panY);
 
-      // Draw pose skeleton
-      if (pose && pose.landmarks && pose.landmarks.length >= 33) {
-        drawPoseSkeleton(ctx, pose.landmarks, video.videoWidth, video.videoHeight);
+      // Draw pose skeleton with landmarks
+      if (pose && pose.landmarks) {
+        drawPoseSkeleton(ctx, pose.landmarks, width, height);
       }
 
-      // Draw racket box
+      // Draw racket detection box
       if (racketBox && racketBox.confidence > 0.3) {
-        drawRacketBox(ctx, racketBox, video.videoWidth, video.videoHeight);
+        drawRacketBox(ctx, racketBox, width, height);
       }
 
       // Draw ball detection
-      if (ballDetection && ballDetection.confidence > 0.3) {
-        drawBallDetection(ctx, ballDetection, video.videoWidth, video.videoHeight);
+      if (ballDetection && ballDetection.confidence > 0.01) {
+        drawBallDetection(ctx, ballDetection, width, height);
       }
-      
-      ctx.restore();
-      
-      // Draw status info (unscaled)
+
+      // Draw status info overlay
+      ctx.restore(); // Reset transformations for status overlay
       drawStatusInfo(ctx, { pose, racketBox, ballDetection });
       
+      // Continue animation loop
       renderRef.current = requestAnimationFrame(drawOverlay);
     };
     
@@ -107,7 +101,6 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   }, [canvasRef, videoRef, pose, racketBox, playerBounds, ballDetection, zoom, panX, panY]);
 
   const drawPoseSkeleton = (ctx: CanvasRenderingContext2D, landmarks: any[], width: number, height: number) => {
-    console.log('Drawing pose skeleton with', landmarks.length, 'landmarks');
     
     // MediaPipe pose connections
     const connections = [
@@ -193,33 +186,97 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
   };
 
   const drawBallDetection = (ctx: CanvasRenderingContext2D, ball: any, width: number, height: number) => {
-    ctx.strokeStyle = '#FFFF00';
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-    ctx.lineWidth = 3;
-    
+    // Ball coordinates are normalized (0-1), convert to pixel coordinates
     const x = ball.x * width;
     const y = ball.y * height;
-    const radius = ball.radius * Math.min(width, height);
+    
+    // Calculate tennis ball radius based on video resolution
+    // Tennis ball is approximately 6.7cm diameter
+    // Assume the video shows roughly 10-15 meters width for tennis court
+    const ballRadius = Math.max(8, Math.min(25, width * 0.02)); // Adaptive radius between 8-25 pixels
+    
+    // Draw ball with confidence-based opacity
+    const opacity = Math.min(0.8, ball.confidence + 0.2);
+    
+    // Outer glow for better visibility
+    ctx.shadowColor = '#FFFF00';
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = '#FFFF00';
+    ctx.fillStyle = `rgba(255, 255, 0, ${opacity * 0.4})`;
+    ctx.lineWidth = 3;
     
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.arc(x, y, ballRadius, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
     
-    // Center dot
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    
+    // Inner circle for precision
     ctx.fillStyle = '#FFFF00';
     ctx.beginPath();
-    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    ctx.arc(x, y, 4, 0, 2 * Math.PI);
     ctx.fill();
     
-    // Label
-    ctx.font = '12px Arial';
-    ctx.fillText(`Ball ${Math.round(ball.confidence * 100)}%`, x + radius + 5, y - 5);
+    // Crosshair for exact center
+    ctx.strokeStyle = '#FFFF00';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - 8, y);
+    ctx.lineTo(x + 8, y);
+    ctx.moveTo(x, y - 8);
+    ctx.lineTo(x, y + 8);
+    ctx.stroke();
+    
+    // Motion trail (if we have previous positions)
+    if (ball.previousPositions && ball.previousPositions.length > 0) {
+      ctx.strokeStyle = `rgba(255, 255, 0, 0.3)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      let prevX = ball.previousPositions[0].x * width;
+      let prevY = ball.previousPositions[0].y * height;
+      ctx.moveTo(prevX, prevY);
+      
+      for (let i = 1; i < ball.previousPositions.length; i++) {
+        const posX = ball.previousPositions[i].x * width;
+        const posY = ball.previousPositions[i].y * height;
+        ctx.lineTo(posX, posY);
+        prevX = posX;
+        prevY = posY;
+      }
+      
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+    
+    // Confidence and detection info
+    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    
+    const label = `Ball ${Math.round(ball.confidence * 100)}%`;
+    const labelX = x + ballRadius + 8;
+    const labelY = y - 8;
+    
+    // Text with outline for better visibility
+    ctx.strokeText(label, labelX, labelY);
+    ctx.fillText(label, labelX, labelY);
+    
+    // Detection quality indicator
+    const qualityColor = ball.confidence > 0.7 ? '#00FF00' : 
+                        ball.confidence > 0.4 ? '#FFAA00' : '#FF6600';
+    ctx.fillStyle = qualityColor;
+    ctx.fillRect(labelX, labelY + 3, 60 * ball.confidence, 3);
+    
+    console.log('[VideoDisplay] Ball detection drawn successfully');
   };
 
   const drawStatusInfo = (ctx: CanvasRenderingContext2D, detections: any) => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(10, 10, 250, 100);
+    ctx.fillRect(10, 10, 280, 130);
     
     ctx.fillStyle = '#00FF00';
     ctx.font = 'bold 14px Arial';
@@ -248,11 +305,30 @@ export const VideoDisplay: React.FC<VideoDisplayProps> = ({
     y += 15;
     
     if (detections.ballDetection) {
+      const ball = detections.ballDetection;
       ctx.fillStyle = '#FFFF00';
-      ctx.fillText(`✓ Ball: ${Math.round(detections.ballDetection.confidence * 100)}%`, 15, y);
+      ctx.fillText(`✓ Ball: ${Math.round(ball.confidence * 100)}%`, 15, y);
+      y += 15;
+      
+      // Show ball position
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = '10px Arial';
+      ctx.fillText(`   Position: (${(ball.x * 100).toFixed(1)}%, ${(ball.y * 100).toFixed(1)}%)`, 15, y);
+      y += 12;
+      
+      // Show motion trail info
+      if (ball.previousPositions && ball.previousPositions.length > 0) {
+        ctx.fillText(`   Trail: ${ball.previousPositions.length} points`, 15, y);
+      } else {
+        ctx.fillText(`   Trail: None`, 15, y);
+      }
     } else {
       ctx.fillStyle = '#FF6600';
       ctx.fillText('⚠ Ball: No detection', 15, y);
+      y += 15;
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = '10px Arial';
+      ctx.fillText('   Check lighting & ball visibility', 15, y);
     }
   };
 

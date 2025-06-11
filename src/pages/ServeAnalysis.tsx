@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Activity, Link, Upload, Camera, User, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePlayerDetection } from '@/hooks/usePlayerDetection';
+import { useBallDetection } from '@/hooks/useBallDetection';
 import { useMediaPipePose } from '@/hooks/useMediaPipePose';
 import { useRacketDetection } from '@/hooks/useRacketDetection';
 import { useServeAnalytics } from '@/hooks/useServeAnalytics';
@@ -17,6 +18,7 @@ import { ComparisonPanel } from '@/components/serve/ComparisonPanel';
 import { CoachingInsights } from '@/components/serve/CoachingInsights';
 import { PerformanceChart } from '@/components/serve/PerformanceChart';
 import { DrillRecommendations } from '@/components/serve/DrillRecommendations';
+import { VideoStatusIndicators } from '@/components/serve/VideoStatusIndicators';
 
 type CameraAngle = 'front' | 'side' | 'back';
 
@@ -35,11 +37,12 @@ const ServeAnalysis = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   
-  // Use the adaptive AI hooks - fixed the argument count for useMediaPipePose
-  const { playerBounds, ballDetection, isAnalyzing } = usePlayerDetection(videoRef);
+  // Use the adaptive AI hooks with optimized real-time detection
+  const { playerBounds } = usePlayerDetection(videoRef);
+  const { ballDetection, isAnalyzing, usingYolo: ballUsingYolo, yoloError: ballYoloError } = useBallDetection(videoRef);
   const { pose, isLoading: poseLoading, error: poseError } = useMediaPipePose(videoRef);
-  const { racketBox, isLoading: racketLoading } = useRacketDetection(videoRef, playerBounds, pose);
-  const { metrics, similarity, servePhase, saveSession, resetMetrics, metricsHistory } = useServeAnalytics(pose, racketBox, cameraAngle);
+  const { racketBox, isLoading: racketLoading, usingYolo: racketUsingYolo, yoloError: racketYoloError } = useRacketDetection(videoRef, playerBounds, pose);
+  const { metrics, similarity, servePhase, saveSession, resetMetrics, metricsHistory, tossHeight, contactTiming } = useServeAnalytics(pose, racketBox, cameraAngle, ballDetection);
 
   const isAILoading = poseLoading || racketLoading || isAnalyzing;
 
@@ -291,6 +294,70 @@ const ServeAnalysis = () => {
             </div>
           )}
           
+          {/* Racket Detection Status */}
+          {racketYoloError && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-amber-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">YOLO racket model failed to load. Using pose-based detection as fallback.</span>
+            </div>
+          )}
+          {racketUsingYolo && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-green-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm">AI Racket Detection Active (YOLO)</span>
+            </div>
+          )}
+          {!racketUsingYolo && !racketYoloError && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-blue-600">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+              <span className="text-sm">Pose-based Racket Detection Active</span>
+            </div>
+          )}
+          {(!racketBox || racketBox.confidence < 0.6) && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">
+                Racket not detected reliably. 
+                {racketUsingYolo 
+                  ? " Ensure your racket is visible and well-lit for AI detection."
+                  : " Ensure your racket is visible and try wearing contrasting clothing."
+                }
+              </span>
+            </div>
+          )}
+          
+          {/* Ball Detection Warning & Status */}
+          {ballYoloError && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-amber-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">YOLO model failed to load. Using color-based detection as fallback.</span>
+            </div>
+          )}
+          {ballUsingYolo && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-green-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm">AI Ball Detection Active (YOLO)</span>
+            </div>
+          )}
+          {!ballUsingYolo && !ballYoloError && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-blue-600">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+              <span className="text-sm">Color-based Ball Detection Active</span>
+            </div>
+          )}
+          {(!ballDetection || ballDetection.confidence < 0.5) && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">
+                Ball not detected reliably. 
+                {ballUsingYolo 
+                  ? " Ensure good lighting and ball visibility for AI detection." 
+                  : " Make sure the ball is bright yellow/green and visible."
+                }
+              </span>
+            </div>
+          )}
+          
           {poseError && (
             <div className="flex items-center justify-center gap-2 mt-4 text-amber-600">
               <AlertCircle className="h-4 w-4" />
@@ -409,6 +476,15 @@ const ServeAnalysis = () => {
         ballDetection={ballDetection}
       />
 
+      {/* Enhanced Ball Detection Status */}
+      <VideoStatusIndicators
+        ballDetection={ballDetection}
+        ballUsingYolo={ballUsingYolo}
+        ballYoloError={ballYoloError}
+        pose={pose}
+        racketBox={racketBox}
+      />
+
       {/* Serve Phase Indicator */}
       {pose && (
         <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50">
@@ -466,6 +542,18 @@ const ServeAnalysis = () => {
           icon="followthrough"
         />
       </div>
+
+      {/* Ball-based Metrics */}
+      {(tossHeight !== null || contactTiming !== null) && (
+        <div className="mb-6 flex flex-col items-center">
+          {tossHeight !== null && (
+            <div className="text-sm text-blue-700">Toss Height (highest ball point): {tossHeight.toFixed(3)}</div>
+          )}
+          {contactTiming !== null && (
+            <div className="text-sm text-blue-700">Contact Timing: {contactTiming}</div>
+          )}
+        </div>
+      )}
 
       {/* Analysis Tabs */}
       {hasRecorded && (
