@@ -2,11 +2,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useSport } from "@/context/SportContext";
 import { ArrowLeft, Trophy, Target, Zap } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
 import { useEffect } from "react";
 
 const AddMatch = () => {
+  const { sport } = useSport();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -127,12 +129,12 @@ const AddMatch = () => {
               <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
                 <Trophy className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold gradient-text">Record Your Match</h1>
+              <h1 className="text-3xl md:text-4xl font-bold gradient-text">Record Your {sport.terminology.matchLabel}</h1>
               <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg">
                 <Target className="w-8 h-8 text-white" />
               </div>
             </div>
-            <p className="text-gray-600 text-lg font-medium">Capture every detail of your tennis journey!</p>
+            <p className="text-gray-600 text-lg font-medium">Capture every detail of your {sport.name.toLowerCase()} journey!</p>
             
             {/* Fun stats/motivational elements */}
             <div className="flex justify-center items-center gap-6 mt-6">

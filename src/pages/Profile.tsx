@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSport } from "@/context/SportContext";
 import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera } from "lucide-react";
 
 interface ProfileData {
@@ -26,6 +27,7 @@ interface LiveStats {
 }
 
 const Profile = () => {
+  const { sport } = useSport();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
@@ -201,7 +203,7 @@ const Profile = () => {
               Your Profile
             </h1>
             <p className="text-gray-600 mt-2 text-base sm:text-lg font-medium">
-              Manage Your Tennis Profile & Preferences
+              Manage Your {sport.name} Profile & Preferences
             </p>
           </div>
           <Button
@@ -237,7 +239,7 @@ const Profile = () => {
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  {profileData.full_name || "Tennis Player"}
+                  {profileData.full_name || `${sport.name} Player`}
                 </h2>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm opacity-90">
                   {profileData.club && (
@@ -285,14 +287,14 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="club" className="text-gray-700 font-medium">Tennis Club</Label>
+                  <Label htmlFor="club" className="text-gray-700 font-medium">{sport.name} Club</Label>
                   <Input
                     id="club"
                     value={profileData.club || ""}
                     onChange={(e) => setProfileData({ ...profileData, club: e.target.value })}
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 disabled:bg-gray-100"
-                    placeholder="Enter your tennis club"
+                    placeholder={`Enter your ${sport.name.toLowerCase()} club`}
                   />
                 </div>
 
@@ -358,7 +360,7 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
-              <p className="text-sm opacity-90">Matches Won</p>
+              <p className="text-sm opacity-90">{sport.terminology.matchLabel}s Won</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />
@@ -368,7 +370,7 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-purple-500 to-purple-600 text-white">
               <User className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.keyOpponents}</p>
-              <p className="text-sm opacity-90">Key Opponents</p>
+              <p className="text-sm opacity-90">Key {sport.terminology.opponentLabel}s</p>
             </Card>
           </div>
         </div>

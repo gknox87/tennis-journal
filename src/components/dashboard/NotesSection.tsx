@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, BookOpen, Sparkles } from "lucide-react";
+import { useSport } from "@/context/SportContext";
 import { PlayerNote } from "@/types/notes";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -19,6 +20,8 @@ export const NotesSection = ({
   onEditNote,
   onDeleteNote
 }: NotesSectionProps) => {
+  const { sport } = useSport();
+
   const stripHtmlTags = (html: string) => {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
@@ -30,10 +33,10 @@ export const NotesSection = ({
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <BookOpen className="w-6 h-6 text-purple-500" />
-          <h2 className="text-xl md:text-2xl font-bold gradient-text">Match Journal</h2>
+          <h2 className="text-xl md:text-2xl font-bold gradient-text">{sport.terminology.matchLabel} Journal</h2>
           <Sparkles className="w-6 h-6 text-yellow-500" />
         </div>
-        <p className="text-muted-foreground mb-6">Capture your tennis insights and improve your game</p>
+        <p className="text-muted-foreground mb-6">Capture your {sport.name.toLowerCase()} insights and improve your game</p>
         
         <Button 
           onClick={onAddNote} 
