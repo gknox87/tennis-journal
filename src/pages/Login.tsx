@@ -117,9 +117,9 @@ const Login = () => {
             <Trophy className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            Tennis Match Chronicle
+            Sports Journal
           </h1>
-          <p className="text-gray-600 mt-2">Track your journey to tennis greatness</p>
+          <p className="text-gray-600 mt-2">Track your journey to greatness</p>
         </div>
 
         {/* Features preview */}
@@ -142,7 +142,7 @@ const Login = () => {
         <Card className="p-8 bg-white/80 backdrop-blur-sm border-2 border-white/20 shadow-2xl">
           <div className="text-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">Welcome Back</h2>
-            <p className="text-gray-600 text-sm mt-1">Sign in to continue your tennis journey</p>
+            <p className="text-gray-600 text-sm mt-1">Sign in to continue your journey</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -217,7 +217,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">🎾 Start tracking your tennis journey today</p>
+          <p className="text-xs text-gray-500">Start tracking your journey today</p>
         </div>
       </div>
     </div>

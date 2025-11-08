@@ -13,7 +13,24 @@ serve(async (req) => {
   }
 
   try {
-    const { notes } = await req.json();
+    const { notes, sport_id } = await req.json();
+
+    const sportDescriptor = (() => {
+      switch (sport_id) {
+        case 'table_tennis':
+          return 'You are a table tennis coach analyzing match notes. Reference serve variation, rally tempo, and spin control.';
+        case 'padel':
+          return 'You are a padel coach analyzing match notes. Focus on net play, lob defense, and partnership coordination.';
+        case 'pickleball':
+          return 'You are a pickleball coach analyzing match notes. Emphasize dink quality, third-shot strategy, and kitchen control.';
+        case 'badminton':
+          return 'You are a badminton coach analyzing match notes. Consider shot selection, footwork patterns, and rally momentum.';
+        case 'squash':
+          return 'You are a squash coach analyzing match notes. Highlight T-position control, length accuracy, and pressure building.';
+        default:
+          return 'You are a tennis coach analyzing match notes. Extract 1-3 specific, actionable improvement points. Be concise and specific.';
+      }
+    })();
     
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -26,7 +43,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a tennis coach analyzing match notes. Extract 1-3 specific, actionable improvement points. Be concise and specific.'
+            content: sportDescriptor
           },
           {
             role: 'user',

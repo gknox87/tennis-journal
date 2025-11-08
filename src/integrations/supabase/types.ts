@@ -46,6 +46,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          coach_notes: string | null
           court_type: string | null
           created_at: string
           date: string
@@ -55,9 +56,11 @@ export type Database = {
           notes: string | null
           opponent_id: string | null
           score: string
+          sport_id: string | null
           user_id: string | null
         }
         Insert: {
+          coach_notes?: string | null
           court_type?: string | null
           created_at?: string
           date: string
@@ -67,9 +70,11 @@ export type Database = {
           notes?: string | null
           opponent_id?: string | null
           score: string
+          sport_id?: string | null
           user_id?: string | null
         }
         Update: {
+          coach_notes?: string | null
           court_type?: string | null
           created_at?: string
           date?: string
@@ -79,6 +84,7 @@ export type Database = {
           notes?: string | null
           opponent_id?: string | null
           score?: string
+          sport_id?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -87,6 +93,13 @@ export type Database = {
             columns: ["opponent_id"]
             isOneToOne: false
             referencedRelation: "opponents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
             referencedColumns: ["id"]
           },
         ]
@@ -98,6 +111,7 @@ export type Database = {
           is_key_opponent: boolean | null
           name: string
           notes: string | null
+          sport_id: string | null
           strengths: string | null
           tactics: string[] | null
           tendencies: string | null
@@ -110,6 +124,7 @@ export type Database = {
           is_key_opponent?: boolean | null
           name: string
           notes?: string | null
+          sport_id?: string | null
           strengths?: string | null
           tactics?: string[] | null
           tendencies?: string | null
@@ -122,13 +137,22 @@ export type Database = {
           is_key_opponent?: boolean | null
           name?: string
           notes?: string | null
+          sport_id?: string | null
           strengths?: string | null
           tactics?: string[] | null
           tendencies?: string | null
           user_id?: string | null
           weaknesses?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "opponents_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_notes: {
         Row: {
@@ -136,6 +160,7 @@ export type Database = {
           created_at: string | null
           id: string
           image_url: string | null
+          sport_id: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -145,6 +170,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          sport_id?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -154,11 +180,20 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          sport_id?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "player_notes_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -166,7 +201,9 @@ export type Database = {
           club: string | null
           full_name: string | null
           id: string
+          performance_goal: string | null
           preferred_surface: string | null
+          primary_sport_id: string | null
           ranking: string | null
           updated_at: string | null
         }
@@ -175,7 +212,9 @@ export type Database = {
           club?: string | null
           full_name?: string | null
           id: string
+          performance_goal?: string | null
           preferred_surface?: string | null
+          primary_sport_id?: string | null
           ranking?: string | null
           updated_at?: string | null
         }
@@ -184,11 +223,21 @@ export type Database = {
           club?: string | null
           full_name?: string | null
           id?: string
+          performance_goal?: string | null
           preferred_surface?: string | null
+          primary_sport_id?: string | null
           ranking?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_primary_sport_id_fkey"
+            columns: ["primary_sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scheduled_events: {
         Row: {
@@ -199,6 +248,7 @@ export type Database = {
           session_type: Database["public"]["Enums"]["session_type"]
           start_time: string
           title: string
+          sport_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -210,6 +260,7 @@ export type Database = {
           session_type: Database["public"]["Enums"]["session_type"]
           start_time: string
           title: string
+          sport_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -221,10 +272,19 @@ export type Database = {
           session_type?: Database["public"]["Enums"]["session_type"]
           start_time?: string
           title?: string
+          sport_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_events_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_notes: {
         Row: {
@@ -238,6 +298,7 @@ export type Database = {
           what_didnt_feel_good: string | null
           what_felt_good: string | null
           what_worked_on: string | null
+          sport_id: string | null
         }
         Insert: {
           coach_name?: string | null
@@ -250,6 +311,7 @@ export type Database = {
           what_didnt_feel_good?: string | null
           what_felt_good?: string | null
           what_worked_on?: string | null
+          sport_id?: string | null
         }
         Update: {
           coach_name?: string | null
@@ -262,6 +324,48 @@ export type Database = {
           what_didnt_feel_good?: string | null
           what_felt_good?: string | null
           what_worked_on?: string | null
+          sport_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_notes_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sports: {
+        Row: {
+          id: string
+          created_at: string
+          name: string
+          slug: string
+          short_name: string
+          category: string
+          scoring_format: Json
+          icon_url: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          name: string
+          slug: string
+          short_name?: string
+          category?: string
+          scoring_format?: Json
+          icon_url?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          name?: string
+          slug?: string
+          short_name?: string
+          category?: string
+          scoring_format?: Json
+          icon_url?: string | null
         }
         Relationships: []
       }

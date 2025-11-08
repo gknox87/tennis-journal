@@ -1,11 +1,14 @@
 
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SPORTS } from "@/constants/sports";
 import { Clock, Share2, Smartphone, ChevronRight, Mail, MessageCircle, Target, Brain, TrendingUp, Users, Calendar, BarChart3, BookOpen, Trophy, Zap, CheckCircle, Star, Play, Award, Activity } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const heroSports = useMemo(() => Object.values(SPORTS).slice(0, 6), []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -23,16 +26,16 @@ const Landing = () => {
               <div className="space-y-4">
                 <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-xs sm:text-sm font-medium text-blue-700 mb-4">
                   <Trophy className="w-3 sm:w-4 h-3 sm:h-4 mr-2" />
-                  #1 Tennis Performance Tracker
+                  Built for high-performance athletes across racket sports
                 </div>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-                  Tennis Pal: Track Performance, Master Your Mindset
+                  Sports Journal: Track Performance, Master Your Mindset
                 </h1>
                 <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto lg:mx-0">
-                  Track your matches, train your mind, and watch your tennis game reach new heights. Tennis Pal is the journaling and performance tracking app for players who never stop improving.
+                  Capture every match, training session, and reflection in one place. Sports Journal is the digital coaching companion for athletes chasing daily gains across tennis, table tennis, padel, pickleball, badminton, and squash.
                 </p>
                 <p className="text-sm sm:text-base md:text-lg text-gray-500 max-w-2xl mx-auto lg:mx-0">
-                  Whether you're a junior chasing trophies, a competitive adult, or a coach helping others succeed, Tennis Pal makes improvement feel exciting – not like homework.
+                  Whether you're targeting tour-level consistency, leading a club team, or coaching future champions, Sports Journal makes improvement engaging – never a chore.
                 </p>
               </div>
               
@@ -57,22 +60,28 @@ const Landing = () => {
               </div>
 
               {/* Trust indicators */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-6 pt-4">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 sm:w-5 h-4 sm:h-5 fill-yellow-400 text-yellow-400" />
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-6 pt-4 text-xs sm:text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 sm:w-5 h-4 sm:h-5 fill-yellow-400 text-yellow-400" />
+                  <span>Trusted by national squad coaches and ambitious athletes</span>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {heroSports.map((sport) => (
+                    <span key={sport.id} className="inline-flex items-center gap-1 px-3 py-1 bg-white/60 rounded-full border border-border text-xs">
+                      <span aria-hidden>{sport.icon}</span>
+                      {sport.shortName}
+                    </span>
                   ))}
-                  <span className="ml-2 text-xs sm:text-sm text-gray-600">4.9/5 from 500+ players</span>
                 </div>
               </div>
             </div>
             
             <div className="relative mt-8 lg:mt-0">
               <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-500">
-                <img 
-                  src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png" 
-                  alt="Tennis player using Tennis Pal app on court" 
-                  className="absolute inset-0 w-full h-full object-cover" 
+                <img
+                  src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
+                  alt="Athlete reviewing Sports Journal insights courtside"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
@@ -100,15 +109,15 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Why Choose Tennis Pal Section */}
+      {/* Why Choose Sports Journal Section */}
       <section className="py-12 sm:py-16 md:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
-              Why Choose Tennis Pal?
+              Why Choose Sports Journal?
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              The complete solution for tennis players who are serious about improvement
+              The complete solution for high-performing athletes who are serious about improvement
             </p>
           </div>
           
@@ -120,7 +129,7 @@ const Landing = () => {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Performance & Mindset</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Capture both your match stats and your mental game notes in a single app. Get a complete picture of your game, from first-serve percentage to how you felt in the tiebreaker.
+                  Capture both your performance stats and mental game notes in a single app. Get a complete picture of your game, from rally tempo to how you felt in the decider.
                 </p>
               </CardContent>
             </Card>
@@ -132,7 +141,7 @@ const Landing = () => {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Built for Competitors</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Designed for junior champs, weekend warriors, and coaches. Motivating and player-friendly – it inspires continual improvement without feeling like a chore.
+                  Designed for junior prospects, elite squads, and smart coaches. Motivating and athlete-friendly – it inspires continual improvement without feeling like a chore.
                 </p>
               </CardContent>
             </Card>
@@ -144,7 +153,7 @@ const Landing = () => {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Continuous Improvement</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Spot patterns and track progress over time. Every match and practice becomes a stepping stone toward your goals with detailed analytics.
+                  Spot patterns and track progress over time. Every match and practice becomes a stepping stone toward your goals with sport-aware analytics.
                 </p>
               </CardContent>
             </Card>
@@ -156,7 +165,7 @@ const Landing = () => {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Coach & Parent Support</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Easily share journals and stats with coaches or parents. Get feedback via WhatsApp/email, with direct in-app communication coming soon.
+                  Easily share journals and stats with coaches or performance staff. Get feedback via WhatsApp/email, with direct in-app communication coming soon.
                 </p>
               </CardContent>
             </Card>
@@ -172,7 +181,7 @@ const Landing = () => {
               Key Features & Use Cases
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Everything you need to elevate your tennis game
+              Everything you need to elevate your game, whichever court you step on
             </p>
           </div>
           
@@ -266,8 +275,8 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
-                quote: "I used to struggle to get my son to reflect on matches. Now he actually enjoys logging into Tennis Pal and comes off the court more confident and focused for the next match.",
-                author: "Michael, Tennis Parent",
+                quote: "I used to struggle to get my son to reflect on matches. Now he actually enjoys logging into Sports Journal and comes off the court more confident and focused for the next match.",
+                author: "Michael, Performance Parent",
                 avatar: "🎾"
               },
               {
@@ -316,13 +325,13 @@ const Landing = () => {
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Ready to Elevate Your Game?</h2>
           <p className="text-base sm:text-xl mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed opacity-90">
-            Every match is part of your journey – start using Tennis Pal to make each one count. Join a growing community of passionate tennis players committed to continual improvement.
+            Every match is part of your journey – start using Sports Journal to make each one count. Join a growing community of passionate athletes committed to continual improvement.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-6 sm:mb-8">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/register")} 
+            <Button
+              size="lg"
+              onClick={() => navigate("/register")}
               className="w-full sm:w-auto bg-white text-blue-900 hover:bg-gray-100 px-8 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl font-semibold rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-xl"
             >
               Start Your Free Trial
@@ -355,13 +364,13 @@ const Landing = () => {
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 sm:space-y-6">
             <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Transform Your Tennis Journey Today!
+              Transform Your Sporting Journey Today!
             </h3>
             <div className="flex justify-center gap-4 sm:gap-6">
               <MessageCircle className="h-6 sm:h-8 w-6 sm:w-8 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors transform hover:scale-110" />
               <Mail className="h-6 sm:h-8 w-6 sm:w-8 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors transform hover:scale-110" />
             </div>
-            <p className="text-xs sm:text-sm text-gray-400">© 2024 Tennis Pal. All rights reserved.</p>
+            <p className="text-xs sm:text-sm text-gray-400">© 2024 Sports Journal. All rights reserved.</p>
           </div>
         </div>
       </footer>

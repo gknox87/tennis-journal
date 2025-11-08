@@ -9,6 +9,7 @@ import { MatchList } from "@/components/MatchList";
 import { SortControls } from "@/components/SortControls";
 import { addMonths, addYears, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useSport } from "@/context/SportContext";
 
 type SortOption = "newest" | "oldest" | "alphabetical" | "lastMonth" | "lastYear";
 
@@ -19,9 +20,17 @@ const ViewAllMatches = () => {
   const [filteredMatches, setFilteredMatches] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const { sport } = useSport();
 
   const fetchMatches = async () => {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session?.user) {
+        setMatches([]);
+        return;
+      }
+
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
@@ -30,6 +39,8 @@ const ViewAllMatches = () => {
             name
           )
         `)
+        .eq("user_id", session.user.id)
+        .eq("sport_id", sport.id)
         .order("date", { ascending: false });
 
       if (matchesError) throw matchesError;
@@ -53,7 +64,7 @@ const ViewAllMatches = () => {
 
   useEffect(() => {
     fetchMatches();
-  }, []);
+  }, [sport.id]);
 
   useEffect(() => {
     let filtered = [...matches];
@@ -106,7 +117,9 @@ const ViewAllMatches = () => {
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">All Matches</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
+          {sport.icon} All {sport.terminology.matchLabel}s
+        </h1>
       </div>
 
       <div className="space-y-6">

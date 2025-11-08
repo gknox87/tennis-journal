@@ -66,21 +66,31 @@ export const useDataFetching = () => {
     }
   }, [checkAuth, toast]);
 
-  const fetchMatches = useCallback(async () => {
+  const fetchMatches = useCallback(async (sportId?: string) => {
     setIsLoading(true);
     try {
       const session = await checkAuth();
 
-      const { data: matchesData, error: matchesError } = await supabase
+      let query = supabase
         .from("matches")
         .select(`
           *,
           opponents (
             name
+          ),
+          sports (
+            name,
+            slug
           )
         `)
         .eq('user_id', session.user.id)
         .order("date", { ascending: false });
+
+      if (sportId) {
+        query = query.eq("sport_id", sportId);
+      }
+
+      const { data: matchesData, error: matchesError } = await query;
 
       if (matchesError) throw matchesError;
 
@@ -95,7 +105,10 @@ export const useDataFetching = () => {
         notes: match.notes || null,
         final_set_tiebreak: match.final_set_tiebreak || false,
         court_type: match.court_type || null,
-        created_at: match.created_at
+        created_at: match.created_at,
+        sport_id: match.sport_id || null,
+        sport_name: match.sports?.name,
+        sport_slug: match.sports?.slug
       })) || [];
 
       return processedMatches;

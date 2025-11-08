@@ -10,6 +10,7 @@ export const useMatchesData = () => {
   const { fetchMatches } = useDataFetching();
   const isFetchingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSportIdRef = useRef<string | undefined>(undefined);
 
   // Cleanup function for ongoing fetches
   useEffect(() => {
@@ -20,7 +21,7 @@ export const useMatchesData = () => {
     };
   }, []);
 
-  const refreshMatches = useCallback(async () => {
+  const refreshMatches = useCallback(async (sportId?: string) => {
     if (isFetchingRef.current) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -30,9 +31,12 @@ export const useMatchesData = () => {
     try {
       isFetchingRef.current = true;
       abortControllerRef.current = new AbortController();
+      if (sportId !== undefined) {
+        lastSportIdRef.current = sportId;
+      }
       
       console.log('Refreshing matches data...');
-      const matchesData = await fetchMatches();
+      const matchesData = await fetchMatches(lastSportIdRef.current);
       console.log('Fetched matches:', matchesData);
       
       setMatches(matchesData);
@@ -58,7 +62,7 @@ export const useMatchesData = () => {
         },
         (payload) => {
           console.log('Matches change detected:', payload);
-          refreshMatches();
+          refreshMatches(lastSportIdRef.current);
         }
       )
       .subscribe((status) => {

@@ -6,12 +6,14 @@ import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
+import { useSport } from "@/context/SportContext";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const { sport } = useSport();
   
   // Check auth state and fetch user profile
   useEffect(() => {
@@ -71,7 +73,7 @@ const Index = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await Promise.all([refreshMatches(), refreshNotes()]);
+        await Promise.all([refreshMatches(sport.id), refreshNotes()]);
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
@@ -80,7 +82,7 @@ const Index = () => {
     if (!isLoading) {
       loadInitialData();
     }
-  }, [refreshMatches, refreshNotes, isLoading]);
+  }, [refreshMatches, refreshNotes, isLoading, sport.id]);
 
   // Filter matches with debouncing
   useEffect(() => {
@@ -132,7 +134,7 @@ const Index = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               playerNotes={playerNotes}
-              onMatchDelete={refreshMatches}
+              onMatchDelete={() => refreshMatches(sport.id)}
               onDeleteNote={handleDeleteNote}
             />
           </div>

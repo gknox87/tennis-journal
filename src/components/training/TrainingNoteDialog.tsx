@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
 import { Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Save } from "lucide-react";
 import { format } from "date-fns";
+import { useSport } from "@/context/SportContext";
 
 interface TrainingNoteDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface TrainingNoteDialogProps {
 }
 
 export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess }: TrainingNoteDialogProps) => {
+  const { sport } = useSport();
   const [formData, setFormData] = useState({
     coach_name: "",
     training_date: format(new Date(), 'yyyy-MM-dd'),
@@ -66,6 +68,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
       const noteData = {
         ...formData,
         user_id: session.user.id,
+        sport_id: sport.id,
         training_time: formData.training_time || null,
         coach_name: formData.coach_name || null,
         what_worked_on: formData.what_worked_on || null,
@@ -82,7 +85,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         if (error) throw error;
 
         toast({
-          title: "Success! 🎾",
+          title: `Success! ${sport.icon}`,
           description: "Training note updated successfully",
         });
       } else {
@@ -93,7 +96,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         if (error) throw error;
 
         toast({
-          title: "Success! 🎾",
+          title: `Success! ${sport.icon}`,
           description: "Training note added successfully",
         });
       }
@@ -128,7 +131,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
               <div className="p-2 bg-gradient-to-r from-blue-500 to-green-500 rounded-full">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Training Details</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{sport.terminology.trainingLabel} Details</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +190,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
             </div>
             <Textarea
               id="what_worked_on"
-              placeholder="e.g., Forehand technique, serve consistency, footwork drills..."
+              placeholder={`e.g., ${sport.icon} technical drills, tactical patterns, physical blocks...`}
               value={formData.what_worked_on}
               onChange={(e) => setFormData(prev => ({ ...prev, what_worked_on: e.target.value }))}
               className="bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 min-h-[100px]"

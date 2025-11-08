@@ -1,10 +1,10 @@
 
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Trophy, Target } from "lucide-react";
+import type { SportMetadata, ScoreFormat } from "@/types/sport";
 
 interface SetScore {
   playerScore: string;
@@ -20,6 +20,8 @@ interface ScoreInputProps {
   onBestOfFiveChange: (value: boolean) => void;
   onIsWinChange?: (value: boolean) => void;
   onFinalSetTiebreakChange?: (value: boolean) => void;
+  sport: SportMetadata;
+  activeFormat?: ScoreFormat;
 }
 
 export const ScoreInput = ({
@@ -29,10 +31,17 @@ export const ScoreInput = ({
   onBestOfFiveChange,
   onIsWinChange,
   onFinalSetTiebreakChange,
+  sport,
+  activeFormat,
 }: ScoreInputProps) => {
+  const format = activeFormat ?? sport.defaultScoreFormat;
+  const isSetBased = format.type === "sets";
+  const unitLabel = isSetBased ? "Set" : "Game";
+  const showBestOfToggle = isSetBased;
   
   const calculateWinner = (updatedSets: SetScore[]) => {
     if (!onIsWinChange) return;
+    if (!isSetBased) return;
 
     let playerSetsWon = 0;
     let opponentSetsWon = 0;
@@ -72,7 +81,7 @@ export const ScoreInput = ({
   };
 
   const checkForTiebreak = (updatedSets: SetScore[]) => {
-    if (!onFinalSetTiebreakChange) return;
+    if (!onFinalSetTiebreakChange || !isSetBased) return;
 
     const lastPlayedSetIndex = updatedSets.findIndex(set => 
       set.playerScore === "" && set.opponentScore === ""
@@ -134,6 +143,7 @@ export const ScoreInput = ({
   };
 
   const needsTiebreak = (set: SetScore) => {
+    if (!isSetBased) return false;
     const playerScore = parseInt(set.playerScore);
     const opponentScore = parseInt(set.opponentScore);
     return playerScore === 6 && opponentScore === 6;
@@ -146,19 +156,21 @@ export const ScoreInput = ({
           <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-600">
             <Target className="w-5 h-5 text-white" />
           </div>
-          <Label className="text-lg font-bold text-gray-800">Set Scores</Label>
+          <Label className="text-lg font-bold text-gray-800">{unitLabel} Scores</Label>
         </div>
-        <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm p-3 rounded-2xl border-2 border-purple-200/50">
-          <Switch
-            id="best-of-five"
-            checked={isBestOfFive}
-            onCheckedChange={onBestOfFiveChange}
-            className="data-[state=checked]:bg-purple-500"
-          />
-          <Label htmlFor="best-of-five" className="font-semibold text-gray-700">
-            Best of {isBestOfFive ? '5' : '3'}
-          </Label>
-        </div>
+        {showBestOfToggle && (
+          <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm p-3 rounded-2xl border-2 border-purple-200/50">
+            <Switch
+              id="best-of-five"
+              checked={isBestOfFive}
+              onCheckedChange={onBestOfFiveChange}
+              className="data-[state=checked]:bg-purple-500"
+            />
+            <Label htmlFor="best-of-five" className="font-semibold text-gray-700">
+              Best of {isBestOfFive ? "5" : "3"}
+            </Label>
+          </div>
+        )}
       </div>
       
       <Card className="p-6 rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/30 backdrop-blur-sm border-2 border-orange-200/30">
@@ -167,7 +179,7 @@ export const ScoreInput = ({
             <div key={index} className="space-y-4">
               <div className="flex items-center justify-center">
                 <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                  Set {index + 1}
+                  {unitLabel} {index + 1}
                 </div>
               </div>
               

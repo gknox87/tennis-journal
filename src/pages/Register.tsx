@@ -8,11 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { SportGoalSelector } from "@/components/onboarding/SportGoalSelector";
+import { DEFAULT_SPORT_ID, type SupportedSportId } from "@/constants/sports";
+import { ONBOARDING_STORAGE_KEY, type PendingOnboardingSelection } from "@/constants/onboarding";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [sportId, setSportId] = useState<SupportedSportId>(DEFAULT_SPORT_ID);
+  const [goalId, setGoalId] = useState<string>("performance");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,14 +59,24 @@ const Register = () => {
         password: password.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            primary_sport_id: sportId,
+            performance_goal: goalId,
+          },
         },
       });
 
       if (error) throw error;
 
+      const selection: PendingOnboardingSelection = {
+        sportId,
+        goalId,
+      };
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(selection));
+
       toast({
         title: "Success",
-        description: "Please check your email for the confirmation link",
+        description: "Please check your email for the confirmation link. Your sport and goal have been saved.",
       });
       
       // Redirect to login after successful registration
@@ -83,9 +98,9 @@ const Register = () => {
       <Card className="w-full max-w-md p-6 space-y-6 bg-background shadow-lg">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Create an Account</h1>
-          <p className="text-muted-foreground">Sign up to start recording your matches</p>
+          <p className="text-muted-foreground">Signup to start recording your performances</p>
         </div>
-        <form onSubmit={handleSignUp} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -124,11 +139,13 @@ const Register = () => {
               minLength={6}
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
+          <SportGoalSelector
+            sportId={sportId}
+            onSportChange={setSportId}
+            goalId={goalId}
+            onGoalChange={setGoalId}
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">

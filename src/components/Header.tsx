@@ -22,11 +22,11 @@ export const Header = ({ userProfile }: HeaderProps) => {
   const handleLogout = async () => {
     try {
       // Clear any cached data first
-      localStorage.removeItem('tennis-match-chronicle-auth');
-      
+      localStorage.removeItem('sports-journal-auth');
+
       // Sign out from Supabase
       await supabase.auth.signOut();
-      
+
       // Navigate to login page
       navigate("/login", { replace: true });
     } catch (error) {

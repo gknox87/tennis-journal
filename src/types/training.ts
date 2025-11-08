@@ -10,4 +10,5 @@ export interface TrainingNote {
   what_didnt_feel_good?: string;
   created_at: string;
   updated_at: string;
+  sport_id?: string | null;
 }

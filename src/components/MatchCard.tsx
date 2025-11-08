@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Calendar, Target, TrendingUp, TrendingDown } from "lucide-react";
 
+import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
+
 interface MatchCardProps {
   id: string;
   date: string;
@@ -11,6 +13,8 @@ interface MatchCardProps {
   score: string;
   isWin: boolean;
   finalSetTiebreak?: boolean;
+  sportId?: string | null;
+  sportName?: string | null;
   onDelete: () => void;
   onEdit: () => void;
 }
@@ -21,10 +25,19 @@ export const MatchCard = ({
   opponent_name = "Unknown Opponent", 
   score, 
   isWin,
+  sportId,
+  sportName,
   onDelete,
   onEdit 
 }: MatchCardProps) => {
   const navigate = useNavigate();
+  const resolvedSport = (() => {
+    const id = sportId as SupportedSportId | undefined;
+    if (id && SPORTS[id]) {
+      return SPORTS[id];
+    }
+    return SPORTS[DEFAULT_SPORT_ID];
+  })();
 
   const handleCardClick = () => {
     navigate(`/match/${id}`);
@@ -67,6 +80,10 @@ export const MatchCard = ({
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
                 <span>{formatDate(date)}</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  <span aria-hidden>{resolvedSport.icon}</span>
+                  {sportName ?? resolvedSport.shortName}
+                </span>
               </div>
             </div>
           </div>

@@ -18,5 +18,8 @@ export interface Match {
   created_at?: string;
   user_id?: string;
   court_type?: string | null;
+  sport_id?: string | null;
+  sport_slug?: string;
+  sport_name?: string;
   sets?: SetScore[];
 }

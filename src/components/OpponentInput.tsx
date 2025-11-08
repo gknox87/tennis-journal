@@ -14,11 +14,15 @@ interface Opponent {
 interface OpponentInputProps {
   value: string;
   onChange: (value: string) => void;
+  label?: string;
+  placeholder?: string;
 }
 
-export const OpponentInput = ({ 
-  value, 
+export const OpponentInput = ({
+  value,
   onChange,
+  label = "Who did you play against?",
+  placeholder = "Enter opponent name",
 }: OpponentInputProps) => {
   const [suggestions, setSuggestions] = useState<Opponent[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +100,7 @@ export const OpponentInput = ({
     <div className="space-y-3">
       <Label className="text-base font-semibold text-gray-700 flex items-center gap-2">
         <Users className="w-5 h-5 text-purple-500" />
-        Who did you play against?
+        {label}
       </Label>
       <div className="relative">
         <Input
@@ -104,7 +108,7 @@ export const OpponentInput = ({
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
           onBlur={handleInputBlur}
-          placeholder="🎾 Enter opponent name"
+          placeholder={placeholder}
           className="w-full h-12 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-200/50 hover:border-purple-400 focus:border-purple-500 transition-all duration-300 text-base font-medium pl-4"
         />
         {showSuggestions && filteredSuggestions.length > 0 && (

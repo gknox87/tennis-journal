@@ -8,4 +8,5 @@ export interface ScheduledEvent {
   end_time: string;
   session_type: SessionType;
   notes?: string | null;
+  sport_id?: string | null;
 }

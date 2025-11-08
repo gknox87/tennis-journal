@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Star, CheckCircle, CircleCheck, Award, ThumbsUp, TrendingUp, Zap } from "lucide-react";
+import { useSport } from "@/context/SportContext";
 
 interface StatsOverviewProps {
   totalMatches: number;
@@ -21,6 +22,8 @@ export const StatsOverview = ({
   tiebreaksWon,
 }: StatsOverviewProps) => {
   const navigate = useNavigate();
+  const { sport } = useSport();
+  const sportJourneyLabel = sport?.name ?? "Sport";
 
   const handleStatClick = () => {
     navigate("/matches");
@@ -80,7 +83,7 @@ export const StatsOverview = ({
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2">Your Tennis Journey</h2>
+        <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-2">Your {sportJourneyLabel} Journey</h2>
         <p className="text-muted-foreground text-sm md:text-base">Track your progress and celebrate your wins!</p>
       </div>
       

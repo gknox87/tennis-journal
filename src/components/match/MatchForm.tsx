@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SetScore } from "@/types/match";
+import { useSport } from "@/context/SportContext";
 
 interface MatchFormProps {
   onSubmit: (formData: any) => Promise<void>;
@@ -39,10 +40,13 @@ const courtTypeColors = {
 };
 
 export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
+  const { sport } = useSport();
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
   const [opponent, setOpponent] = useState(initialData?.opponent || "");
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
-  const [isBestOfFive, setIsBestOfFive] = useState(initialData?.isBestOfFive || false);
+  const [isBestOfFive, setIsBestOfFive] = useState(
+    initialData?.isBestOfFive || (sport.defaultScoreFormat.type === "sets" && sport.defaultScoreFormat.maxSets === 5)
+  );
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
   const [notes, setNotes] = useState(initialData?.notes || "");
@@ -52,7 +56,9 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
     if (initialData?.sets?.length) {
       return [...initialData.sets];
     }
-    const numberOfSets = isBestOfFive ? 5 : 3;
+    const numberOfSets = sport.defaultScoreFormat.type === "sets"
+      ? (isBestOfFive ? 5 : 3)
+      : 3;
     return Array(numberOfSets).fill(null).map(() => ({ 
       playerScore: "", 
       opponentScore: "",
@@ -63,10 +69,18 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
 
   const [sets, setSets] = useState<SetScore[]>(getInitialSets());
 
-  // Update sets when isBestOfFive changes (only for new matches)
+  useEffect(() => {
+    if (sport.defaultScoreFormat.type !== "sets" && isBestOfFive) {
+      setIsBestOfFive(false);
+    }
+  }, [sport, isBestOfFive]);
+
+  // Update sets when scoring preferences change (only for new matches)
   useEffect(() => {
     if (!initialData?.sets?.length) {
-      const numberOfSets = isBestOfFive ? 5 : 3;
+      const numberOfSets = sport.defaultScoreFormat.type === "sets"
+        ? (isBestOfFive ? 5 : 3)
+        : 3;
       setSets(Array(numberOfSets).fill(null).map(() => ({ 
         playerScore: "", 
         opponentScore: "",
@@ -74,7 +88,7 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
         opponentTiebreak: ""
       })));
     }
-  }, [isBestOfFive, initialData?.sets?.length]);
+  }, [isBestOfFive, initialData?.sets?.length, sport]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +111,14 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       notes,
       finalSetTiebreak,
       isBestOfFive,
+      sportId: sport.id,
     });
   };
+
+  const opponentLabel = `${sport.terminology.opponentLabel}`;
+  const opponentPlaceholder = `${sport.icon} Enter ${sport.terminology.opponentLabel.toLowerCase()}`;
+  const matchLabel = sport.terminology.matchLabel;
+  const locationLabel = sport.category === "racket" ? "Court Surface" : "Venue Detail";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,7 +128,7 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600">
             <CalendarIcon className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-xl font-bold gradient-text">Match Details</h3>
+          <h3 className="text-xl font-bold gradient-text">{matchLabel} Details</h3>
         </div>
         
         <div className="grid gap-6 md:grid-cols-2">
@@ -143,15 +163,17 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
             <OpponentInput
               value={opponent}
               onChange={setOpponent}
+              label={opponentLabel}
+              placeholder={opponentPlaceholder}
             />
           </div>
         </div>
 
         <div className="mt-6 space-y-3">
-          <Label className="text-base font-semibold text-gray-700">Court Surface</Label>
+          <Label className="text-base font-semibold text-gray-700">{locationLabel}</Label>
           <Select value={courtType} onValueChange={setCourtType}>
             <SelectTrigger className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-green-200/50 hover:border-green-400 transition-all duration-300">
-              <SelectValue placeholder="🎾 Select court type" />
+              <SelectValue placeholder={`${sport.icon} Select ${locationLabel.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent className="rounded-2xl bg-white/95 backdrop-blur-sm border-2 border-white/30 shadow-2xl">
               {courtTypes.map((type) => (
@@ -173,7 +195,7 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-600">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-xl font-bold gradient-text">Match Score</h3>
+          <h3 className="text-xl font-bold gradient-text">{matchLabel} Score</h3>
         </div>
         
         <ScoreInput
@@ -183,6 +205,7 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           onBestOfFiveChange={setIsBestOfFive}
           onIsWinChange={setIsWin}
           onFinalSetTiebreakChange={setFinalSetTiebreak}
+          sport={sport}
         />
       </Card>
 

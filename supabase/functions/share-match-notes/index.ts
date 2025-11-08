@@ -16,6 +16,8 @@ interface ShareNotesRequest {
     score: string;
     notes: string;
     isWin: boolean;
+    sportId?: string;
+    sportName?: string;
   };
 }
 
@@ -28,15 +30,16 @@ const handler = async (req: Request): Promise<Response> => {
     const { recipientEmail, matchDetails }: ShareNotesRequest = await req.json();
 
     const emailResponse = await resend.emails.send({
-      from: "Tennis Match Notes <onboarding@resend.dev>",
+      from: "Sports Journal <onboarding@resend.dev>",
       to: [recipientEmail],
       subject: `Match Notes: ${matchDetails.opponent} - ${matchDetails.date}`,
       html: `
-        <h1>Match Notes</h1>
+        <h1>${matchDetails.sportName ?? 'Match'} Notes</h1>
         <p><strong>Opponent:</strong> ${matchDetails.opponent}</p>
         <p><strong>Date:</strong> ${matchDetails.date}</p>
         <p><strong>Result:</strong> ${matchDetails.isWin ? 'Win' : 'Loss'}</p>
         <p><strong>Score:</strong> ${matchDetails.score}</p>
+        ${matchDetails.sportName ? `<p><strong>Sport:</strong> ${matchDetails.sportName}</p>` : ''}
         <h2>Notes:</h2>
         <p>${matchDetails.notes}</p>
       `,

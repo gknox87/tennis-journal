@@ -10,8 +10,10 @@ import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown }
 import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
 import { TrainingNoteDialog } from "@/components/training/TrainingNoteDialog";
 import { format } from "date-fns";
+import { useSport } from "@/context/SportContext";
 
 const TrainingNotes = () => {
+  const { sport } = useSport();
   const [trainingNotes, setTrainingNotes] = useState<TrainingNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
@@ -21,9 +23,18 @@ const TrainingNotes = () => {
 
   const fetchTrainingNotes = async () => {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (!session?.user) {
+        setTrainingNotes([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('training_notes')
         .select('*')
+        .eq('user_id', session.user.id)
+        .eq('sport_id', sport.id)
         .order('training_date', { ascending: false });
 
       if (error) throw error;
@@ -42,7 +53,7 @@ const TrainingNotes = () => {
 
   useEffect(() => {
     fetchTrainingNotes();
-  }, []);
+  }, [sport]);
 
   const handleAddNote = () => {
     setEditingNote(null);
@@ -102,9 +113,11 @@ const TrainingNotes = () => {
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                🎾 Training Notes
+                {sport.icon} {sport.terminology.trainingLabel}
               </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">Track your progress and reflect on your training sessions</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                Track your progress and reflect on sport-specific sessions for {sport.shortName}.
+              </p>
             </div>
           </div>
           
@@ -178,7 +191,7 @@ const TrainingNotes = () => {
         {trainingNotes.length === 0 ? (
           <Card className="p-8 sm:p-12 text-center bg-gradient-to-r from-blue-50 to-green-50">
             <div className="max-w-md mx-auto">
-              <div className="text-4xl sm:text-6xl mb-4">🎾</div>
+              <div className="text-4xl sm:text-6xl mb-4">{sport.icon}</div>
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No Training Notes Yet</h3>
               <p className="text-gray-600 mb-6 text-sm sm:text-base">
                 Start tracking your training sessions to see your progress over time!

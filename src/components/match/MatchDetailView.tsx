@@ -3,12 +3,21 @@ import { Match } from "@/types/match";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Trophy, Target, FileText, Clock } from "lucide-react";
+import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
 
 interface MatchDetailViewProps {
   match: Match;
 }
 
 export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
+  const sport = (() => {
+    const id = match.sport_id as SupportedSportId | undefined;
+    if (id && SPORTS[id]) {
+      return SPORTS[id];
+    }
+    return SPORTS[DEFAULT_SPORT_ID];
+  })();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -41,17 +50,26 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
             {/* Top row with icon and opponent name */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r ${getResultColor(match.is_win)} shadow-lg flex-shrink-0`}>
-                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                <span className="text-2xl sm:text-3xl" aria-hidden>{sport.icon}</span>
               </div>
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 leading-tight">
-                  vs {match.opponent_name}
+                  {sport.terminology.matchLabel}: vs {match.opponent_name}
                 </CardTitle>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                   <span className="text-sm sm:text-lg font-medium truncate">{formatDate(match.date)}</span>
                 </div>
               </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-3 py-1 text-xs font-medium text-gray-600">
+                <span className="text-lg" aria-hidden>{sport.icon}</span>
+                {sport.name}
+              </span>
+              {match.sport_name && (
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{match.sport_name}</span>
+              )}
             </div>
             
             {/* Bottom row with result and score */}
@@ -84,7 +102,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
               <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-blue-100 flex-shrink-0">
                 <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <span className="text-base sm:text-xl">Match Information</span>
+              <span className="text-base sm:text-xl">{sport.terminology.matchLabel} Information</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
@@ -100,7 +118,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
               <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
-                  <span className="font-medium text-gray-700 text-sm sm:text-base">Court Surface</span>
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Venue Detail</span>
                 </div>
                 <span className="font-bold text-gray-800 text-sm sm:text-base text-right ml-2">{match.court_type}</span>
               </div>
@@ -132,7 +150,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
               <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-orange-100 flex-shrink-0">
                 <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
               </div>
-              <span className="text-base sm:text-xl">Score Breakdown</span>
+              <span className="text-base sm:text-xl">{sport.terminology.matchLabel} Score</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">

@@ -10,4 +10,5 @@ export interface Opponent {
   strengths?: string;
   weaknesses?: string;
   tendencies?: string;
+  sport_id?: string | null;
 }

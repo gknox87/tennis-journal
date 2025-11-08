@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { TrainingNote } from "@/types/training";
 import { format } from "date-fns";
 import { Edit2, Trash2, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown } from "lucide-react";
+import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
 
 interface TrainingNoteCardProps {
   note: TrainingNote;
@@ -18,6 +19,14 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
     }
   };
 
+  const sport = (() => {
+    const id = note.sport_id as SupportedSportId | undefined;
+    if (id && SPORTS[id]) {
+      return SPORTS[id];
+    }
+    return SPORTS[DEFAULT_SPORT_ID];
+  })();
+
   return (
     <Card className="p-6 hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border-2 border-gray-100 hover:border-blue-200">
       <div className="space-y-4">
@@ -29,6 +38,10 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
             </div>
             <span className="font-semibold text-gray-800">
               {format(new Date(note.training_date), 'MMM dd, yyyy')}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              <span aria-hidden>{sport.icon}</span>
+              {sport.shortName}
             </span>
           </div>
           <div className="flex gap-1">
