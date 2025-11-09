@@ -64,8 +64,18 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { 
+    transform: translateY(0px); 
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(-20px); 
+    opacity: 0.9;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 .stat-card {

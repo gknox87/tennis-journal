@@ -96,7 +96,6 @@ const badmintonSingleGame: ScoreFormat = {
   type: "rally",
   pointsToWin: 21,
   winBy: 2,
-  bestOf: 1,
   label: "Single Game to 21",
 };
 
@@ -130,7 +129,6 @@ const pickleballSingleTo11: ScoreFormat = {
   type: "rally",
   pointsToWin: 11,
   winBy: 2,
-  bestOf: 1,
   label: "Single Game to 11",
 };
 
@@ -138,7 +136,6 @@ const pickleballSingleTo15: ScoreFormat = {
   type: "rally",
   pointsToWin: 15,
   winBy: 2,
-  bestOf: 1,
   label: "Single Game to 15",
 };
 
@@ -146,7 +143,6 @@ const pickleballSingleTo21: ScoreFormat = {
   type: "rally",
   pointsToWin: 21,
   winBy: 2,
-  bestOf: 1,
   label: "Single Game to 21",
 };
 
