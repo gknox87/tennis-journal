@@ -1,8 +1,25 @@
-# Welcome to your Lovable project
+# Sports Journal
+
+A comprehensive multi-sport performance tracking application for athletes, coaches, and sports enthusiasts.
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/f2286dad-18c6-4993-99cd-a86418e4d866
+**Version**: 2.0.0 - All-Sport Support
+
+## 📋 Documentation
+
+### Product & Planning
+- **[Executive Summary](docs/ROADMAP_EXECUTIVE_SUMMARY.md)** - Strategic overview for stakeholders
+- **[Feature Roadmap](docs/FEATURE_ROADMAP.md)** - Complete product roadmap for 2025
+- **[Quick Reference](docs/ROADMAP_QUICK_REFERENCE.md)** - Sprint planning guide
+- **[Priorities Board](docs/PRIORITIES_BOARD.md)** - Current focus areas and sprint planning
+
+### Technical
+- **[Sport Management Guide](docs/SPORT_MANAGEMENT.md)** - How to add and manage sports
+- **[Implementation Details](docs/SPORT_AGNOSTIC_IMPLEMENTATION.md)** - Technical architecture
+- **[Deployment Summary](docs/DEPLOYMENT_SUMMARY.md)** - Migration and deployment guide
+- **[QA Checklist](docs/QA_CHECKLIST.md)** - Comprehensive testing guide
 
 ## How can I edit this code?
 
