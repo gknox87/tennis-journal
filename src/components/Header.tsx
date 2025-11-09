@@ -70,7 +70,7 @@ export const Header = ({ userProfile }: HeaderProps) => {
             size="lg"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Record Match
+            Record Performance
           </Button>
           <Button
             onClick={() => navigate("/training-notes")}

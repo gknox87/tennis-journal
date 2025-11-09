@@ -1,10 +1,13 @@
 
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { Trophy, Target } from "lucide-react";
+import { Trophy, Target, CheckCircle2, Award } from "lucide-react";
 import type { SportMetadata, ScoreFormat } from "@/types/sport";
+import { parseTimeToSeconds } from "@/utils/sportHelpers";
+import { autoCompleteScore, autoCompleteTiebreakScore } from "@/utils/scoreAutoComplete";
 
 interface SetScore {
   playerScore: string;
@@ -36,48 +39,129 @@ export const ScoreInput = ({
 }: ScoreInputProps) => {
   const format = activeFormat ?? sport.defaultScoreFormat;
   const isSetBased = format.type === "sets";
-  const unitLabel = isSetBased ? "Set" : "Game";
+  const isRallyFormat = format.type === "rally";
+  const isGamesFormat = format.type === "games";
   const showBestOfToggle = isSetBased;
+  const rallyPointsTarget = format.type === "rally" ? format.pointsToWin : undefined;
+  const rallyWinBy = format.type === "rally" ? format.winBy : undefined;
+  const scoreMaxValue = format.type === "sets" ? 7 : undefined;
+
+  const [matchStatus, setMatchStatus] = useState<{
+    playerWon: boolean;
+    matchComplete: boolean;
+    playerSetsWon?: number;
+    opponentSetsWon?: number;
+    playerGamesWon?: number;
+    opponentGamesWon?: number;
+  }>({ playerWon: false, matchComplete: false });
+
+  // Calculate match status whenever sets change
+  useEffect(() => {
+    const status = calculateWinner(sets);
+    setMatchStatus(status || { playerWon: false, matchComplete: false });
+  }, [sets]);
+
+  const unitLabel = (() => {
+    switch (format.type) {
+      case "sets":
+        return "Set";
+      case "rally":
+        return "Game";
+      case "games":
+        return "Set";
+      case "time":
+        return "Result";
+      case "distance":
+        return format.unit ? `${format.unit} Entry` : "Distance";
+      case "numeric":
+        return format.unit ? `${format.unit} Entry` : "Score";
+      case "rounds":
+        return "Round";
+      default:
+        return "Entry";
+    }
+  })();
   
   const calculateWinner = (updatedSets: SetScore[]) => {
-    if (!onIsWinChange) return;
-    if (!isSetBased) return;
+    if (!onIsWinChange) return { playerWon: false, matchComplete: false };
 
-    let playerSetsWon = 0;
-    let opponentSetsWon = 0;
-    
-    updatedSets.forEach(set => {
-      const playerScore = parseInt(set.playerScore);
-      const opponentScore = parseInt(set.opponentScore);
-      
-      if (!isNaN(playerScore) && !isNaN(opponentScore)) {
-        // Handle tiebreak scenarios
-        if (playerScore === 6 && opponentScore === 6) {
-          const playerTiebreak = parseInt(set.playerTiebreak || "0");
-          const opponentTiebreak = parseInt(set.opponentTiebreak || "0");
-          
-          if (!isNaN(playerTiebreak) && !isNaN(opponentTiebreak) && 
-              Math.abs(playerTiebreak - opponentTiebreak) >= 2) {
-            if (playerTiebreak > opponentTiebreak) {
-              playerSetsWon++;
-            } else {
-              opponentSetsWon++;
+    if (isSetBased) {
+      let playerSetsWon = 0;
+      let opponentSetsWon = 0;
+
+      updatedSets.forEach((set) => {
+        const playerScore = parseInt(set.playerScore);
+        const opponentScore = parseInt(set.opponentScore);
+
+        if (!isNaN(playerScore) && !isNaN(opponentScore)) {
+          if (playerScore === 6 && opponentScore === 6) {
+            const playerTiebreak = parseInt(set.playerTiebreak || "0");
+            const opponentTiebreak = parseInt(set.opponentTiebreak || "0");
+
+            if (
+              !isNaN(playerTiebreak) &&
+              !isNaN(opponentTiebreak) &&
+              Math.abs(playerTiebreak - opponentTiebreak) >= 2
+            ) {
+              if (playerTiebreak > opponentTiebreak) {
+                playerSetsWon++;
+              } else {
+                opponentSetsWon++;
+              }
             }
+          } else if (playerScore === 7 && opponentScore === 6) {
+            playerSetsWon++;
+          } else if (playerScore === 6 && opponentScore === 7) {
+            opponentSetsWon++;
+          } else if (playerScore > opponentScore && playerScore >= 6) {
+            playerSetsWon++;
+          } else if (opponentScore > playerScore && opponentScore >= 6) {
+            opponentSetsWon++;
           }
-        } else if (playerScore === 7 && opponentScore === 6) {
-          playerSetsWon++;
-        } else if (playerScore === 6 && opponentScore === 7) {
-          opponentSetsWon++;
-        } else if (playerScore > opponentScore && playerScore >= 6) {
-          playerSetsWon++;
-        } else if (opponentScore > playerScore && opponentScore >= 6) {
-          opponentSetsWon++;
         }
-      }
-    });
+      });
 
-    const setsNeededToWin = isBestOfFive ? 3 : 2;
-    onIsWinChange(playerSetsWon >= setsNeededToWin);
+      const setsNeededToWin = isBestOfFive ? 3 : 2;
+      const matchComplete = playerSetsWon >= setsNeededToWin || opponentSetsWon >= setsNeededToWin;
+      const playerWon = playerSetsWon >= setsNeededToWin;
+
+      onIsWinChange(playerWon);
+      return { playerWon, matchComplete, playerSetsWon, opponentSetsWon };
+    }
+
+    if (isRallyFormat) {
+      let playerGamesWon = 0;
+      let opponentGamesWon = 0;
+
+      updatedSets.forEach((set) => {
+        const playerScore = parseInt(set.playerScore);
+        const opponentScore = parseInt(set.opponentScore);
+        if (isNaN(playerScore) || isNaN(opponentScore)) return;
+
+        const diff = Math.abs(playerScore - opponentScore);
+        const playerWins =
+          playerScore >= (rallyPointsTarget ?? 0) &&
+          diff >= (rallyWinBy ?? 2) &&
+          playerScore > opponentScore;
+        const opponentWins =
+          opponentScore >= (rallyPointsTarget ?? 0) &&
+          diff >= (rallyWinBy ?? 2) &&
+          opponentScore > playerScore;
+
+        if (playerWins) playerGamesWon++;
+        if (opponentWins) opponentGamesWon++;
+      });
+
+      const seriesLength = format.bestOf ?? updatedSets.length;
+      const gamesNeeded = Math.floor(seriesLength / 2) + 1;
+      const matchComplete = playerGamesWon >= gamesNeeded || opponentGamesWon >= gamesNeeded;
+      const playerWon = playerGamesWon >= gamesNeeded && playerGamesWon > opponentGamesWon;
+
+      onIsWinChange(playerWon);
+      return { playerWon, matchComplete, playerGamesWon, opponentGamesWon };
+    }
+
+    return { playerWon: false, matchComplete: false };
   };
 
   const checkForTiebreak = (updatedSets: SetScore[]) => {
@@ -107,32 +191,48 @@ export const ScoreInput = ({
     const newSets = [...sets];
     newSets[index] = { ...newSets[index], [field]: value };
 
-    // Auto-populate logic for regular scores
-    if ((field === 'playerScore' || field === 'opponentScore') && value !== "") {
+    // Auto-complete logic for regular scores
+    // Only auto-complete when the player enters their score, not when opponent enters theirs
+    if (field === 'playerScore' && value !== "") {
       const currentValue = parseInt(value);
-      const otherField = field === 'playerScore' ? 'opponentScore' : 'playerScore';
-      const otherValue = parseInt(newSets[index][otherField]);
-      
-      // Standard tennis scoring auto-complete
-      if (!isNaN(currentValue) && currentValue <= 7) {
-        if (currentValue <= 4) {
-          newSets[index][otherField] = "6";
-        } else if (currentValue === 5) {
-          newSets[index][otherField] = "7";
-        } else if (currentValue === 6) {
-          if (isNaN(otherValue) || otherValue < 6) {
-            newSets[index][otherField] = "4";
-          } else if (otherValue === 6) {
-            // 6-6, might need tiebreak
-          } else {
-            newSets[index][otherField] = "7";
-          }
-        } else if (currentValue === 7) {
-          if (isNaN(otherValue) || otherValue < 5) {
-            newSets[index][otherField] = "5";
-          } else {
-            newSets[index][otherField] = "6";
-          }
+      const otherField = 'opponentScore';
+      const currentOtherValue = newSets[index][otherField];
+
+      // Use the new auto-complete logic
+      if (!isNaN(currentValue) && currentValue >= 0) {
+        const autoCompletedValue = autoCompleteScore(
+          currentValue,
+          "", // Always pass empty to force recalculation
+          format,
+          sport.id
+        );
+
+        // Always update the opponent score when player score changes
+        newSets[index][otherField] = autoCompletedValue;
+      }
+    }
+
+    // Auto-complete tiebreak scores for set-based formats
+    if (
+      isSetBased &&
+      (field === 'playerTiebreak' || field === 'opponentTiebreak') &&
+      value !== ""
+    ) {
+      const currentValue = parseInt(value);
+      const otherField = field === 'playerTiebreak' ? 'opponentTiebreak' : 'playerTiebreak';
+      const currentOtherValue = newSets[index][otherField];
+
+      if (!isNaN(currentValue) && currentValue >= 0) {
+        const isMatchTiebreak = format.type === "sets" && format.matchTiebreak;
+        const autoCompletedValue = autoCompleteTiebreakScore(
+          currentValue,
+          currentOtherValue ? parseInt(currentOtherValue) : null,
+          isMatchTiebreak
+        );
+
+        // Only auto-complete if the other field is empty
+        if (!currentOtherValue || currentOtherValue === "") {
+          newSets[index][otherField] = autoCompletedValue !== null ? autoCompletedValue.toString() : "";
         }
       }
     }
@@ -148,6 +248,30 @@ export const ScoreInput = ({
     const opponentScore = parseInt(set.opponentScore);
     return playerScore === 6 && opponentScore === 6;
   };
+
+  // Smart filtering: only show sets up to match completion + 1 empty set
+  const getVisibleSets = () => {
+    if (!matchStatus.matchComplete) {
+      // Match not complete - show all sets
+      return sets;
+    }
+
+    // Match complete - find last completed set and show only up to there
+    const lastCompletedIndex = sets.findIndex((set, index) => {
+      const isEmpty = !set.playerScore && !set.opponentScore;
+      return isEmpty;
+    });
+
+    if (lastCompletedIndex === -1) {
+      // All sets have scores
+      return sets;
+    }
+
+    // Show completed sets only
+    return sets.slice(0, lastCompletedIndex);
+  };
+
+  const visibleSets = getVisibleSets();
 
   return (
     <div className="space-y-6">
@@ -172,10 +296,38 @@ export const ScoreInput = ({
           </div>
         )}
       </div>
-      
+
+      {/* Match Complete Banner */}
+      {matchStatus.matchComplete && (
+        <div className={`p-4 rounded-2xl border-2 ${matchStatus.playerWon ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' : 'bg-gradient-to-r from-orange-50 to-red-50 border-orange-300'}`}>
+          <div className="flex items-center justify-center gap-3">
+            {matchStatus.playerWon ? (
+              <>
+                <Award className="w-6 h-6 text-green-600" />
+                <p className="text-lg font-bold text-green-800">
+                  Match Won!
+                  {isSetBased && ` ${matchStatus.playerSetsWon}-${matchStatus.opponentSetsWon}`}
+                  {isRallyFormat && ` ${matchStatus.playerGamesWon}-${matchStatus.opponentGamesWon}`}
+                </p>
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
+              </>
+            ) : (
+              <>
+                <Target className="w-6 h-6 text-orange-600" />
+                <p className="text-lg font-bold text-orange-800">
+                  Match Complete
+                  {isSetBased && ` ${matchStatus.playerSetsWon}-${matchStatus.opponentSetsWon}`}
+                  {isRallyFormat && ` ${matchStatus.playerGamesWon}-${matchStatus.opponentGamesWon}`}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <Card className="p-6 rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/30 backdrop-blur-sm border-2 border-orange-200/30">
         <div className="space-y-6">
-          {sets.map((set, index) => (
+          {visibleSets.map((set, index) => (
             <div key={index} className="space-y-4">
               <div className="flex items-center justify-center">
                 <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
@@ -193,10 +345,10 @@ export const ScoreInput = ({
                     type="number"
                     value={set.playerScore}
                     onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg"
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     min="0"
-                    max="7"
-                    placeholder="0"
+                    max={scoreMaxValue}
+                    placeholder=""
                   />
                 </div>
                 <div className="space-y-3">
@@ -208,10 +360,10 @@ export const ScoreInput = ({
                     type="number"
                     value={set.opponentScore}
                     onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg"
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     min="0"
-                    max="7"
-                    placeholder="0"
+                    max={scoreMaxValue}
+                    placeholder=""
                   />
                 </div>
               </div>
@@ -262,7 +414,11 @@ export const ScoreInput = ({
         
         <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200/30">
           <p className="text-sm text-gray-600 text-center">
-            💡 <strong>Quick Tip:</strong> Enter scores and the winner will be calculated automatically! For 6-6 sets, tiebreak inputs will appear.
+            💡 <strong>Quick Tip:</strong> Enter YOUR score (the lower one) and the opponent's winning score will be auto-filled!
+            {format.type === "sets" && " Tennis/Padel: 4 → 6, 5 → 7. "}
+            {format.type === "rally" && format.pointsToWin === 11 && " Table Tennis/Squash: 9 → 11, 10 → 12, 11 → 13. "}
+            {format.type === "rally" && format.pointsToWin === 21 && " Badminton: 19 → 21, 20 → 22, 21 → 23. "}
+            {format.type === "sets" && "Tie-breaks appear at 6-6."}
           </p>
         </div>
       </Card>

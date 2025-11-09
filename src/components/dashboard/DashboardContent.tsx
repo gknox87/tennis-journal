@@ -110,10 +110,6 @@ export const DashboardContent = ({
       }>
         <NotesSection
           playerNotes={playerNotes}
-          onAddNote={() => {
-            setEditingNote(null);
-            setShowNotesDialog(true);
-          }}
           onEditNote={handleEditNote}
           onDeleteNote={onDeleteNote}
         />

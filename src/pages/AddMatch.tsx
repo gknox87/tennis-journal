@@ -12,6 +12,8 @@ const AddMatch = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -136,27 +138,6 @@ const AddMatch = () => {
             </div>
             <p className="text-gray-600 text-lg font-medium">Capture every detail of your {sport.name.toLowerCase()} journey!</p>
             
-            {/* Fun stats/motivational elements */}
-            <div className="flex justify-center items-center gap-6 mt-6">
-              <div className="text-center">
-                <div className="p-2 rounded-full bg-green-100 inline-block mb-2">
-                  <Zap className="w-5 h-5 text-green-600" />
-                </div>
-                <p className="text-sm text-gray-600 font-medium">Quick Entry</p>
-              </div>
-              <div className="text-center">
-                <div className="p-2 rounded-full bg-blue-100 inline-block mb-2">
-                  <Trophy className="w-5 h-5 text-blue-600" />
-                </div>
-                <p className="text-sm text-gray-600 font-medium">Track Progress</p>
-              </div>
-              <div className="text-center">
-                <div className="p-2 rounded-full bg-purple-100 inline-block mb-2">
-                  <Target className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="text-sm text-gray-600 font-medium">Improve Game</p>
-              </div>
-            </div>
           </div>
         </div>
 

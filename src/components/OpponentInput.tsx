@@ -96,10 +96,13 @@ export const OpponentInput = ({
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
+  const cleanedPlaceholder = placeholder
+    ? placeholder.replace(/^[^A-Za-z0-9]+/, "").trimStart()
+    : placeholder;
+
   return (
     <div className="space-y-3">
       <Label className="text-base font-semibold text-gray-700 flex items-center gap-2">
-        <Users className="w-5 h-5 text-purple-500" />
         {label}
       </Label>
       <div className="relative">
@@ -108,7 +111,7 @@ export const OpponentInput = ({
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
           onBlur={handleInputBlur}
-          placeholder={placeholder}
+          placeholder={cleanedPlaceholder}
           className="w-full h-12 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-200/50 hover:border-purple-400 focus:border-purple-500 transition-all duration-300 text-base font-medium pl-4"
         />
         {showSuggestions && filteredSuggestions.length > 0 && (
@@ -131,10 +134,10 @@ export const OpponentInput = ({
       </div>
       
       {isLoading && (
-        <p className="text-sm text-purple-600 flex items-center gap-2">
+        <div className="text-sm text-purple-600 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
           Loading opponents...
-        </p>
+        </div>
       )}
       
       {error && (

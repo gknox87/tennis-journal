@@ -56,6 +56,13 @@ export type SportCategory =
   | "endurance"
   | "other";
 
+export interface StatDescriptor {
+  id: string;                    // e.g., "sets_won", "personal_best", "knockouts"
+  label: string;                 // e.g., "Sets Won", "Personal Best", "Knockouts"
+  description: string;           // e.g., "Winning sets", "Fastest time", "KO victories"
+  category: "universal" | "sport_specific";  // universal stats apply to all sports
+}
+
 export interface SportMetadata {
   id: string;
   name: string;
@@ -80,5 +87,10 @@ export interface SportMetadata {
   aiContext: {
     stylePrompt: string;
     focusAreas: string[];
+  };
+  venueOptions?: string[];       // Sport-specific venue types (e.g., ["Hard Court", "Clay Court"])
+  stats?: {
+    primary: StatDescriptor[];   // Primary stats always shown in dashboard
+    secondary?: StatDescriptor[]; // Optional/advanced stats for detailed views
   };
 }

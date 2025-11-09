@@ -6,12 +6,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles, Save, X } from "lucide-react";
+import { CalendarIcon, Sparkles, Save, X, Zap } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { SetScore } from "@/types/match";
 import { useSport } from "@/context/SportContext";
 
@@ -29,18 +31,22 @@ interface MatchFormProps {
   };
 }
 
-const courtTypes = ["Hard", "Artificial Grass", "Clay", "Grass", "Carpet"] as const;
-
-const courtTypeColors = {
+const venueGradientMap: Record<string, string> = {
   "Hard": "from-gray-500 to-slate-600",
-  "Artificial Grass": "from-green-500 to-emerald-600", 
+  "Hard Court": "from-gray-500 to-slate-600",
+  "Artificial Grass": "from-green-500 to-emerald-600",
+  "Artificial Grass Court": "from-green-500 to-emerald-600",
   "Clay": "from-orange-500 to-red-600",
+  "Clay Court": "from-orange-500 to-red-600",
   "Grass": "from-green-400 to-green-600",
-  "Carpet": "from-blue-500 to-indigo-600"
+  "Grass Court": "from-green-400 to-green-600",
+  "Carpet": "from-blue-500 to-indigo-600",
+  "Carpet Court": "from-blue-500 to-indigo-600",
 };
 
 export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const { sport } = useSport();
+  const isSetBasedSport = sport.defaultScoreFormat.type === "sets";
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
   const [opponent, setOpponent] = useState(initialData?.opponent || "");
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
@@ -50,17 +56,33 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
   const [notes, setNotes] = useState(initialData?.notes || "");
+  const hasVenueOptions = Boolean(sport.venueOptions?.length);
+
+  const determineSeriesLength = () => {
+    const format = sport.defaultScoreFormat;
+    if (format.type === "sets") {
+      return isBestOfFive ? 5 : 3;
+    }
+    if (format.type === "rally") {
+      return format.bestOf ?? 3;
+    }
+    if (format.type === "games") {
+      return format.gamesPerMatch ?? 1;
+    }
+    if (format.type === "rounds") {
+      return format.totalRounds ?? 1;
+    }
+    return 1;
+  };
 
   // Initialize sets with proper logic
   const getInitialSets = (): SetScore[] => {
     if (initialData?.sets?.length) {
       return [...initialData.sets];
     }
-    const numberOfSets = sport.defaultScoreFormat.type === "sets"
-      ? (isBestOfFive ? 5 : 3)
-      : 3;
-    return Array(numberOfSets).fill(null).map(() => ({ 
-      playerScore: "", 
+    const seriesLength = determineSeriesLength();
+    return Array(seriesLength).fill(null).map(() => ({
+      playerScore: "",
       opponentScore: "",
       playerTiebreak: "",
       opponentTiebreak: ""
@@ -78,11 +100,9 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   // Update sets when scoring preferences change (only for new matches)
   useEffect(() => {
     if (!initialData?.sets?.length) {
-      const numberOfSets = sport.defaultScoreFormat.type === "sets"
-        ? (isBestOfFive ? 5 : 3)
-        : 3;
-      setSets(Array(numberOfSets).fill(null).map(() => ({ 
-        playerScore: "", 
+      const seriesLength = determineSeriesLength();
+      setSets(Array(seriesLength).fill(null).map(() => ({
+        playerScore: "",
         opponentScore: "",
         playerTiebreak: "",
         opponentTiebreak: ""
@@ -118,7 +138,23 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const opponentLabel = `${sport.terminology.opponentLabel}`;
   const opponentPlaceholder = `${sport.icon} Enter ${sport.terminology.opponentLabel.toLowerCase()}`;
   const matchLabel = sport.terminology.matchLabel;
-  const locationLabel = sport.category === "racket" ? "Court Surface" : "Venue Detail";
+  const locationLabel = hasVenueOptions
+    ? sport.category === "racket"
+      ? "Court Surface"
+      : "Venue"
+    : "Venue Detail";
+
+  useEffect(() => {
+    if (hasVenueOptions) {
+      const options = sport.venueOptions ?? [];
+      setCourtType((current) => {
+        if (current && options.includes(current)) {
+          return current;
+        }
+        return options[0] ?? "";
+      });
+    }
+  }, [hasVenueOptions, sport]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -171,21 +207,30 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
 
         <div className="mt-6 space-y-3">
           <Label className="text-base font-semibold text-gray-700">{locationLabel}</Label>
-          <Select value={courtType} onValueChange={setCourtType}>
-            <SelectTrigger className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-green-200/50 hover:border-green-400 transition-all duration-300">
-              <SelectValue placeholder={`${sport.icon} Select ${locationLabel.toLowerCase()}`} />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl bg-white/95 backdrop-blur-sm border-2 border-white/30 shadow-2xl">
-              {courtTypes.map((type) => (
-                <SelectItem key={type} value={type} className="rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${courtTypeColors[type]}`} />
-                    <span className="font-medium">{type}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {hasVenueOptions ? (
+            <Select value={courtType} onValueChange={setCourtType}>
+              <SelectTrigger className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-green-200/50 hover:border-green-400 transition-all duration-300">
+                <SelectValue placeholder={`Select ${locationLabel.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl bg-white/95 backdrop-blur-sm border-2 border-white/30 shadow-2xl">
+                {(sport.venueOptions ?? []).map((option) => (
+                  <SelectItem key={option} value={option} className="rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${venueGradientMap[option] ?? "from-green-400 to-emerald-500"}`} />
+                      <span className="font-medium">{option}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              value={courtType}
+              onChange={(event) => setCourtType(event.target.value)}
+              placeholder={`Enter ${locationLabel.toLowerCase()}`}
+              className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-green-200/50 hover:border-green-400 transition-all duration-300"
+            />
+          )}
         </div>
       </Card>
 
@@ -207,6 +252,28 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
           onFinalSetTiebreakChange={setFinalSetTiebreak}
           sport={sport}
         />
+
+        {isSetBasedSport && (
+          <div className="mt-6 rounded-2xl border-2 border-purple-200/60 bg-gradient-to-r from-purple-50 to-indigo-50 p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-full transition-colors duration-300 ${finalSetTiebreak ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md" : "bg-white text-purple-600 border border-purple-200"}`}>
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-800">Final Set Format</p>
+                <p className="text-sm text-gray-600">
+                  Toggle if the deciding set used a tie-break to close the match.
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="final-set-tiebreak"
+              checked={finalSetTiebreak}
+              onCheckedChange={setFinalSetTiebreak}
+              className="data-[state=checked]:bg-purple-500"
+            />
+          </div>
+        )}
       </Card>
 
       {/* Match Settings & Notes */}
@@ -214,8 +281,6 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
         <MatchSettings
           notes={notes}
           onNotesChange={setNotes}
-          finalSetTiebreak={finalSetTiebreak}
-          onFinalSetTiebreakChange={setFinalSetTiebreak}
         />
       </Card>
 

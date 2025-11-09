@@ -80,7 +80,7 @@ const Landing = () => {
               <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-500">
                 <img
                   src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
-                  alt="Athlete reviewing Sports Journal insights courtside"
+                  alt="Athlete reviewing Sports Journal insights during training"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -181,7 +181,7 @@ const Landing = () => {
               Key Features & Use Cases
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Everything you need to elevate your game, whichever court you step on
+              Everything you need to elevate your game, whatever sport you pursue
             </p>
           </div>
           
@@ -190,7 +190,7 @@ const Landing = () => {
               {
                 icon: Target,
                 title: "Pre-Match Preparation",
-                description: "Plan each match like a pro. Set your goals, strategies, and focus points before you hit the court. Review past notes on upcoming opponents and walk on with a clear game plan and confident mindset.",
+                description: "Plan each match like a pro. Set your goals, strategies, and focus points before you compete. Review past notes on upcoming opponents and enter competition with a clear game plan and confident mindset.",
                 color: "from-blue-500 to-blue-600"
               },
               {
@@ -208,7 +208,7 @@ const Landing = () => {
               {
                 icon: Zap,
                 title: "Training & Practice Notes",
-                description: "Bring match insights to the practice court. Keep a log of your training sessions and tie your practice goals to your match feedback for more purposeful training.",
+                description: "Bring match insights to your training. Keep a log of your training sessions and tie your practice goals to your match feedback for more purposeful improvement.",
                 color: "from-orange-500 to-orange-600"
               },
               {
@@ -275,17 +275,17 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
-                quote: "I used to struggle to get my son to reflect on matches. Now he actually enjoys logging into Sports Journal and comes off the court more confident and focused for the next match.",
+                quote: "I used to struggle to get my son to reflect on matches. Now he actually enjoys logging into Sports Journal and feels more confident and focused after each performance.",
                 author: "Michael, Performance Parent",
                 avatar: "🎾"
               },
               {
-                quote: "As a coach, I love seeing my players' journal entries. It's like being courtside even when I can't be there, and it helps me tailor our training sessions to what they really need.",
+                quote: "As a coach, I love seeing my players' journal entries. It's like being there with them even when I can't attend, and it helps me tailor our training sessions to what they really need.",
                 author: "Coach Maria",
                 avatar: "🏆"
               },
               {
-                quote: "I've started winning matches I used to lose. The difference? Better preparation and reflection after every match. This app makes improving feel fun, and the results show on court.",
+                quote: "I've started winning matches I used to lose. The difference? Better preparation and reflection after every match. This app makes improving feel fun, and the results speak for themselves.",
                 author: "David, Adult Competitor",
                 avatar: "⭐"
               }
