@@ -25,6 +25,12 @@ import {
   Mail,
   MessageCircle,
   CheckCircle,
+  Rocket,
+  Globe,
+  Clock,
+  Award,
+  Sparkles,
+  Shield,
 } from "lucide-react";
 
 const Landing = () => {
@@ -33,7 +39,7 @@ const Landing = () => {
   const sports = [
     { icon: "🎾", name: "Tennis" },
     { icon: "🏓", name: "Table Tennis" },
-    { icon: "🏸", name: "Padel" },
+    { icon: "🥎", name: "Padel" },
     { icon: "🏸", name: "Pickleball" },
     { icon: "🏸", name: "Badminton" },
     { icon: "⚫", name: "Squash" },
@@ -42,35 +48,39 @@ const Landing = () => {
   const valuePillars = [
     {
       icon: Brain,
-      title: "Beyond Stats – Track Your Mental Game",
+      title: "Mental Game Mastery",
       description:
-        "Capture both match statistics AND mental insights. See exactly what worked, what didn't, and how you felt in pressure moments. It's your performance diary meets analytics dashboard.",
-      gradient: "from-blue-500 to-blue-600",
-      bgGradient: "from-blue-50 to-blue-100",
+        "Track both match stats AND mental insights. Capture what worked, what didn't, and how you felt in pressure moments. Your performance diary meets analytics dashboard.",
+      gradient: "from-blue-500 to-cyan-500",
+      iconBg: "bg-blue-500/10",
+      border: "border-blue-200",
     },
     {
       icon: Trophy,
-      title: "Designed for Winners at Every Level",
+      title: "Built for Champions",
       description:
-        "From junior prospects to elite squads to club champions – Sports Journal makes improvement engaging and motivating. No boring spreadsheets. Just intelligent tracking that inspires action.",
-      gradient: "from-purple-500 to-purple-600",
-      bgGradient: "from-purple-50 to-purple-100",
+        "From junior prospects to elite competitors – Sports Journal makes improvement engaging. No boring spreadsheets. Just intelligent tracking that inspires action.",
+      gradient: "from-purple-500 to-pink-500",
+      iconBg: "bg-purple-500/10",
+      border: "border-purple-200",
     },
     {
       icon: TrendingUp,
-      title: "See Your Progress, Spot Your Patterns",
+      title: "Progress Visualization",
       description:
-        "Sport-aware analytics reveal trends over time. Identify what's working, what needs attention, and celebrate your wins with visual progress tracking. Every match becomes a stepping stone.",
-      gradient: "from-green-500 to-green-600",
-      bgGradient: "from-green-50 to-green-100",
+        "Sport-aware analytics reveal trends over time. Identify what's working, celebrate wins with visual tracking. Every match becomes a stepping stone to greatness.",
+      gradient: "from-green-500 to-emerald-500",
+      iconBg: "bg-green-500/10",
+      border: "border-green-200",
     },
     {
       icon: Users,
-      title: "Keep Your Support Team in the Loop",
+      title: "Team Collaboration",
       description:
-        "One-tap sharing with coaches, parents, or training partners via WhatsApp or email. Get feedback fast. (Direct in-app coaching chat coming soon!)",
-      gradient: "from-orange-500 to-orange-600",
-      bgGradient: "from-orange-50 to-orange-100",
+        "One-tap sharing with coaches, parents, or training partners. Get feedback fast. Direct in-app coaching chat coming soon!",
+      gradient: "from-orange-500 to-red-500",
+      iconBg: "bg-orange-500/10",
+      border: "border-orange-200",
     },
   ];
 
@@ -78,224 +88,221 @@ const Landing = () => {
     {
       icon: Target,
       emoji: "🎯",
-      title: "Pre-Match Preparation",
+      title: "Pre-Match Prep",
       description:
-        "Plan each match like a pro. Set goals, review opponent notes, and step onto the court with a clear game plan and unshakeable confidence.",
-      gradient: "from-blue-500 to-blue-600",
+        "Plan like a pro. Set goals, review opponent notes, step onto court with unshakeable confidence.",
+      color: "text-blue-500",
+      bg: "bg-blue-50",
     },
     {
       icon: BookOpen,
       emoji: "📖",
-      title: "Post-Match Journaling",
+      title: "Post-Match Journal",
       description:
-        "Reflect while it's fresh. Quick, structured debriefs capture what worked, what didn't, and key learning moments. Build your personal playbook match by match.",
-      gradient: "from-green-500 to-green-600",
+        "Reflect while fresh. Quick, structured debriefs capture learning moments. Build your personal playbook.",
+      color: "text-green-500",
+      bg: "bg-green-50",
     },
     {
-      icon: Users,
-      emoji: "👥",
-      title: "Opponent Intelligence",
+      icon: Shield,
+      emoji: "🛡️",
+      title: "Opponent Intel",
       description:
-        "Your secret weapon: a database of every rival's style, weaknesses, and patterns. Know your opponent better than they know themselves.",
-      gradient: "from-purple-500 to-purple-600",
+        "Your secret weapon: database of every rival's style, weaknesses, patterns. Know them better than themselves.",
+      color: "text-purple-500",
+      bg: "bg-purple-50",
     },
     {
       icon: Zap,
       emoji: "⚡",
-      title: "Training Integration",
+      title: "Training Link",
       description:
-        "Connect practice to performance. Log training sessions and link them to match insights for purposeful, progressive improvement.",
-      gradient: "from-orange-500 to-orange-600",
+        "Connect practice to performance. Log sessions and link to match insights for purposeful improvement.",
+      color: "text-orange-500",
+      bg: "bg-orange-50",
     },
     {
       icon: BarChart3,
       emoji: "📊",
-      title: "Progress Analytics",
+      title: "Smart Analytics",
       description:
-        "Watch your hard work pay off with clean graphs, win-rate tracking, and performance trends. Data that motivates, not overwhelms.",
-      gradient: "from-red-500 to-red-600",
+        "Watch hard work pay off with clean graphs, win-rate tracking. Data that motivates, not overwhelms.",
+      color: "text-red-500",
+      bg: "bg-red-50",
     },
     {
       icon: Calendar,
       emoji: "📅",
-      title: "Tournament Scheduler",
+      title: "Tournament Hub",
       description:
-        "Never miss a match. Calendar integration keeps all your competition dates organised with linked journal entries and countdown timers.",
-      gradient: "from-teal-500 to-teal-600",
+        "Never miss a match. Calendar keeps all competition dates organized with entries and countdown timers.",
+      color: "text-teal-500",
+      bg: "bg-teal-50",
     },
   ];
 
   const testimonials = [
     {
       quote:
-        "I used to struggle to get my son to reflect on matches. Now he actually enjoys logging into Sports Journal and walks onto court with more confidence and focus. It's been a game-changer for our family.",
-      author: "Michael R., Performance Parent",
+        "Sports Journal transformed how my son approaches tennis. He actually enjoys logging matches now and plays with more focus. Game-changer!",
+      author: "Michael R.",
+      role: "Performance Parent",
       avatar: "🎾",
+      rating: 5,
     },
     {
       quote:
-        "As a coach, I love seeing my players' journal entries. It's like being courtside even when I can't be there. It helps me tailor training sessions to what they really need, not just what I think they need.",
-      author: "Coach Maria L., National Squad Coach",
+        "As a coach, seeing players' journal entries is like being courtside. It helps me tailor training to what they really need. Invaluable tool!",
+      author: "Coach Maria L.",
+      role: "National Squad Coach",
       avatar: "🏆",
+      rating: 5,
     },
     {
       quote:
-        "I've started winning matches I used to lose. The difference? Better prep, smarter reflection, and tracking what actually moves the needle. Sports Journal makes improving feel fun – and the results show on court.",
-      author: "David T., Adult Competitor",
+        "I'm winning matches I used to lose. Better prep, smarter reflection, tracking what matters. Sports Journal makes improving fun!",
+      author: "David T.",
+      role: "Adult Competitor",
       avatar: "⭐",
+      rating: 5,
     },
   ];
 
-  const steps = [
-    {
-      number: "1",
-      title: "Set Up Once",
-      description:
-        "Create your profile, choose your sport(s), and you're ready. Takes less than 60 seconds. No complex setup. No learning curve.",
-      icon: CheckCircle,
-    },
-    {
-      number: "2",
-      title: "Capture As You Go",
-      description:
-        "Log matches in seconds with smart templates. Add training notes. Track opponents. It's so simple, you'll actually use it consistently.",
-      icon: Activity,
-    },
-    {
-      number: "3",
-      title: "Improve & Dominate",
-      description:
-        "Review insights, spot patterns, share with your coach, and watch your performance soar. Sports Journal turns reflection into results.",
-      icon: TrendingUp,
-    },
-  ];
-
-  const faqs = [
-    {
-      question: "Is Sports Journal really free?",
-      answer:
-        "Yes! Core features free forever. Premium coming soon with additional features for competitive athletes.",
-    },
-    {
-      question: "Can I track multiple sports?",
-      answer:
-        "Absolutely! Switch between sports seamlessly. Your data travels with you across all racket sports.",
-    },
-    {
-      question: "How do I share with my coach?",
-      answer:
-        "One-tap sharing via WhatsApp, email, or link. Direct coach-player chat coming soon!",
-    },
-    {
-      question: "Does it work offline?",
-      answer:
-        "Match logging works offline, syncs when you're back online. Perfect for tournaments!",
-    },
-    {
-      question: "What devices are supported?",
-      answer: "Mobile, tablet, and web. Works everywhere you do.",
-    },
-    {
-      question: "Can I import past match data?",
-      answer: "Yes! Contact support for bulk import help.",
-    },
+  const benefits = [
+    { icon: Rocket, text: "Get started in under 60 seconds" },
+    { icon: Globe, text: "Works offline, syncs online" },
+    { icon: Users, text: "500+ athletes already improving" },
+    { icon: Shield, text: "Your data stays private & secure" },
+    { icon: Sparkles, text: "Free forever core features" },
+    { icon: Clock, text: "24/7 support when you need it" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 md:px-6 lg:px-8 overflow-hidden">
-        {/* Background blur circles */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-400/30 to-purple-600/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-green-400/30 to-blue-600/30 rounded-full blur-3xl" />
+    <div className="min-h-screen w-full bg-white">
+      {/* Hero Section - Completely Redesigned */}
+      <section className="relative w-full min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        </div>
 
-        <div className="container mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-            {/* Left content - 60% */}
-            <div className="lg:col-span-3 space-y-8 text-center lg:text-left">
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-foreground">
-                Track Performance. Master Your Mindset. Dominate Your Sport.
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto lg:mx-0">
-                Sports Journal is the digital performance companion for
-                ambitious athletes across tennis, table tennis, padel,
-                pickleball, badminton, and squash. Capture every match, training
-                insight, and breakthrough moment in one beautiful, easy-to-use
-                app.
-              </p>
-
-              {/* Sport icons trust badge */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-3 text-sm text-muted-foreground">
-                {sports.map((sport, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-card rounded-full border border-border"
-                  >
-                    <span className="text-lg">{sport.icon}</span>
-                    {sport.name}
+        <div className="w-full relative z-10 py-12 sm:py-16 md:py-20">
+          <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+              {/* Left - Hero Content */}
+              <div className="space-y-6 sm:space-y-8 text-center lg:text-left animate-fade-in">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full border border-blue-200">
+                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-900">
+                    #1 Performance Journal for Individual Sports
                   </span>
-                ))}
-              </div>
+                </div>
 
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/register")}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-[2rem] transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Start Free – Unlock Your Potential
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate("/login")}
-                  className="border-2 px-8 py-6 text-lg rounded-[2rem] hover:bg-accent transition-all duration-300"
-                >
-                  <Play className="mr-2 h-5 w-5" />
-                  Watch 2-Min Demo
-                </Button>
-              </div>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] text-gray-900 tracking-tight">
+                  Your Journey to
+                  <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
+                    Sporting Excellence
+                  </span>
+                  Starts Here
+                </h1>
 
-              {/* Social proof strip */}
-              <p className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                Trusted by 500+ competitive athletes • 10,000+ matches tracked •
-                4.9★ rating
-              </p>
-            </div>
+                <p className="text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  The intelligent performance companion for ambitious athletes. Track matches, master your mindset, and dominate your sport.
+                </p>
 
-            {/* Right hero image - 40% */}
-            <div className="lg:col-span-2 relative">
-              <div className="relative h-[400px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                <img
-                  src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
-                  alt="Athlete reviewing Sports Journal insights"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </div>
-
-              {/* Floating stat cards */}
-              <div className="absolute -top-4 -left-4 bg-card rounded-2xl p-4 shadow-lg border border-border animate-float">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-6 h-6 text-green-500" />
-                  <div>
-                    <div className="text-sm font-semibold">Match Won</div>
-                    <div className="text-xs text-muted-foreground">
-                      6-4, 6-2
+                {/* Sport badges */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+                  {sports.map((sport, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    >
+                      <span className="text-2xl group-hover:scale-110 transition-transform">
+                        {sport.icon}
+                      </span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {sport.name}
+                      </span>
                     </div>
+                  ))}
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/register")}
+                    className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg font-bold rounded-2xl shadow-2xl hover:shadow-blue-500/50 transform hover:scale-[1.02] transition-all duration-300 w-full sm:w-auto group"
+                  >
+                    Start Free Journey
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => navigate("/login")}
+                    className="border-2 border-gray-300 hover:border-blue-500 px-8 py-6 text-lg font-semibold rounded-2xl hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto"
+                  >
+                    <Play className="mr-2 h-5 w-5" />
+                    See Demo
+                  </Button>
+                </div>
+
+                {/* Social Proof */}
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {['🎾', '🏓', '🏸'].map((emoji, i) => (
+                        <div
+                          key={i}
+                          className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-sm border-2 border-white"
+                        >
+                          {emoji}
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      <strong className="text-gray-900">500+</strong> athletes
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className="absolute -bottom-4 -right-4 bg-card rounded-2xl p-4 shadow-lg border border-border animate-float">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-blue-500" />
-                  <div>
-                    <div className="text-sm font-semibold">Win Rate</div>
-                    <div className="text-xs text-muted-foreground">
-                      +15% this month
+
+              {/* Right - Hero Image with Enhanced Design */}
+              <div className="relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
+                  <img
+                    src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
+                    alt="Sports Journal App Interface"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent" />
+                </div>
+
+                {/* Floating elements */}
+                <div className="absolute -top-6 -left-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Match Won!</div>
+                      <div className="text-xs text-gray-600">6-4, 6-2</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float" style={{ animationDelay: '1s' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Win Rate</div>
+                      <div className="text-xs text-gray-600">+15% ↗</div>
                     </div>
                   </div>
                 </div>
@@ -305,35 +312,54 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Trust & Credibility Section */}
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-              Why 500+ Athletes Choose Sports Journal
+      {/* Benefits Bar */}
+      <section className="w-full py-8 bg-gray-900 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {benefits.map((benefit, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center text-center gap-2 opacity-90 hover:opacity-100 transition-opacity group"
+              >
+                <benefit.icon className="w-6 h-6 sm:w-8 sm:h-8 group-hover:scale-110 transition-transform" />
+                <span className="text-xs sm:text-sm leading-tight">{benefit.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Value Pillars - New Design */}
+      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-6">
+              <Award className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-900">Why Athletes Choose Us</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+              Four Pillars of Peak Performance
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              The Complete System for High-Performing Athletes Who Are Serious
-              About Improvement
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
+              The complete system for high-performing athletes serious about improvement
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {valuePillars.map((pillar, idx) => (
               <Card
                 key={idx}
-                className={`group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br ${pillar.bgGradient}`}
+                className={`group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 border-2 ${pillar.border} bg-white overflow-hidden`}
               >
-                <CardContent className="p-8">
-                  <div
-                    className={`h-16 w-16 bg-gradient-to-br ${pillar.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300`}
-                  >
-                    <pillar.icon className="h-8 w-8 text-white" />
+                <CardContent className="p-8 relative">
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${pillar.gradient} opacity-5 rounded-bl-full`} />
+                  <div className={`h-16 w-16 rounded-2xl ${pillar.iconBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <pillar.icon className={`h-8 w-8 bg-gradient-to-br ${pillar.gradient} bg-clip-text text-transparent`} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4 text-foreground">
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">
                     {pillar.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-base text-gray-600 leading-relaxed">
                     {pillar.description}
                   </p>
                 </CardContent>
@@ -343,36 +369,37 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Key Features Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-              Six Powerful Tools. One Seamless Experience.
+      {/* Features Grid - Enhanced */}
+      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-6">
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-900">Powerful Features</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+              Everything You Need to Excel
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Whether you're preparing for nationals or mastering your local
-              league, these features give you the competitive edge.
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
+              Six powerful tools working together seamlessly
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, idx) => (
               <Card
                 key={idx}
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-card"
+                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-white"
               >
                 <CardContent className="p-8">
-                  <div
-                    className={`h-16 w-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <feature.icon className="h-8 w-8 text-white" />
+                  <div className={`h-16 w-16 ${feature.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <feature.icon className={`h-8 w-8 ${feature.color}`} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4 text-foreground flex items-center gap-2">
-                    <span>{feature.emoji}</span>
+                  <h3 className="text-xl font-bold mb-3 text-gray-900 flex items-center gap-2">
+                    <span className="text-2xl">{feature.emoji}</span>
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-base text-gray-600 leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -382,48 +409,82 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Social Proof Section */}
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-foreground">
-              Real Athletes. Real Results. Real Transformation.
-            </h2>
-            <div className="flex justify-center gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className="w-8 h-8 fill-yellow-400 text-yellow-400"
-                />
-              ))}
+      {/* How It Works - Streamlined */}
+      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full mb-6">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-semibold text-green-900">Simple Process</span>
             </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+              Start Winning in 3 Steps
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { num: "01", title: "Sign Up Free", desc: "Create account in 60 seconds. No credit card required.", icon: Rocket },
+              { num: "02", title: "Track Matches", desc: "Log matches, training, and insights with smart templates.", icon: Activity },
+              { num: "03", title: "See Growth", desc: "Analyze patterns, share with coaches, dominate your sport.", icon: TrendingUp },
+            ].map((step, idx) => (
+              <div key={idx} className="relative text-center group">
+                <div className="relative inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl transform rotate-6 group-hover:rotate-12 transition-transform opacity-20" />
+                  <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 w-full h-full rounded-2xl flex items-center justify-center shadow-xl">
+                    <step.icon className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                <div className="text-4xl font-black text-gray-200 mb-2">{step.num}</div>
+                <h3 className="text-2xl font-bold mb-3 text-gray-900">{step.title}</h3>
+                <p className="text-base text-gray-600">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials - Modern Cards */}
+      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 rounded-full mb-6">
+              <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
+              <span className="text-sm font-semibold text-yellow-900">Rated 4.9/5</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+              Athletes Love Sports Journal
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
+              Real stories from real athletes seeing real results
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, idx) => (
               <Card
                 key={idx}
-                className="group hover:shadow-2xl transition-all duration-500 border-0 bg-gradient-to-br from-gray-50 to-white"
+                className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white relative overflow-hidden"
               >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
                 <CardContent className="p-8">
-                  <div className="flex justify-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground italic leading-relaxed mb-6">
-                    "{testimonial.quote}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-2xl">
-                      {testimonial.avatar}
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
                     </div>
-                    <p className="font-semibold text-foreground">
-                      {testimonial.author}
-                    </p>
+                    <div className="text-4xl">{testimonial.avatar}</div>
+                  </div>
+                  <blockquote className="text-base text-gray-700 mb-6 leading-relaxed">
+                    "{testimonial.quote}"
+                  </blockquote>
+                  <div className="border-t border-gray-100 pt-4">
+                    <div className="font-bold text-gray-900">{testimonial.author}</div>
+                    <div className="text-sm text-gray-500">{testimonial.role}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -432,229 +493,186 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-              From Court to Insights in 3 Simple Steps
-            </h2>
-          </div>
-
-          <div className="max-w-4xl mx-auto space-y-8">
-            {steps.map((step, idx) => (
-              <div
-                key={idx}
-                className="relative flex items-start gap-6 group"
-              >
-                {/* Connecting line (not on last item) */}
-                {idx < steps.length - 1 && (
-                  <div className="absolute left-8 top-20 w-0.5 h-full bg-gradient-to-b from-blue-500 to-purple-500" />
-                )}
-
-                {/* Number circle */}
-                <div className="relative z-10 flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  {step.number}
-                </div>
-
-                {/* Content */}
-                <Card className="flex-1 border-0 bg-card shadow-lg group-hover:shadow-2xl transition-all duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <step.icon className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                      <div>
-                        <h3 className="text-2xl font-bold mb-3 text-foreground">
-                          {step.title}
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
+      {/* CTA Banner - Bold & Modern */}
+      <section className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
         </div>
-      </section>
 
-      {/* Multi-Sport Showcase */}
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-            One App. Every Racket Sport.
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-            Whatever Your Court, We've Got You Covered
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {sports.map((sport, idx) => (
-              <div
-                key={idx}
-                className="px-6 py-4 bg-card rounded-full border-2 border-border hover:border-primary hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
-              >
-                <span className="text-2xl mr-2">{sport.icon}</span>
-                <span className="text-lg font-semibold text-foreground">
-                  {sport.name}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Sport-specific terminology, scoring formats, and analytics.
-            Switching sports? No problem – your data travels with you.
-          </p>
-        </div>
-      </section>
-
-      {/* Share & Collaborate Banner */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white relative overflow-hidden">
-        {/* Decorative blur circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-
-        <div className="container mx-auto text-center relative z-10">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-8 border border-white/30">
-            <Share2 className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-            Share Insights. Get Feedback. Grow Faster.
-          </h2>
-          <p className="text-xl mb-8 leading-relaxed opacity-90 max-w-3xl mx-auto">
-            One tap to share your match journal or stats via WhatsApp or email.
-            Perfect for updating coaches, parents, or training partners. Direct
-            coach-player chat coming soon!
-          </p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-2xl mx-auto">
-            <p className="text-lg italic">
-              💡 Coming soon: Direct in-app coaching chat for instant feedback!
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-foreground">
-              Your Questions, Answered
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Accordion type="single" collapsible className="space-y-4">
-              {faqs.slice(0, 3).map((faq, idx) => (
-                <AccordionItem
-                  key={idx}
-                  value={`item-${idx}`}
-                  className="bg-card border border-border rounded-2xl px-6"
-                >
-                  <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-
-            <Accordion type="single" collapsible className="space-y-4">
-              {faqs.slice(3).map((faq, idx) => (
-                <AccordionItem
-                  key={idx + 3}
-                  value={`item-${idx + 3}`}
-                  className="bg-card border border-border rounded-2xl px-6"
-                >
-                  <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 text-white relative overflow-hidden">
-        {/* Animated blur circles */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
-
-        <div className="container mx-auto text-center relative z-10">
+        <div className="max-w-5xl mx-auto text-center relative z-10 px-6 sm:px-8 md:px-12 lg:px-16">
           <div className="mb-8">
-            <span className="text-6xl">🏆</span>
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl mb-6">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-            Ready to Dominate Your Sport?
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6">
+            Ready to Transform Your Game?
           </h2>
-          <p className="text-xl mb-4 leading-relaxed opacity-90 max-w-3xl mx-auto">
-            Every Match is Part of Your Journey. Make Each One Count.
+          <p className="text-lg sm:text-xl md:text-2xl mb-8 opacity-95 max-w-3xl mx-auto">
+            Join 500+ athletes who are already tracking, improving, and winning more matches than ever before.
           </p>
-          <p className="text-lg mb-10 opacity-80 max-w-2xl mx-auto">
-            Join a growing community of 500+ passionate athletes committed to
-            continual improvement. Start tracking today, see results tomorrow.
-          </p>
-
           <Button
             size="lg"
             onClick={() => navigate("/register")}
-            className="bg-white text-blue-900 hover:bg-gray-100 px-10 py-6 text-xl rounded-[2rem] transform hover:scale-105 transition-all duration-300 shadow-2xl font-bold"
+            className="bg-white text-blue-900 hover:bg-gray-100 px-10 py-7 text-xl font-bold rounded-2xl shadow-2xl hover:shadow-white/50 transform hover:scale-105 transition-all duration-300 group"
           >
-            Start Your Free Journey
-            <ArrowRight className="ml-2 h-6 w-6" />
+            Start Your Free Journey Now
+            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
           </Button>
+          <p className="text-sm mt-6 opacity-80">No credit card required • Free forever core features</p>
+        </div>
+      </section>
 
-          {/* Stats bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
+      {/* FAQ - Cleaner Design */}
+      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gray-50">
+        <div className="max-w-4xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-6">
+              <MessageCircle className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-900">FAQs</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-gray-900">
+              Got Questions? We've Got Answers.
+            </h2>
+          </div>
+
+          <Accordion type="single" collapsible className="space-y-4">
             {[
-              { label: "Happy Players", value: "500+" },
-              { label: "Matches Tracked", value: "10,000+" },
-              { label: "App Rating", value: "4.9★" },
-              { label: "Countries", value: "25+" },
-            ].map((stat, idx) => (
+              { q: "Is Sports Journal really free?", a: "Yes! Core features free forever. Premium coming soon with additional features for competitive athletes." },
+              { q: "Can I track multiple sports?", a: "Absolutely! Switch between sports seamlessly. Your data travels with you across all racket sports." },
+              { q: "How do I share with my coach?", a: "One-tap sharing via WhatsApp, email, or link. Direct coach-player chat coming soon!" },
+              { q: "Does it work offline?", a: "Match logging works offline, syncs when you're back online. Perfect for tournaments!" },
+              { q: "What devices are supported?", a: "Mobile, tablet, and web. Works everywhere you do." },
+              { q: "Can I import past match data?", a: "Yes! Contact support for bulk import help." },
+            ].map((faq, idx) => (
+              <AccordionItem
+                key={idx}
+                value={`faq-${idx}`}
+                className="bg-white border-0 rounded-2xl shadow-sm hover:shadow-md transition-shadow px-6"
+              >
+                <AccordionTrigger className="text-left text-lg font-semibold text-gray-900 hover:no-underline py-6 hover:text-blue-600 transition-colors">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-base text-gray-600 pb-6 leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* Final CTA - Immersive */}
+      <section className="w-full py-20 sm:py-24 md:py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+        </div>
+
+        <div className="max-w-5xl mx-auto text-center relative z-10 px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 border-4 border-white/20">
+              <Trophy className="w-12 h-12 text-yellow-400" />
+            </div>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6">
+            Your Championship Journey Starts Now
+          </h2>
+          <p className="text-xl sm:text-2xl md:text-3xl mb-10 opacity-95 max-w-3xl mx-auto leading-relaxed">
+            Every champion started where you are. What separates them? Consistent, intelligent tracking.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+            <Button
+              size="lg"
+              onClick={() => navigate("/register")}
+              className="bg-white text-blue-900 hover:bg-gray-100 px-10 py-7 text-xl font-bold rounded-2xl shadow-2xl hover:shadow-white/30 transform hover:scale-105 transition-all duration-300 group"
+            >
+              Get Started Free
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-2 border-white text-white hover:bg-white/10 px-10 py-7 text-xl font-semibold rounded-2xl transition-all duration-300"
+              onClick={() => navigate("/login")}
+            >
+              Sign In
+            </Button>
+          </div>
+
+          {/* Trust indicators */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 opacity-90">
+            {[
+              { icon: Users, label: "500+ Athletes" },
+              { icon: Globe, label: "25+ Countries" },
+              { icon: Activity, label: "10K+ Matches" },
+              { icon: Star, label: "4.9★ Rating" },
+            ].map((item, idx) => (
               <div key={idx} className="text-center">
-                <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                <div className="text-sm opacity-80">{stat.label}</div>
+                <item.icon className="w-8 h-8 mx-auto mb-2" />
+                <div className="text-sm font-medium">{item.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 bg-[#1E293B] text-white">
-        <div className="container mx-auto text-center">
-          <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Transform Your Sporting Journey Today!
-          </h3>
-          <div className="flex justify-center gap-6 mb-8">
-            <a
-              href="https://wa.me/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <MessageCircle className="w-6 h-6" />
-            </a>
-            <a
-              href="mailto:support@sportsjournal.com"
-              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110"
-            >
-              <Mail className="w-6 h-6" />
-            </a>
+      {/* Footer - Enhanced */}
+      <footer className="w-full py-12 bg-gray-900 text-white border-t border-gray-800">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Brand Column */}
+            <div className="col-span-1 md:col-span-2">
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Sports Journal
+              </h3>
+              <p className="text-gray-400 mb-6 text-sm leading-relaxed max-w-md">
+                The intelligent performance companion for ambitious athletes across tennis, table tennis, padel, pickleball, badminton, and squash.
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="https://wa.me/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </a>
+                <a
+                  href="mailto:support@sportsjournal.com"
+                  className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-bold mb-4 text-white">Product</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Demo</a></li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 className="font-bold mb-4 text-white">Support</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-sm opacity-70">
-            © 2025 Sports Journal. Built for athletes who refuse to settle.
-          </p>
+
+          <div className="border-t border-gray-800 pt-8 text-center">
+            <p className="text-sm text-gray-400">
+              © 2025 Sports Journal. Built with ❤️ for athletes who refuse to settle.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
