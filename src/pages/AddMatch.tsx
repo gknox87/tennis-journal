@@ -6,6 +6,7 @@ import { useSport } from "@/context/SportContext";
 import { ArrowLeft, Trophy, Target, Zap } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
 import { useEffect } from "react";
+import { Header } from "@/components/Header";
 
 const AddMatch = () => {
   const { sport } = useSport();
@@ -68,7 +69,8 @@ const AddMatch = () => {
           notes: formData.notes || null,
           user_id: session.user.id,
           final_set_tiebreak: formData.finalSetTiebreak,
-          court_type: formData.courtType || null
+          court_type: formData.courtType || null,
+          sport_id: sport.id // Include sport_id so matches are properly categorized
         })
         .select()
         .single();
@@ -103,27 +105,18 @@ const AddMatch = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <Header userProfile={null} />
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
         <div className="absolute top-32 right-16 w-16 h-16 bg-purple-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-32 left-20 w-12 h-12 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
         {/* Header Section */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/")}
-              className="p-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <ArrowLeft className="mr-2 h-5 w-5 text-blue-600" />
-              <span className="font-medium text-gray-700">Back</span>
-            </Button>
-          </div>
 
           {/* Hero Section */}
           <div className="text-center mb-8 p-6 rounded-3xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-white/20">

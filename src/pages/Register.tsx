@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,54 +9,149 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { SportGoalSelector } from "@/components/onboarding/SportGoalSelector";
-import { DEFAULT_SPORT_ID, type SupportedSportId } from "@/constants/sports";
+import { type SupportedSportId } from "@/constants/sports";
 import { ONBOARDING_STORAGE_KEY, type PendingOnboardingSelection } from "@/constants/onboarding";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [sportId, setSportId] = useState<SupportedSportId>(DEFAULT_SPORT_ID);
+  const [sportId, setSportId] = useState<SupportedSportId | null>(null);
   const [goalId, setGoalId] = useState<string>("performance");
   const [loading, setLoading] = useState(false);
+  const [sportTouched, setSportTouched] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    sport?: string;
+  }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Refs to access DOM values as fallback (useful for automated testing)
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
+    setSportTouched(true);
+
+    // Get values from DOM refs first (source of truth), fallback to state
+    // This ensures we capture values even if React state hasn't updated (e.g., in automated testing)
+    const emailFromDOM = emailRef.current?.value || '';
+    const passwordFromDOM = passwordRef.current?.value || '';
+    const confirmPasswordFromDOM = confirmPasswordRef.current?.value || '';
+    
+    const finalEmail = emailFromDOM || email;
+    const finalPassword = passwordFromDOM || password;
+    const finalConfirmPassword = confirmPasswordFromDOM || confirmPassword;
+
+    // Log detailed information for debugging
+    console.log('=== FORM SUBMISSION DEBUG ===');
+    console.log('Email - State:', email, '| DOM:', emailFromDOM, '| Final:', finalEmail);
+    console.log('Password - State length:', password.length, '| DOM length:', passwordFromDOM.length, '| Final length:', finalPassword.length);
+    console.log('ConfirmPassword - State length:', confirmPassword.length, '| DOM length:', confirmPasswordFromDOM.length, '| Final length:', finalConfirmPassword.length);
+    console.log('SportId:', sportId, '| GoalId:', goalId);
+    console.log('EmailRef exists:', !!emailRef.current, '| PasswordRef exists:', !!passwordRef.current, '| ConfirmPasswordRef exists:', !!confirmPasswordRef.current);
+    
+    if (emailRef.current) {
+      console.log('Email input type:', emailRef.current.type, '| value length:', emailRef.current.value.length);
+    }
+    if (passwordRef.current) {
+      console.log('Password input type:', passwordRef.current.type, '| value length:', passwordRef.current.value.length);
+    }
+    if (confirmPasswordRef.current) {
+      console.log('ConfirmPassword input type:', confirmPasswordRef.current.type, '| value length:', confirmPasswordRef.current.value.length);
+    }
+    console.log('============================');
+
+    // Sync DOM values to state if they differ (for consistency)
+    if (emailRef.current?.value !== email) {
+      setEmail(emailRef.current?.value || "");
+    }
+    if (passwordRef.current?.value !== password) {
+      setPassword(passwordRef.current?.value || "");
+    }
+    if (confirmPasswordRef.current?.value !== confirmPassword) {
+      setConfirmPassword(confirmPasswordRef.current?.value || "");
     }
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
+    // Clear previous errors
+    setErrors({});
+
+    // Validate all required fields with specific error messages
+    const newErrors: typeof errors = {};
+    let hasErrors = false;
+
+    // Validate email
+    if (!finalEmail?.trim()) {
+      newErrors.email = "Email is required";
+      hasErrors = true;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(finalEmail.trim())) {
+        newErrors.email = "Please enter a valid email address";
+        hasErrors = true;
+      }
     }
 
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+    // Validate password
+    if (!finalPassword?.trim()) {
+      newErrors.password = "Password is required";
+      hasErrors = true;
+    } else if (finalPassword.trim().length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+      hasErrors = true;
+    }
+
+    // Validate confirm password
+    if (!finalConfirmPassword?.trim()) {
+      newErrors.confirmPassword = "Please confirm your password";
+      hasErrors = true;
+    } else if (finalPassword.trim() !== finalConfirmPassword.trim()) {
+      newErrors.confirmPassword = "Passwords do not match";
+      hasErrors = true;
+    }
+
+    // Validate sport selection
+    if (!sportId) {
+      newErrors.sport = "Please select a sport";
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      setErrors(newErrors);
+      // Also show toast with summary
+      const missingFields: string[] = [];
+      if (newErrors.email) missingFields.push("email");
+      if (newErrors.password) missingFields.push("password");
+      if (newErrors.confirmPassword) missingFields.push("confirm password");
+      if (newErrors.sport) missingFields.push("sport selection");
+
+      if (missingFields.length > 0) {
+        const fieldList = missingFields.length === 1 
+          ? missingFields[0] 
+          : missingFields.length === 2
+          ? `${missingFields[0]} and ${missingFields[1]}`
+          : `${missingFields.slice(0, -1).join(", ")}, and ${missingFields[missingFields.length - 1]}`;
+        
+        toast({
+          title: "Please fix the following",
+          description: `Please check: ${fieldList}`,
+          variant: "destructive",
+        });
+      }
       return;
     }
 
     setLoading(true);
     try {
-      console.log('Attempting signup with email:', email);
+      console.log('Attempting signup with email:', finalEmail);
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password.trim(),
+        email: finalEmail.trim(),
+        password: finalPassword.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
@@ -100,52 +195,108 @@ const Register = () => {
           <h1 className="text-2xl font-bold">Create an Account</h1>
           <p className="text-muted-foreground">Signup to start recording your performances</p>
         </div>
-        <form onSubmit={handleSignUp} className="space-y-6">
+        <form onSubmit={handleSignUp} className="space-y-6" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">
+              Email <span className="text-destructive">*</span>
+            </Label>
             <Input
+              ref={emailRef}
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) {
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
+              className={errors.email ? "border-destructive" : ""}
               placeholder="Enter your email"
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">
+              Password <span className="text-destructive">*</span>
+              <span className="text-xs text-muted-foreground font-normal ml-2">(min. 6 characters)</span>
+            </Label>
             <Input
+              ref={passwordRef}
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full"
+              onChange={(e) => {
+                const value = e.target.value;
+                setPassword(value);
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+                // Clear confirm password error if passwords now match
+                if (errors.confirmPassword && value === confirmPassword) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                }
+              }}
+              className={errors.password ? "border-destructive" : ""}
               placeholder="Enter your password"
-              minLength={6}
             />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">
+              Confirm Password <span className="text-destructive">*</span>
+            </Label>
             <Input
+              ref={confirmPasswordRef}
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full"
+              onChange={(e) => {
+                const value = e.target.value;
+                setConfirmPassword(value);
+                if (errors.confirmPassword) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                }
+              }}
+              className={errors.confirmPassword ? "border-destructive" : ""}
               placeholder="Confirm your password"
-              minLength={6}
             />
+            {errors.confirmPassword && (
+              <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+            )}
           </div>
-          <SportGoalSelector
-            sportId={sportId}
-            onSportChange={setSportId}
-            goalId={goalId}
-            onGoalChange={setGoalId}
-          />
-          <Button type="submit" className="w-full" disabled={loading}>
+          <div className={errors.sport ? "rounded-lg border-2 border-destructive p-3 bg-destructive/5" : ""}>
+            <SportGoalSelector
+              sportId={sportId}
+              onSportChange={(id) => {
+                console.log('Sport selected:', id);
+                setSportId(id);
+                setSportTouched(true);
+                if (errors.sport) {
+                  setErrors((prev) => ({ ...prev, sport: undefined }));
+                }
+              }}
+              goalId={goalId}
+              onGoalChange={(id) => {
+                console.log('Goal selected:', id);
+                setGoalId(id);
+              }}
+            />
+            {errors.sport && (
+              <p className="text-sm text-destructive mt-2 font-medium">
+                {errors.sport}
+              </p>
+            )}
+          </div>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+          >
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">

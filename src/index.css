@@ -247,3 +247,43 @@ section {
     }
   }
 }
+
+/* Safe area support for iOS and Android - handled by header component */
+/* Body padding is handled by individual components to avoid conflicts */
+
+/* Ensure touch targets meet minimum size requirements for interactive elements */
+/* iOS: 44x44 points, Android: 48x48dp */
+@media (max-width: 768px) {
+  /* Only apply to header and navigation elements */
+  header button,
+  header a,
+  header [role="button"],
+  nav button,
+  nav a,
+  nav [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Improve tap feedback on mobile */
+@media (max-width: 768px) {
+  button:active:not(:disabled),
+  a:active,
+  [role="button"]:active:not(:disabled) {
+    opacity: 0.8;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+  }
+}
+
+/* Hide scrollbar for horizontal scrolling stats */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

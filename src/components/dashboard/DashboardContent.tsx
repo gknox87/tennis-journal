@@ -3,7 +3,6 @@ import { Match } from "@/types/match";
 import { PlayerNote } from "@/types/notes";
 import { ScheduledEvent } from "@/types/calendar";
 import { StatsSection } from "@/components/StatsSection";
-import { SearchSection } from "@/components/SearchSection";
 import { MatchList } from "@/components/MatchList";
 import { NotesSection } from "@/components/dashboard/NotesSection";
 import { NotesDialog } from "@/components/NotesDialog";
@@ -20,8 +19,6 @@ const MemoizedImprovementChecklist = memo(ImprovementChecklist);
 interface DashboardContentProps {
   matches: Match[];
   filteredMatches: Match[];
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
   playerNotes: PlayerNote[];
   onMatchDelete: () => void;
   onDeleteNote: (noteId: string) => void;
@@ -30,8 +27,6 @@ interface DashboardContentProps {
 export const DashboardContent = ({
   matches,
   filteredMatches,
-  searchTerm,
-  onSearchChange,
   playerNotes,
   onMatchDelete,
   onDeleteNote,
@@ -67,20 +62,49 @@ export const DashboardContent = ({
     setShowNotesDialog(true);
   };
 
-  const recentMatches = filteredMatches.slice(0, 9);
+  // Show recent matches - prefer filteredMatches (for search), fallback to all matches
+  // Limit to 9 for display
+  const matchesToShow = filteredMatches.length > 0 ? filteredMatches : matches;
+  const recentMatches = matchesToShow.slice(0, 9);
+  
+  console.log('DashboardContent - Total matches:', matches.length, 'Filtered matches:', filteredMatches.length, 'Matches to show:', matchesToShow.length, 'Recent matches:', recentMatches.length);
+  console.log('DashboardContent - Player notes:', playerNotes.length);
 
   return (
-    <div className="space-y-8 md:space-y-12">
-      <div className="relative bg-gradient-to-br from-blue-50/80 via-purple-50/80 to-pink-50/80 rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-2xl md:rounded-3xl -z-10"></div>
+    <div className="space-y-6 md:space-y-8">
+      <div className="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-200/50 shadow-sm">
         <Suspense fallback={
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
           </div>
         }>
           <MemoizedStatsSection matches={matches} />
         </Suspense>
       </div>
+
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+        </div>
+      }>
+        <NotesSection
+          playerNotes={playerNotes}
+          onEditNote={handleEditNote}
+          onDeleteNote={onDeleteNote}
+          hasMatches={matches.length > 0}
+        />
+      </Suspense>
+
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      }>
+        <MatchList
+          matches={recentMatches}
+          onMatchDelete={onMatchDelete}
+        />
+      </Suspense>
 
       <div className="space-y-6">
         <Suspense fallback={
@@ -102,36 +126,6 @@ export const DashboardContent = ({
           <MemoizedImprovementChecklist />
         </Suspense>
       </div>
-
-      <Suspense fallback={
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-        </div>
-      }>
-        <NotesSection
-          playerNotes={playerNotes}
-          onEditNote={handleEditNote}
-          onDeleteNote={onDeleteNote}
-        />
-      </Suspense>
-
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl">
-        <SearchSection
-          searchTerm={searchTerm}
-          onSearchChange={onSearchChange}
-        />
-      </div>
-
-      <Suspense fallback={
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
-      }>
-        <MatchList
-          matches={recentMatches}
-          onMatchDelete={onMatchDelete}
-        />
-      </Suspense>
 
       <NotesDialog
         open={showNotesDialog}

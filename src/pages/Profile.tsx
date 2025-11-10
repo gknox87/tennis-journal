@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera } from "lucide-react";
+import { Header } from "@/components/Header";
 
 interface ProfileData {
   full_name: string | null;
@@ -187,17 +188,10 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="h-12 w-12 rounded-full bg-white/90 backdrop-blur-sm border-2 border-blue-200/50 shadow-lg hover:bg-white hover:shadow-xl hover:border-blue-300 transition-all duration-300"
-          >
-            <ArrowLeft className="h-5 w-5 text-blue-600" />
-          </Button>
           <div className="flex-1">
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
               Your Profile
@@ -209,8 +203,8 @@ const Profile = () => {
           <Button
             onClick={() => setIsEditing(!isEditing)}
             variant={isEditing ? "outline" : "default"}
-            className="shadow-lg hover:shadow-xl transition-all duration-300"
-            size="lg"
+            className="shadow-md hover:shadow-lg transition-all duration-200"
+            size="default"
           >
             <Edit3 className="mr-2 h-4 w-4" />
             {isEditing ? "Cancel" : "Edit"}
@@ -266,7 +260,7 @@ const Profile = () => {
           </Card>
 
           {/* Profile Details */}
-          <Card className="p-6 sm:p-8 bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl">
+          <Card className="p-6 sm:p-8 bg-white border-2 border-gray-200/50 shadow-xl">
             <div className="space-y-6">
               <div className="flex items-center gap-2 mb-6">
                 <User className="h-5 w-5 text-blue-600" />
@@ -281,7 +275,7 @@ const Profile = () => {
                     value={profileData.full_name || ""}
                     onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                     disabled={!isEditing}
-                    className="h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 disabled:bg-gray-100"
+                    className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -293,7 +287,7 @@ const Profile = () => {
                     value={profileData.club || ""}
                     onChange={(e) => setProfileData({ ...profileData, club: e.target.value })}
                     disabled={!isEditing}
-                    className="h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 disabled:bg-gray-100"
+                    className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
                     placeholder={`Enter your ${sport.name.toLowerCase()} club`}
                   />
                 </div>
@@ -305,7 +299,7 @@ const Profile = () => {
                     value={profileData.ranking || ""}
                     onChange={(e) => setProfileData({ ...profileData, ranking: e.target.value })}
                     disabled={!isEditing}
-                    className="h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 disabled:bg-gray-100"
+                    className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
                     placeholder="e.g., 4.5, Advanced, etc."
                   />
                 </div>
@@ -317,7 +311,7 @@ const Profile = () => {
                     onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
                     disabled={!isEditing}
                   >
-                    <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 disabled:bg-gray-100">
+                    <SelectTrigger className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 shadow-sm">
                       <SelectValue placeholder="Select a surface" />
                     </SelectTrigger>
                     <SelectContent>

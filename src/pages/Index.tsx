@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 
 const Index = () => {
-  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
@@ -69,42 +68,34 @@ const Index = () => {
     handleDeleteNote
   } = useNotesData();
 
-  // Initial data load
+  // Initial data load - fetch ALL matches (not filtered by sport) so user can see all their data
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await Promise.all([refreshMatches(sport.id), refreshNotes()]);
+        console.log('Loading initial data...', 'Auth loading:', isLoading, 'Sport loading:', sport.isLoading);
+        // Fetch all matches without sport filter to show all user data
+        // Stats will be filtered by sport in StatsSection component
+        await Promise.all([refreshMatches(undefined), refreshNotes()]);
+        console.log('Initial data loaded');
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
     };
     
-    if (!isLoading) {
+    // Wait for both auth and sport context to be ready
+    if (!isLoading && !sport.isLoading) {
       loadInitialData();
     }
-  }, [refreshMatches, refreshNotes, isLoading, sport.id]);
+  }, [refreshMatches, refreshNotes, isLoading, sport.isLoading]);
 
-  // Filter matches with debouncing
+
+  // Initialize filteredMatches with all matches when matches are loaded
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (!matches.length) return;
-
-      let filtered = matches;
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        filtered = filtered.filter(
-          (match) =>
-            match.opponent_name?.toLowerCase().includes(searchLower) ||
-            match.score.toLowerCase().includes(searchLower) ||
-            match.notes?.toLowerCase().includes(searchLower)
-        );
-      }
-
-      setFilteredMatches(filtered);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, matches, setFilteredMatches]);
+    if (matches.length > 0) {
+      console.log('Initializing filteredMatches with all matches:', matches.length);
+      setFilteredMatches(matches);
+    }
+  }, [matches, setFilteredMatches]);
 
   if (isLoading) {
     return (
@@ -117,29 +108,28 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
         <div className="absolute top-32 right-16 w-16 h-16 bg-purple-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-32 left-20 w-12 h-12 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* Header - Sticky at top */}
+      <Header userProfile={userProfile} />
+
+      {/* Main Content */}
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 sm:pb-28">
         <div className="max-w-7xl mx-auto">
-          <Header userProfile={userProfile} />
-          <div className="mt-6 sm:mt-8">
-            <DashboardContent
-              matches={matches}
-              filteredMatches={filteredMatches}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              playerNotes={playerNotes}
-              onMatchDelete={() => refreshMatches(sport.id)}
-              onDeleteNote={handleDeleteNote}
-            />
-          </div>
+          <DashboardContent
+            matches={matches}
+            filteredMatches={filteredMatches}
+            playerNotes={playerNotes}
+            onMatchDelete={() => refreshMatches(undefined)}
+            onDeleteNote={handleDeleteNote}
+          />
         </div>
-      </div>
+      </main>
     </div>
   );
 };

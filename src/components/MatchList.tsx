@@ -1,5 +1,4 @@
 import { MatchCard } from "@/components/MatchCard";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Match } from "@/types/match";
 interface MatchListProps {
@@ -15,11 +14,8 @@ export const MatchList = ({
     navigate(`/edit-match/${matchId}`);
   };
   return <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Recent Matches</h2>
-        <Button variant="link" onClick={() => navigate("/matches")} className="text-sm -mr-2 text-slate-700">
-          View All
-        </Button>
+      <div className="mb-2">
+        <h2 className="text-lg font-semibold">Recent Performances</h2>
       </div>
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

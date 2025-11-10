@@ -11,6 +11,7 @@ import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
 import { TrainingNoteDialog } from "@/components/training/TrainingNoteDialog";
 import { format } from "date-fns";
 import { useSport } from "@/context/SportContext";
+import { Header } from "@/components/Header";
 
 const TrainingNotes = () => {
   const { sport } = useSport();
@@ -99,18 +100,11 @@ const TrainingNotes = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-              className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 shadow-md hover:bg-white/90 hover:shadow-lg transition-all duration-300"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-700" />
-            </Button>
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
                 {sport.icon} {sport.terminology.trainingLabel}

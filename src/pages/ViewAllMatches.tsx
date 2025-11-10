@@ -10,8 +10,9 @@ import { SortControls } from "@/components/SortControls";
 import { addMonths, addYears, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useSport } from "@/context/SportContext";
+import { Header } from "@/components/Header";
 
-type SortOption = "newest" | "oldest" | "alphabetical" | "lastMonth" | "lastYear";
+type SortOption = "newest" | "alphabetical" | "lastMonth" | "lastYear";
 
 const ViewAllMatches = () => {
   const navigate = useNavigate();
@@ -31,23 +32,46 @@ const ViewAllMatches = () => {
         return;
       }
 
+      console.log('ViewAllMatches - Fetching matches for user:', session.user.id);
+      console.log('ViewAllMatches - Current sport.id:', sport.id);
+
+      // Fetch ALL matches for the user (not filtered by sport) to show all performances
+      // This ensures users can see all their matches regardless of sport_id
       const { data: matchesData, error: matchesError } = await supabase
         .from("matches")
         .select(`
           *,
           opponents (
             name
+          ),
+          sports (
+            name,
+            slug
           )
         `)
         .eq("user_id", session.user.id)
-        .eq("sport_id", sport.id)
         .order("date", { ascending: false });
 
-      if (matchesError) throw matchesError;
+      if (matchesError) {
+        console.error("Error fetching matches:", matchesError);
+        throw matchesError;
+      }
+
+      console.log('ViewAllMatches - Fetched matches:', matchesData?.length || 0);
+      if (matchesData && matchesData.length > 0) {
+        console.log('ViewAllMatches - Match sport_ids:', matchesData.map(m => ({ 
+          id: m.id, 
+          sport_id: m.sport_id, 
+          date: m.date,
+          opponent: m.opponents?.name 
+        })));
+      }
 
       const processedMatches = matchesData?.map(match => ({
         ...match,
-        opponent_name: match.opponents?.name || "Unknown Opponent"
+        opponent_name: match.opponents?.name || "Unknown Opponent",
+        sport_name: match.sports?.name,
+        sport_slug: match.sports?.slug
       })) || [];
 
       setMatches(processedMatches);
@@ -64,7 +88,7 @@ const ViewAllMatches = () => {
 
   useEffect(() => {
     fetchMatches();
-  }, [sport.id]);
+  }, []); // Fetch once on mount, not when sport changes since we're showing all matches
 
   useEffect(() => {
     let filtered = [...matches];
@@ -84,7 +108,7 @@ const ViewAllMatches = () => {
       filtered = filtered.filter(
         match =>
           match.opponent_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          match.score.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          match.score?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           match.notes?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -94,8 +118,6 @@ const ViewAllMatches = () => {
       switch (sortOption) {
         case "newest":
           return new Date(b.date).getTime() - new Date(a.date).getTime();
-        case "oldest":
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
         case "alphabetical":
           return (a.opponent_name || "").localeCompare(b.opponent_name || "");
         default:
@@ -107,22 +129,10 @@ const ViewAllMatches = () => {
   }, [matches, searchTerm, sortOption]);
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/")} 
-          className="w-full sm:w-auto flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
-          {sport.icon} All {sport.terminology.matchLabel}s
-        </h1>
-      </div>
-
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
+      <div className="space-y-4">
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -130,6 +140,7 @@ const ViewAllMatches = () => {
         </div>
 
         <MatchList matches={filteredMatches} onMatchDelete={fetchMatches} />
+      </div>
       </div>
     </div>
   );

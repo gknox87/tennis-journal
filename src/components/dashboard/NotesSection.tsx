@@ -20,12 +20,14 @@ interface NotesSectionProps {
   playerNotes: PlayerNote[];
   onEditNote: (note: PlayerNote) => void;
   onDeleteNote: (noteId: string) => void;
+  hasMatches?: boolean;
 }
 
 export const NotesSection = ({
   playerNotes,
   onEditNote,
   onDeleteNote,
+  hasMatches = false,
 }: NotesSectionProps) => {
   const { sport } = useSport();
   const navigate = useNavigate();
@@ -146,7 +148,8 @@ export const NotesSection = ({
             </Card>
           ))}
         </div>
-      ) : (
+      ) : !hasMatches ? (
+        // User has no matches and no notes - show the empty state with encouragement
         <Card className="glassmorphism border-2 border-dashed border-purple-200 p-12 text-center">
           <div className="space-y-4">
             <div className="mx-auto w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
@@ -166,7 +169,7 @@ export const NotesSection = ({
             </Button>
           </div>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 };

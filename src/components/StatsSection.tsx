@@ -1,24 +1,45 @@
 
 import { Match } from "@/types/match";
 import { StatsOverview } from "./StatsOverview";
+import { useSport } from "@/context/SportContext";
 
 interface StatsSectionProps {
   matches: Match[];
 }
 
 export const StatsSection = ({ matches }: StatsSectionProps) => {
-  const totalMatches = matches.length;
+  const { sport } = useSport();
+  
+  // Filter matches by current sport to calculate sport-specific stats
+  // This allows users to see stats for their selected sport even if they have matches for multiple sports
+  // If no matches match the current sport, fall back to all matches (user might have data for a different sport)
+  const sportMatches = sport?.id 
+    ? matches.filter((match) => match.sport_id === sport.id)
+    : matches;
+  
+  // If filtering by sport returns no matches, but we have matches, use all matches for stats
+  // This handles the case where user's profile sport doesn't match their match data
+  const matchesForStats = sportMatches.length > 0 ? sportMatches : matches;
+  
+  console.log('StatsSection - All matches:', matches.length, 'Sport matches:', sportMatches.length, 'Matches for stats:', matchesForStats.length, 'Sport ID:', sport?.id);
+  if (matches.length > 0 && sportMatches.length === 0 && sport?.id) {
+    console.warn('Warning: User has', matches.length, 'matches but none match current sport', sport.id);
+    console.log('Match sport_ids:', matches.map(m => m.sport_id).filter(Boolean));
+  }
+  
+  const totalMatches = matchesForStats.length;
   const currentYear = new Date().getFullYear();
-  const matchesThisYear = matches.filter(
+  const matchesThisYear = matchesForStats.filter(
     (match) => new Date(match.date).getFullYear() === currentYear
   ).length;
 
-  const wins = matches.filter((match) => match.is_win).length;
+  const wins = matchesForStats.filter((match) => match.is_win).length;
   const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
 
-  // Calculate sets won/lost
-  const setStats = matches.reduce(
+  // Calculate sets won/lost - use matches for stats
+  const setStats = matchesForStats.reduce(
     (acc, match) => {
+      if (!match.score) return acc;
       const sets = match.score.split(" ");
       sets.forEach((set) => {
         if (!set) return;
@@ -38,8 +59,8 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
     { setsWon: 0, setsLost: 0 }
   );
 
-  // Calculate tiebreaks won/lost
-  const tiebreaksWon = matches.reduce((acc, match) => {
+  // Calculate tiebreaks won/lost - use matches for stats
+  const tiebreaksWon = matchesForStats.reduce((acc, match) => {
     if (match.final_set_tiebreak) {
       return match.is_win ? acc + 1 : acc;
     }

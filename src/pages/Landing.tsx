@@ -33,14 +33,150 @@ import {
   Shield,
 } from "lucide-react";
 
+const PadelIcon = ({ className = "" }: { className?: string }) => (
+  <svg
+    viewBox="0 0 36 36"
+    className={`h-8 w-8 ${className}`}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="padelHead" x1="10" y1="6" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#60A5FA" />
+        <stop offset="1" stopColor="#2563EB" />
+      </linearGradient>
+      <linearGradient id="padelHandle" x1="26" y1="25" x2="30" y2="33" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#1E3A8A" />
+        <stop offset="1" stopColor="#1D4ED8" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M18 4.5c-6.351 0-11.5 5.149-11.5 11.5S11.649 27.5 18 27.5c3.866 0 7-3.134 7-7 0-7.384-4.485-16-7-16Z"
+      fill="url(#padelHead)"
+      stroke="#1E40AF"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+    <rect
+      x="24"
+      y="23"
+      width="4.5"
+      height="9.5"
+      rx="2.25"
+      fill="url(#padelHandle)"
+      transform="rotate(35 24 23)"
+      stroke="#1E3A8A"
+      strokeWidth="0.8"
+    />
+    <circle cx="24.9" cy="30.8" r="1.2" fill="#BFDBFE" opacity="0.8" />
+    {[ 
+      [14.5, 13.5],
+      [18, 13.5],
+      [21.5, 13.5],
+      [16.25, 17.25],
+      [19.75, 17.25],
+      [18, 21],
+    ].map(([cx, cy], idx) => (
+      <circle key={idx} cx={cx} cy={cy} r={1.15} fill="#E0F2FE" opacity="0.9" />
+    ))}
+    <path
+      d="M12.2 9.8c1.3-2.1 3.6-3.5 6.2-3.5"
+      stroke="#BAE6FD"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      opacity="0.8"
+    />
+  </svg>
+);
+
+const PickleballIcon = ({ className = "" }: { className?: string }) => (
+  <svg
+    viewBox="0 0 36 36"
+    className={`h-8 w-8 ${className}`}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="pickleballPaddle" x1="8" y1="8" x2="24" y2="22" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#F59E0B" />
+        <stop offset="1" stopColor="#D97706" />
+      </linearGradient>
+      <linearGradient id="pickleballHandle" x1="22" y1="20" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#92400E" />
+        <stop offset="1" stopColor="#78350F" />
+      </linearGradient>
+      <linearGradient id="pickleballBall" x1="26" y1="10" x2="32" y2="16" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FEF3C7" />
+        <stop offset="1" stopColor="#FDE68A" />
+      </linearGradient>
+    </defs>
+    {/* Paddle head - wider and more rounded than tennis */}
+    <ellipse
+      cx="16"
+      cy="14"
+      rx="8"
+      ry="6.5"
+      fill="url(#pickleballPaddle)"
+      stroke="#B45309"
+      strokeWidth="1.2"
+      transform="rotate(-15 16 14)"
+    />
+    {/* Paddle handle */}
+    <rect
+      x="21.5"
+      y="19"
+      width="3.5"
+      height="8"
+      rx="1.75"
+      fill="url(#pickleballHandle)"
+      transform="rotate(25 21.5 19)"
+      stroke="#78350F"
+      strokeWidth="0.8"
+    />
+    {/* Paddle surface holes pattern */}
+    {[
+      [13, 12],
+      [16.5, 11.5],
+      [20, 12],
+      [14.5, 14.5],
+      [18, 14.5],
+      [16, 16.5],
+    ].map(([cx, cy], idx) => (
+      <circle key={idx} cx={cx} cy={cy} r="0.9" fill="#FCD34D" opacity="0.6" />
+    ))}
+    {/* Pickleball - perforated wiffle ball */}
+    <circle
+      cx="28"
+      cy="12"
+      r="3.5"
+      fill="url(#pickleballBall)"
+      stroke="#F59E0B"
+      strokeWidth="0.8"
+    />
+    {/* Ball holes - characteristic pickleball perforations */}
+    {[
+      [26.5, 11],
+      [28, 10.5],
+      [29.5, 11],
+      [27, 12.5],
+      [29, 12.5],
+      [26.5, 13.5],
+      [28, 13.8],
+      [29.5, 13.5],
+    ].map(([cx, cy], idx) => (
+      <circle key={idx} cx={cx} cy={cy} r="0.35" fill="#F59E0B" opacity="0.8" />
+    ))}
+  </svg>
+);
+
 const Landing = () => {
   const navigate = useNavigate();
 
   const sports = [
     { icon: "🎾", name: "Tennis" },
     { icon: "🏓", name: "Table Tennis" },
-    { icon: "🥎", name: "Padel" },
-    { icon: "🏸", name: "Pickleball" },
+    { icon: "padel", name: "Padel" },
+    { icon: "pickleball", name: "Pickleball" },
     { icon: "🏸", name: "Badminton" },
     { icon: "⚫", name: "Squash" },
   ];
@@ -220,9 +356,15 @@ const Landing = () => {
                       key={idx}
                       className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 cursor-pointer group"
                     >
-                      <span className="text-2xl group-hover:scale-110 transition-transform">
-                        {sport.icon}
-                      </span>
+                  <div className="flex h-9 w-9 items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    {sport.icon === "padel" ? (
+                      <PadelIcon />
+                    ) : sport.icon === "pickleball" ? (
+                      <PickleballIcon />
+                    ) : (
+                      <span className="text-2xl">{sport.icon}</span>
+                    )}
+                  </div>
                       <span className="text-sm font-medium text-gray-700">
                         {sport.name}
                       </span>

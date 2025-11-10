@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
 import { EditMatchLoading } from "@/components/match/EditMatchLoading";
 import { useMatchEdit } from "@/hooks/useMatchEdit";
+import { Header } from "@/components/Header";
 
 const EditMatch = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,19 +18,21 @@ const EditMatch = () => {
   }, [fetchMatch]);
 
   if (isLoading) {
-    return <EditMatchLoading onBack={() => navigate(-1)} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <Header userProfile={null} />
+        <EditMatchLoading onBack={() => navigate(-1)} />
+      </div>
+    );
   }
 
   if (!match) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
-
-      <h1 className="text-2xl font-bold mb-6">Edit Match</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-4 py-8 pb-24 sm:pb-28">
+        <h1 className="text-2xl font-bold mb-6">Edit Match</h1>
 
       <MatchForm
         onSubmit={handleSubmit}
@@ -44,6 +47,7 @@ const EditMatch = () => {
           isBestOfFive: match.sets && match.sets.length > 3,
         }}
       />
+      </div>
     </div>
   );
 };

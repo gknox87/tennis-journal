@@ -1,0 +1,44 @@
+Club Tennis App - Test Account Details
+========================================
+
+Website: https://clubtennis.app/
+Date Created: 2025-01-10
+
+Account Information:
+-------------------
+Display Name: Test User
+Email: test.clubtennis@example.com
+Password: TestPassword123!
+
+Signup URL: https://clubtennis.app/auth?mode=signup
+
+Notes:
+- Form fields: Display Name, Email, Password
+- Form includes a "Sign in" button to switch to login mode
+- Uses Supabase backend (qgknolqjvszfnhuipfbk.supabase.co)
+
+Issues Encountered:
+------------------
+1. Form submission appears non-functional - clicking "Create Account" button or pressing Enter does not submit the form
+2. No visible error messages displayed
+3. No console errors detected
+4. Network requests to Supabase return 406 (Not Acceptable) status codes
+5. Form fields clear after attempted submission
+6. No success message or page navigation after form submission attempts
+
+Technical Details:
+-----------------
+- Form uses standard HTML form elements
+- Password field is properly masked
+- All required fields are marked with "required" attribute
+- Form appears to be client-side rendered (likely React/Next.js based on URL structure)
+- Backend API endpoint appears to be Supabase REST API
+
+Recommendations:
+---------------
+- Check browser console for JavaScript errors
+- Verify Supabase API configuration and authentication setup
+- Test with different email addresses to rule out duplicate account issues
+- Check if email verification is required before account activation
+- Verify form validation requirements (password strength, email format, etc.)
+

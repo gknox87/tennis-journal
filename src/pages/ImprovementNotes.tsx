@@ -110,19 +110,12 @@ const ImprovementNotes = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 max-w-7xl">
-      <Header />
-      <div className="mt-4 flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="h-8 w-8"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-2xl font-bold">AI Improvement Notes</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
+        <div className="mt-4 flex items-center gap-4">
+          <h1 className="text-2xl font-bold">AI Improvement Notes</h1>
+        </div>
 
       <div className="mt-6 space-y-6">
         {improvementPoints.length === 0 ? (
@@ -162,6 +155,7 @@ const ImprovementNotes = () => {
             </Card>
           ))
         )}
+      </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { TimePicker } from "@/components/ui/time-picker";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
-import { format, isValid } from "date-fns";
+import { format, parse, isValid } from "date-fns";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EventDialogProps {
   event: ScheduledEvent;
@@ -47,19 +52,50 @@ export const EventDialog = ({
   const [sessionType, setSessionType] = useState<SessionType>(event.session_type);
   const [notes, setNotes] = useState(event.notes || '');
   
-  // Safely format dates with fallback to current time
-  const formatDateWithFallback = (dateString: string) => {
+  // Parse datetime strings into Date objects and extract date/time parts
+  const parseDateTime = (dateString: string) => {
     const date = new Date(dateString);
     if (isValid(date)) {
-      return format(date, "yyyy-MM-dd'T'HH:mm");
+      return {
+        date: date,
+        dateStr: format(date, 'yyyy-MM-dd'),
+        timeStr: format(date, 'HH:mm')
+      };
     }
-    return format(new Date(), "yyyy-MM-dd'T'HH:mm");
+    const now = new Date();
+    return {
+      date: now,
+      dateStr: format(now, 'yyyy-MM-dd'),
+      timeStr: format(now, 'HH:mm')
+    };
   };
 
-  const [startDate, setStartDate] = useState(formatDateWithFallback(event.start_time));
-  const [endDate, setEndDate] = useState(formatDateWithFallback(event.end_time));
+  const startDateTime = parseDateTime(event.start_time);
+  const endDateTime = parseDateTime(event.end_time);
+
+  const [startDate, setStartDate] = useState<Date | undefined>(startDateTime.date);
+  const [startTime, setStartTime] = useState(startDateTime.timeStr);
+  const [endDate, setEndDate] = useState<Date | undefined>(endDateTime.date);
+  const [endTime, setEndTime] = useState(endDateTime.timeStr);
+  const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
+  const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Update state when event changes
+  useEffect(() => {
+    if (isOpen) {
+      const start = parseDateTime(event.start_time);
+      const end = parseDateTime(event.end_time);
+      setStartDate(start.date);
+      setStartTime(start.timeStr);
+      setEndDate(end.date);
+      setEndTime(end.timeStr);
+      setTitle(event.title || '');
+      setSessionType(event.session_type);
+      setNotes(event.notes || '');
+    }
+  }, [event, isOpen]);
 
   const handleSave = async () => {
     if (!title) {
@@ -71,19 +107,44 @@ export const EventDialog = ({
       return;
     }
 
-    const startDateTime = new Date(startDate);
-    const endDateTime = new Date(endDate);
-
-    if (!isValid(startDateTime) || !isValid(endDateTime)) {
+    if (!startDate || !endDate) {
       toast({
         title: "Error",
-        description: "Invalid date format",
+        description: "Please select start and end dates",
         variant: "destructive",
       });
       return;
     }
 
-    if (endDateTime <= startDateTime) {
+    if (!startTime || !endTime) {
+      toast({
+        title: "Error",
+        description: "Please select start and end times",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Combine date and time into datetime strings
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startDateTimeObj = new Date(startDate);
+    startDateTimeObj.setHours(startHour, startMinute, 0, 0);
+    
+    const endDateTimeObj = new Date(endDate);
+    endDateTimeObj.setHours(endHour, endMinute, 0, 0);
+
+    if (!isValid(startDateTimeObj) || !isValid(endDateTimeObj)) {
+      toast({
+        title: "Error",
+        description: "Invalid date or time format",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (endDateTimeObj <= startDateTimeObj) {
       toast({
         title: "Error",
         description: "End time must be after start time",
@@ -91,6 +152,10 @@ export const EventDialog = ({
       });
       return;
     }
+
+    // Format as ISO string for database
+    const startDateTimeStr = startDateTimeObj.toISOString();
+    const endDateTimeStr = endDateTimeObj.toISOString();
 
     setLoading(true);
     try {
@@ -104,8 +169,8 @@ export const EventDialog = ({
           .from('scheduled_events')
           .insert({
             title,
-            start_time: startDate,
-            end_time: endDate,
+            start_time: startDateTimeStr,
+            end_time: endDateTimeStr,
             session_type: sessionType,
             notes,
             user_id: session.user.id
@@ -117,8 +182,8 @@ export const EventDialog = ({
           .from('scheduled_events')
           .update({
             title,
-            start_time: startDate,
-            end_time: endDate,
+            start_time: startDateTimeStr,
+            end_time: endDateTimeStr,
             session_type: sessionType,
             notes,
             user_id: session.user.id
@@ -193,25 +258,166 @@ export const EventDialog = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start-time">Start Time</Label>
-              <Input
-                id="start-time"
-                type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Start Time
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-medium h-11 sm:h-12 rounded-xl bg-white/90 backdrop-blur-sm border-2 border-blue-200/50 hover:border-blue-400 hover:bg-white/95 focus:border-blue-400 transition-all duration-200 hover:shadow-md active:scale-[0.98] touch-manipulation",
+                        "text-gray-900 hover:text-gray-900",
+                        !startDate && "text-muted-foreground hover:text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0" />
+                      <span className="flex-1 text-sm sm:text-base">
+                        {startDate ? format(startDate, "MMM d, yyyy") : <span className="text-muted-foreground">Pick a date</span>}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0 rounded-2xl border-2 border-white/30 shadow-2xl z-[100] max-w-[calc(100vw-2rem)]" 
+                    align="start"
+                    side="bottom"
+                    sideOffset={8}
+                  >
+                    <CalendarComponent
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setStartDate(date);
+                          // Close popover on mobile after selection
+                          if (window.innerWidth < 640) {
+                            setIsStartDatePickerOpen(false);
+                          }
+                        }
+                      }}
+                      initialFocus
+                      className="rounded-2xl bg-white/95 backdrop-blur-sm"
+                      classNames={{
+                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                        month: "space-y-4 p-3 sm:p-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-sm sm:text-base font-semibold",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: cn(
+                          "h-8 w-8 sm:h-9 sm:w-9 bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md border border-input hover:bg-accent hover:text-accent-foreground transition-colors touch-manipulation active:scale-95 min-w-[32px] min-h-[32px]"
+                        ),
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex",
+                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                        row: "flex w-full mt-2",
+                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        day: cn(
+                          "h-9 w-9 sm:h-10 sm:w-10 p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors touch-manipulation active:scale-95 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px]"
+                        ),
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground",
+                        day_outside: "text-muted-foreground opacity-50",
+                        day_disabled: "text-muted-foreground opacity-50",
+                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                        day_hidden: "invisible",
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <TimePicker
+                  value={startTime}
+                  onChange={setStartTime}
+                  className="h-11 sm:h-12"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="end-time">End Time</Label>
-              <Input
-                id="end-time"
-                type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                End Time
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-medium h-11 sm:h-12 rounded-xl bg-white/90 backdrop-blur-sm border-2 border-blue-200/50 hover:border-blue-400 hover:bg-white/95 focus:border-blue-400 transition-all duration-200 hover:shadow-md active:scale-[0.98] touch-manipulation",
+                        "text-gray-900 hover:text-gray-900",
+                        !endDate && "text-muted-foreground hover:text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0" />
+                      <span className="flex-1 text-sm sm:text-base">
+                        {endDate ? format(endDate, "MMM d, yyyy") : <span className="text-muted-foreground">Pick a date</span>}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0 rounded-2xl border-2 border-white/30 shadow-2xl z-[100] max-w-[calc(100vw-2rem)]" 
+                    align="start"
+                    side="bottom"
+                    sideOffset={8}
+                  >
+                    <CalendarComponent
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setEndDate(date);
+                          // Close popover on mobile after selection
+                          if (window.innerWidth < 640) {
+                            setIsEndDatePickerOpen(false);
+                          }
+                        }
+                      }}
+                      initialFocus
+                      className="rounded-2xl bg-white/95 backdrop-blur-sm"
+                      disabled={(date) => startDate ? date < startDate : false}
+                      classNames={{
+                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                        month: "space-y-4 p-3 sm:p-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-sm sm:text-base font-semibold",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: cn(
+                          "h-8 w-8 sm:h-9 sm:w-9 bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md border border-input hover:bg-accent hover:text-accent-foreground transition-colors touch-manipulation active:scale-95 min-w-[32px] min-h-[32px]"
+                        ),
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex",
+                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                        row: "flex w-full mt-2",
+                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        day: cn(
+                          "h-9 w-9 sm:h-10 sm:w-10 p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors touch-manipulation active:scale-95 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px]"
+                        ),
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground",
+                        day_outside: "text-muted-foreground opacity-50",
+                        day_disabled: "text-muted-foreground opacity-50",
+                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                        day_hidden: "invisible",
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <TimePicker
+                  value={endTime}
+                  onChange={setEndTime}
+                  className="h-11 sm:h-12"
+                />
+              </div>
             </div>
           </div>
 
@@ -230,7 +436,7 @@ export const EventDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Important Info</Label>
             <Textarea
               id="notes"
               value={notes}

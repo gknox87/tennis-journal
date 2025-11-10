@@ -13,6 +13,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { eachDayOfInterval, parseISO, format } from "date-fns";
 import type { ScheduledEvent } from "@/types/calendar";
+import { Header } from "@/components/Header";
 
 const Calendar = () => {
   const navigate = useNavigate();
@@ -103,17 +104,9 @@ const Calendar = () => {
   });
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/')}
-          className="flex items-center"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <Header userProfile={null} />
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-28">
       
       <div className="bg-background rounded-lg shadow p-2 sm:p-4">
         {isMobile ? (
@@ -166,6 +159,7 @@ const Calendar = () => {
           }}
         />
       )}
+      </div>
     </div>
   );
 };

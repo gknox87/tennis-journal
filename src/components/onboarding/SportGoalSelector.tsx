@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { CheckCircle2 } from "lucide-react";
 import {
   getSportsByCategory,
   getPopularSports,
@@ -33,7 +34,7 @@ const GOAL_OPTIONS: Array<{ id: string; label: string; description: string }> = 
 ];
 
 interface SportGoalSelectorProps {
-  sportId: SupportedSportId;
+  sportId: SupportedSportId | null;
   onSportChange: (sportId: SupportedSportId) => void;
   goalId: string;
   onGoalChange: (goalId: string) => void;
@@ -83,10 +84,10 @@ export const SportGoalSelector = ({
               type="button"
               onClick={() => onSportChange(sport.id as SupportedSportId)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg border bg-background px-4 py-3 text-left transition",
+                "relative flex w-full items-center gap-3 rounded-lg border bg-background px-4 py-3 text-left transition-all",
                 selected
-                  ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                  : "border-transparent shadow-sm hover:border-primary/50 hover:bg-background"
+                  ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-md"
+                  : "border-border shadow-sm hover:border-primary/50 hover:bg-muted/30 hover:shadow"
               )}
             >
               <span className="text-2xl">{sport.icon}</span>
@@ -94,6 +95,9 @@ export const SportGoalSelector = ({
                 <p className="font-semibold truncate">{sport.name}</p>
                 <p className="text-xs text-muted-foreground capitalize">{secondaryLabel}</p>
               </div>
+              {selected && (
+                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" aria-hidden="true" />
+              )}
             </button>
           );
         })}
@@ -114,7 +118,9 @@ export const SportGoalSelector = ({
       )}
     >
       <div className="space-y-3">
-        <Label className="text-base">Choose your sport</Label>
+        <Label className="text-base">
+          Choose your sport <span className="text-destructive">*</span>
+        </Label>
 
         {/* Search Input */}
         <Input
@@ -172,14 +178,21 @@ export const SportGoalSelector = ({
                 type="button"
                 onClick={() => onGoalChange(goal.id)}
                 className={cn(
-                  "rounded-xl border px-4 py-3 text-left transition",
+                  "relative rounded-xl border px-4 py-3 text-left transition-all",
                   selected
-                    ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                    : "border-border hover:border-primary/50 hover:bg-muted/40"
+                    ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-md"
+                    : "border-border hover:border-primary/50 hover:bg-muted/40 hover:shadow"
                 )}
               >
-                <p className="font-semibold">{goal.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{goal.description}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="font-semibold">{goal.label}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">{goal.description}</p>
+                  </div>
+                  {selected && (
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  )}
+                </div>
               </button>
             );
           })}

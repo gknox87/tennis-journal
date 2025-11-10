@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
 import { SportProvider } from "@/context/SportContext";
+import { BottomNavigationWrapper } from "@/components/BottomNavigationWrapper";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -116,6 +117,7 @@ function App() {
             element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />}
           />
           </Routes>
+          <BottomNavigationWrapper />
           <Toaster />
         </div>
       </Router>
