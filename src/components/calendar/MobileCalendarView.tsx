@@ -135,82 +135,117 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
   // Render monthly view
   const renderMonthView = () => {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Calendar Grid */}
-        <div className="border rounded-lg p-2 bg-white">
-          <CalendarComponent
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => date && setSelectedDate(date)}
-            month={currentDate}
-            onMonthChange={setCurrentDate}
-            className="rounded-md"
-            classNames={{
-              months: "flex flex-col space-y-4",
-              month: "space-y-4",
-              caption: "flex justify-center pt-1 relative items-center",
-              caption_label: "text-sm font-medium",
-              nav: "space-x-1 flex items-center",
-              nav_button: cn(
-                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-              ),
-              nav_button_previous: "absolute left-1",
-              nav_button_next: "absolute right-1",
-              table: "w-full border-collapse space-y-1",
-              head_row: "flex",
-              head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-              row: "flex w-full mt-2",
-              cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-              day: cn(
-                "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-              ),
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-              day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-              day_disabled: "text-muted-foreground opacity-50",
-              day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-              day_hidden: "invisible",
-            }}
-            modifiers={{
-              hasEvents: datesWithEvents
-            }}
-            modifiersClassNames={{
-              hasEvents: "relative after:content-[''] after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-blue-500 after:rounded-full"
-            }}
-          />
-        </div>
+        <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 backdrop-blur-sm">
+          <div className="p-4 sm:p-6">
+            <CalendarComponent
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              month={currentDate}
+              onMonthChange={setCurrentDate}
+              className="rounded-xl"
+              classNames={{
+                months: "flex flex-col space-y-4",
+                month: "space-y-4",
+                caption: "flex justify-center pt-1 relative items-center mb-4",
+                caption_label: "text-lg font-bold text-gray-800",
+                nav: "space-x-1 flex items-center",
+                nav_button: cn(
+                  "h-8 w-8 rounded-lg bg-white/80 hover:bg-white border border-gray-200 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105"
+                ),
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex mb-2",
+                head_cell: "text-gray-500 rounded-lg w-11 font-semibold text-xs uppercase tracking-wider",
+                row: "flex w-full mt-1",
+                cell: "h-11 w-11 text-center text-sm p-0 relative rounded-lg transition-all duration-200",
+                day: cn(
+                  "h-11 w-11 p-0 font-medium rounded-lg transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:scale-110 focus:bg-purple-100 focus:text-purple-700"
+                ),
+                day_selected: "bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold shadow-lg hover:from-purple-600 hover:to-blue-600 hover:shadow-xl scale-110",
+                day_today: "bg-gradient-to-br from-orange-100 to-pink-100 text-orange-700 font-bold border-2 border-orange-300",
+                day_outside: "text-gray-300 opacity-40",
+                day_disabled: "text-gray-200 opacity-30",
+                day_range_middle: "bg-purple-50 text-purple-700",
+                day_hidden: "invisible",
+              }}
+              modifiers={{
+                hasEvents: datesWithEvents
+              }}
+              modifiersClassNames={{
+                hasEvents: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500 after:rounded-full after:shadow-sm"
+              }}
+            />
+          </div>
+        </Card>
 
         {/* Selected Date Events */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-700">
-            {format(selectedDate, 'EEEE, MMM d')}
-          </h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-lg font-bold text-gray-800">
+              {format(selectedDate, 'EEEE, MMM d')}
+            </h3>
+            {isToday(selectedDate) && (
+              <span className="px-2.5 py-0.5 bg-gradient-to-r from-orange-400 to-pink-400 text-white text-xs font-bold rounded-full shadow-sm">
+                Today
+              </span>
+            )}
+          </div>
           {getEventsForDate(selectedDate).length > 0 ? (
-            getEventsForDate(selectedDate).map((event) => (
-              <Card
-                key={`${event.id}-${selectedDate.getTime()}`}
-                className="p-3 cursor-pointer hover:bg-accent transition-colors"
-                onClick={() => onEventClick(event)}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)}`} />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm">{event.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {isAllDayEvent(event) ? (
-                        "All day"
-                      ) : (
-                        `${format(parseISO(event.start_time), 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <div className="text-center py-4 text-sm text-muted-foreground">
-              No events scheduled
+            <div className="space-y-3">
+              {getEventsForDate(selectedDate).map((event) => {
+                const eventStart = parseISO(event.start_time);
+                const isAllDay = isAllDayEvent(event);
+                return (
+                  <Card
+                    key={`${event.id}-${selectedDate.getTime()}`}
+                    className="group cursor-pointer border-0 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-r from-white to-purple-50/50 overflow-hidden"
+                    onClick={() => onEventClick(event)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`w-1 h-full min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)} shadow-sm`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-bold text-base text-gray-800 group-hover:text-purple-700 transition-colors">
+                              {event.title || 'Untitled Event'}
+                            </h3>
+                            <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getSessionTypeColor(event.session_type)} text-white shadow-sm`}>
+                              {event.session_type}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1 h-1 bg-purple-400 rounded-full"></div>
+                              <span className="font-medium">
+                                {isAllDay ? (
+                                  "All Day"
+                                ) : (
+                                  `${format(eventStart, 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
+          ) : (
+            <Card className="border-2 border-dashed border-gray-200 bg-gradient-to-br from-gray-50 to-purple-50/30">
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                  <CalendarIcon className="h-8 w-8 text-purple-400" />
+                </div>
+                <p className="text-sm font-medium text-gray-600">No events scheduled</p>
+                <p className="text-xs text-gray-500 mt-1">Tap "Add Event" to schedule something</p>
+              </div>
+            </Card>
           )}
         </div>
       </div>
@@ -256,41 +291,54 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
       <div className="space-y-4">
         {/* Week Events List */}
         {weekEvents.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {weekEvents.map((event) => {
               const eventStart = parseISO(event.start_time);
               const eventDate = startOfDay(eventStart);
               const isEventToday = isToday(eventDate);
+              const isAllDay = isAllDayEvent(event);
               
               return (
                 <Card
                   key={event.id}
-                  className="p-3 cursor-pointer hover:bg-accent transition-colors"
+                  className="group cursor-pointer border-0 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-r from-white to-purple-50/50 overflow-hidden"
                   onClick={() => onEventClick(event)}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${getSessionTypeColor(event.session_type)}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-sm">{event.title}</h3>
-                        {isEventToday && (
-                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
-                            Today
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-1 h-full min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)} shadow-sm`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-bold text-base text-gray-800 group-hover:text-purple-700 transition-colors">
+                            {event.title || 'Untitled Event'}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            {isEventToday && (
+                              <span className="px-2 py-0.5 bg-gradient-to-r from-orange-400 to-pink-400 text-white text-xs font-bold rounded-full shadow-sm">
+                                Today
+                              </span>
+                            )}
+                            <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getSessionTypeColor(event.session_type)} text-white shadow-sm`}>
+                              {event.session_type}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1 h-1 bg-purple-400 rounded-full"></div>
+                            <span className="font-semibold">
+                              {format(eventStart, 'EEE, MMM d')}
+                            </span>
+                          </div>
+                          <span className="text-gray-300">•</span>
+                          <span className="font-medium">
+                            {isAllDay ? (
+                              "All Day"
+                            ) : (
+                              `${format(eventStart, 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
+                            )}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-medium">
-                          {format(eventStart, 'EEE, MMM d')}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {isAllDayEvent(event) ? (
-                            "All day"
-                          ) : (
-                            `${format(eventStart, 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
-                          )}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -299,31 +347,37 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p className="text-sm">No events scheduled for this week</p>
-          </div>
+          <Card className="border-2 border-dashed border-gray-200 bg-gradient-to-br from-gray-50 to-purple-50/30">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                <List className="h-8 w-8 text-purple-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-600">No events scheduled for this week</p>
+              <p className="text-xs text-gray-500 mt-1">Tap "Add Event" to schedule something</p>
+            </div>
+          </Card>
         )}
       </div>
     );
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* View Toggle and Navigation */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex gap-1.5 bg-gradient-to-r from-purple-100/50 to-blue-100/50 rounded-xl p-1.5 border border-purple-200/50 shadow-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleViewChange('month')}
             className={cn(
-              "flex items-center gap-1.5 text-xs font-medium transition-colors",
+              "flex items-center gap-2 text-sm font-semibold transition-all duration-200 rounded-lg",
               view === 'month' 
-                ? "bg-white text-gray-900 shadow-sm hover:bg-white hover:text-gray-900" 
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+                ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:from-purple-600 hover:to-blue-600 scale-105" 
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
             )}
           >
-            <CalendarIcon className="h-3.5 w-3.5" />
+            <CalendarIcon className="h-4 w-4" />
             <span>Month</span>
           </Button>
           <Button
@@ -331,45 +385,65 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
             size="sm"
             onClick={() => handleViewChange('week')}
             className={cn(
-              "flex items-center gap-1.5 text-xs font-medium transition-colors",
+              "flex items-center gap-2 text-sm font-semibold transition-all duration-200 rounded-lg",
               view === 'week' 
-                ? "bg-white text-gray-900 shadow-sm hover:bg-white hover:text-gray-900" 
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+                ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:from-purple-600 hover:to-blue-600 scale-105" 
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60"
             )}
           >
-            <List className="h-3.5 w-3.5" />
+            <List className="h-4 w-4" />
             <span>Week</span>
           </Button>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={handleToday} className="text-xs">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleToday} 
+            className="text-sm font-semibold border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 shadow-sm"
+          >
             Today
           </Button>
-          <Button variant="outline" size="icon" onClick={handlePreviousPeriod} className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleNextPeriod} className="h-8 w-8">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePreviousPeriod} 
+              className="h-9 w-9 border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 shadow-sm"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleNextPeriod} 
+              className="h-9 w-9 border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 shadow-sm"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Period Title */}
-      <div className="text-center">
-        <h2 className="text-lg font-semibold text-gray-800">
-          {view === 'month' 
-            ? format(currentDate, 'MMMM yyyy')
-            : `Week of ${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')}`
-          }
-        </h2>
-      </div>
+      {/* Period Title - Only show for week view */}
+      {view === 'week' && (
+        <div className="text-center py-2">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Week of {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')}
+          </h2>
+        </div>
+      )}
 
       {/* View Content */}
       {view === 'month' ? renderMonthView() : renderWeekView()}
 
       {/* Add Event Button */}
-      <Button onClick={onAddEvent} className="w-full">
+      <Button 
+        onClick={onAddEvent} 
+        className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] rounded-xl"
+      >
+        <CalendarIcon className="mr-2 h-5 w-5" />
         Add Event
       </Button>
     </div>
