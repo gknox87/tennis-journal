@@ -39,7 +39,7 @@ export const SortControls = ({ currentSort, onSortChange }: SortControlsProps) =
       >
         <Calendar className="h-4 w-4" />
         <span className="hidden sm:inline">Last Month</span>
-        <span className="sm:hidden">Month</span>
+        <span className="sm:hidden">This Month</span>
       </Button>
       <Button
         variant={currentSort === "lastYear" ? "default" : "outline"}
@@ -49,7 +49,7 @@ export const SortControls = ({ currentSort, onSortChange }: SortControlsProps) =
       >
         <Calendar className="h-4 w-4" />
         <span className="hidden sm:inline">Last Year</span>
-        <span className="sm:hidden">Year</span>
+        <span className="sm:hidden">This Year</span>
       </Button>
     </div>
   );

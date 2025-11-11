@@ -21,12 +21,6 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
   // This handles the case where user's profile sport doesn't match their match data
   const matchesForStats = sportMatches.length > 0 ? sportMatches : matches;
   
-  console.log('StatsSection - All matches:', matches.length, 'Sport matches:', sportMatches.length, 'Matches for stats:', matchesForStats.length, 'Sport ID:', sport?.id);
-  if (matches.length > 0 && sportMatches.length === 0 && sport?.id) {
-    console.warn('Warning: User has', matches.length, 'matches but none match current sport', sport.id);
-    console.log('Match sport_ids:', matches.map(m => m.sport_id).filter(Boolean));
-  }
-  
   const totalMatches = matchesForStats.length;
   const currentYear = new Date().getFullYear();
   const matchesThisYear = matchesForStats.filter(

@@ -46,7 +46,6 @@ export const useDataFetching = () => {
     try {
       const session = await checkAuth();
 
-      console.log('Fetching player notes for user:', session.user.id);
       const { data, error } = await supabase
         .from('player_notes')
         .select('*')
@@ -59,7 +58,6 @@ export const useDataFetching = () => {
         throw error;
       }
       
-      console.log('Fetched player notes:', data?.length || 0, 'notes');
       return data || [];
     } catch (error: any) {
       console.error('Error fetching player notes:', error);
@@ -77,8 +75,6 @@ export const useDataFetching = () => {
     try {
       const session = await checkAuth();
 
-      console.log('Fetching matches for user:', session.user.id, 'Sport filter:', sportId || 'none (all matches)');
-      
       let query = supabase
         .from("matches")
         .select(`
@@ -96,9 +92,6 @@ export const useDataFetching = () => {
 
       if (sportId) {
         query = query.eq("sport_id", sportId);
-        console.log('Filtering matches by sport_id:', sportId);
-      } else {
-        console.log('Fetching all matches (no sport filter)');
       }
 
       const { data: matchesData, error: matchesError } = await query;
@@ -106,11 +99,6 @@ export const useDataFetching = () => {
       if (matchesError) {
         console.error('Error fetching matches:', matchesError);
         throw matchesError;
-      }
-      
-      console.log('Fetched matches:', matchesData?.length || 0, 'matches');
-      if (matchesData && matchesData.length > 0) {
-        console.log('Sample match sport_ids:', matchesData.slice(0, 5).map(m => ({ id: m.id, sport_id: m.sport_id })));
       }
 
       const processedMatches: Match[] = matchesData?.map(match => ({

@@ -28,6 +28,8 @@ interface MatchFormProps {
     notes: string;
     finalSetTiebreak: boolean;
     isBestOfFive?: boolean;
+    reflectionPromptUsed?: string | null;
+    reflectionPromptLevel?: string | null;
   };
 }
 
@@ -56,6 +58,8 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
   const [notes, setNotes] = useState(initialData?.notes || "");
+  const [reflectionPromptUsed, setReflectionPromptUsed] = useState<string | null>(initialData?.reflectionPromptUsed || null);
+  const [reflectionPromptLevel, setReflectionPromptLevel] = useState<string | null>(initialData?.reflectionPromptLevel || null);
   const hasVenueOptions = Boolean(sport.venueOptions?.length);
 
   const determineSeriesLength = () => {
@@ -132,6 +136,8 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       finalSetTiebreak,
       isBestOfFive,
       sportId: sport.id,
+      reflectionPromptUsed,
+      reflectionPromptLevel,
     });
   };
 
@@ -280,7 +286,24 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
         <MatchSettings
           notes={notes}
-          onNotesChange={setNotes}
+          onNotesChange={(newNotes, answers, promptUsed) => {
+            setNotes(newNotes);
+            if (promptUsed) {
+              setReflectionPromptUsed(promptUsed);
+              // Extract level from promptUsed (format: "post_match_win_standard")
+              const parts = promptUsed.split('_');
+              if (parts.length >= 3) {
+                setReflectionPromptLevel(parts[parts.length - 1]);
+              }
+            } else {
+              setReflectionPromptUsed(null);
+              setReflectionPromptLevel(null);
+            }
+          }}
+          isWin={isWin}
+          matchDate={date}
+          reflectionPromptUsed={reflectionPromptUsed}
+          reflectionPromptLevel={reflectionPromptLevel}
         />
       </Card>
 

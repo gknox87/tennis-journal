@@ -1,21 +1,38 @@
 import { MatchCard } from "@/components/MatchCard";
 import { useNavigate } from "react-router-dom";
 import { Match } from "@/types/match";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 interface MatchListProps {
   matches: Match[];
   onMatchDelete: () => void;
+  showAddButton?: boolean;
 }
 export const MatchList = ({
   matches,
-  onMatchDelete
+  onMatchDelete,
+  showAddButton = true
 }: MatchListProps) => {
   const navigate = useNavigate();
   const handleEditMatch = (matchId: string) => {
     navigate(`/edit-match/${matchId}`);
   };
+  const handleAddPerformance = () => {
+    navigate("/add-match");
+  };
+
   return <div>
-      <div className="mb-2">
+      <div className={`mb-4 flex flex-col sm:flex-row items-start sm:items-center ${showAddButton ? 'justify-between' : ''} gap-3`}>
         <h2 className="text-lg font-semibold">Recent Performances</h2>
+        {showAddButton && (
+          <Button
+            onClick={handleAddPerformance}
+            className="btn-primary text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+          >
+            <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            Add Performance
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

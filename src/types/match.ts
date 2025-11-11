@@ -22,4 +22,6 @@ export interface Match {
   sport_slug?: string;
   sport_name?: string;
   sets?: SetScore[];
+  reflection_prompt_used?: string | null;
+  reflection_prompt_level?: string | null;
 }

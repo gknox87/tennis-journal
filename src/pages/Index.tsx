@@ -72,11 +72,9 @@ const Index = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        console.log('Loading initial data...', 'Auth loading:', isLoading, 'Sport loading:', sport.isLoading);
         // Fetch all matches without sport filter to show all user data
         // Stats will be filtered by sport in StatsSection component
         await Promise.all([refreshMatches(undefined), refreshNotes()]);
-        console.log('Initial data loaded');
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
@@ -92,7 +90,6 @@ const Index = () => {
   // Initialize filteredMatches with all matches when matches are loaded
   useEffect(() => {
     if (matches.length > 0) {
-      console.log('Initializing filteredMatches with all matches:', matches.length);
       setFilteredMatches(matches);
     }
   }, [matches, setFilteredMatches]);

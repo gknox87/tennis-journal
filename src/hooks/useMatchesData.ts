@@ -35,9 +35,7 @@ export const useMatchesData = () => {
         lastSportIdRef.current = sportId;
       }
       
-      console.log('Refreshing matches data...');
       const matchesData = await fetchMatches(lastSportIdRef.current);
-      console.log('Fetched matches:', matchesData);
       
       setMatches(matchesData);
       setFilteredMatches(matchesData);
@@ -61,13 +59,10 @@ export const useMatchesData = () => {
           table: 'matches'
         },
         (payload) => {
-          console.log('Matches change detected:', payload);
           refreshMatches(lastSportIdRef.current);
         }
       )
-      .subscribe((status) => {
-        console.log('Matches subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
       channel.unsubscribe();

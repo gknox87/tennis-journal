@@ -134,9 +134,8 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
 
   // Render monthly view
   const renderMonthView = () => {
-
-  return (
-    <div className="space-y-4">
+    return (
+      <div className="space-y-4">
         {/* Calendar Grid */}
         <div className="border rounded-lg p-2 bg-white">
           <CalendarComponent
@@ -179,142 +178,17 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
               hasEvents: "relative after:content-[''] after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-blue-500 after:rounded-full"
             }}
           />
-      </div>
+        </div>
 
         {/* Selected Date Events */}
-      <div className="space-y-2">
+        <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-700">
             {format(selectedDate, 'EEEE, MMM d')}
           </h3>
           {getEventsForDate(selectedDate).length > 0 ? (
             getEventsForDate(selectedDate).map((event) => (
-            <Card
-              key={`${event.id}-${selectedDate.getTime()}`}
-                className="p-3 cursor-pointer hover:bg-accent transition-colors"
-              onClick={() => onEventClick(event)}
-            >
-              <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)}`} />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm">{event.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                    {isAllDayEvent(event) ? (
-                      "All day"
-                    ) : (
-                        `${format(parseISO(event.start_time), 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
-                    )}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          ))
-        ) : (
-            <div className="text-center py-4 text-sm text-muted-foreground">
-              No events scheduled
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Render weekly view
-  const renderWeekView = () => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const weekDays = eachDayOfInterval({ 
-      start: weekStart, 
-      end: endOfWeek(currentDate, { weekStartsOn: 1 }) 
-    });
-
-    return (
-      <div className="space-y-4">
-        {/* Week Header */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-            <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Week Days with Events */}
-        <div className="space-y-3">
-          {weekDays.map((day, index) => {
-            const dayEvents = getEventsForDate(day);
-            const isSelected = isSameDay(day, selectedDate);
-            const isCurrentDay = isToday(day);
-            
-            return (
-              <div key={day.toString()} className="space-y-2">
-                <button
-                  onClick={() => setSelectedDate(day)}
-                  className={cn(
-                    "w-full text-left p-2 rounded-lg transition-colors",
-                    isSelected 
-                      ? "bg-blue-50 border-2 border-blue-500" 
-                      : isCurrentDay
-                      ? "bg-purple-50 border-2 border-purple-300"
-                      : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn(
-                      "text-sm font-semibold",
-                      isSelected ? "text-blue-700" : isCurrentDay ? "text-purple-700" : "text-gray-700"
-                    )}>
-                      {format(day, 'EEE, MMM d')}
-                    </span>
-                    {dayEvents.length > 0 && (
-                      <span className="text-xs text-gray-500">
-                        {dayEvents.length} {dayEvents.length === 1 ? 'event' : 'events'}
-                      </span>
-                    )}
-                  </div>
-                </button>
-                
-                {/* Events for this day */}
-                {dayEvents.length > 0 && (
-                  <div className="space-y-1.5 pl-2">
-                    {dayEvents.slice(0, 3).map((event) => (
-                      <Card
-                        key={`${event.id}-${day.getTime()}`}
-                        className="p-2 cursor-pointer hover:bg-accent transition-colors"
-                        onClick={() => onEventClick(event)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)}`} />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-xs truncate">{event.title}</h4>
-                            {!isAllDayEvent(event) && (
-                              <p className="text-xs text-muted-foreground">
-                                {format(parseISO(event.start_time), 'h:mm a')}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <div className="text-xs text-muted-foreground pl-4">
-                        +{dayEvents.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Selected Date Full Events List */}
-        {getEventsForDate(selectedDate).length > 0 && (
-          <div className="space-y-2 mt-4 pt-4 border-t">
-            <h3 className="text-sm font-semibold text-gray-700">
-              All events for {format(selectedDate, 'EEE, MMM d')}
-            </h3>
-            {getEventsForDate(selectedDate).map((event) => (
               <Card
-                key={`${event.id}-detail`}
+                key={`${event.id}-${selectedDate.getTime()}`}
                 className="p-3 cursor-pointer hover:bg-accent transition-colors"
                 onClick={() => onEventClick(event)}
               >
@@ -332,7 +206,101 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                   </div>
                 </div>
               </Card>
-            ))}
+            ))
+          ) : (
+            <div className="text-center py-4 text-sm text-muted-foreground">
+              No events scheduled
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render weekly view
+  const renderWeekView = () => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+    const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+    // Get all events for the week and sort them chronologically
+    const weekEvents = events
+      .filter(event => {
+        const eventStart = parseISO(event.start_time);
+        const eventEnd = parseISO(event.end_time);
+        
+        // Check if event overlaps with the week
+        if (eventStart.toDateString() !== eventEnd.toDateString()) {
+          const eventDays = eachDayOfInterval({ start: eventStart, end: eventEnd });
+          return eventDays.some(eventDay => 
+            weekDays.some(weekDay => isSameDay(eventDay, weekDay))
+          );
+        }
+        
+        return weekDays.some(weekDay => isSameDay(eventStart, weekDay));
+      })
+      .sort((a, b) => {
+        // Sort by time, all-day events first
+        const aStart = parseISO(a.start_time);
+        const bStart = parseISO(b.start_time);
+        const aIsAllDay = aStart.getHours() === 0 && aStart.getMinutes() === 0;
+        const bIsAllDay = bStart.getHours() === 0 && bStart.getMinutes() === 0;
+        
+        if (aIsAllDay && !bIsAllDay) return -1;
+        if (!aIsAllDay && bIsAllDay) return 1;
+        
+        return aStart.getTime() - bStart.getTime();
+      });
+
+    return (
+      <div className="space-y-4">
+        {/* Week Events List */}
+        {weekEvents.length > 0 ? (
+          <div className="space-y-2">
+            {weekEvents.map((event) => {
+              const eventStart = parseISO(event.start_time);
+              const eventDate = startOfDay(eventStart);
+              const isEventToday = isToday(eventDate);
+              
+              return (
+                <Card
+                  key={event.id}
+                  className="p-3 cursor-pointer hover:bg-accent transition-colors"
+                  onClick={() => onEventClick(event)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${getSessionTypeColor(event.session_type)}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-sm">{event.title}</h3>
+                        {isEventToday && (
+                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
+                            Today
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="font-medium">
+                          {format(eventStart, 'EEE, MMM d')}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {isAllDayEvent(event) ? (
+                            "All day"
+                          ) : (
+                            `${format(eventStart, 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <p className="text-sm">No events scheduled for this week</p>
           </div>
         )}
       </div>

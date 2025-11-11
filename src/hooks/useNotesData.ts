@@ -25,7 +25,6 @@ export const useNotesData = () => {
     // Check if there's an active session first
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      console.log('No active session, skipping notes refresh');
       return;
     }
 
@@ -39,9 +38,7 @@ export const useNotesData = () => {
       isFetchingRef.current = true;
       abortControllerRef.current = new AbortController();
       
-      console.log('Refreshing notes data...');
       const notesData = await fetchPlayerNotes();
-      console.log('Fetched notes:', notesData);
       setPlayerNotes(notesData);
     } catch (error) {
       console.error('Error refreshing notes:', error);
@@ -68,13 +65,10 @@ export const useNotesData = () => {
           table: 'player_notes'
         },
         (payload) => {
-          console.log('Notes change detected:', payload);
           refreshNotes();
         }
       )
-      .subscribe((status) => {
-        console.log('Notes subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
       channel.unsubscribe();
@@ -94,7 +88,6 @@ export const useNotesData = () => {
         return;
       }
 
-      console.log('Deleting note:', noteId);
       const { error } = await supabase
         .from("player_notes")
         .delete()

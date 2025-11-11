@@ -45,6 +45,8 @@ const EditMatch = () => {
           notes: match.notes || "",
           finalSetTiebreak: match.final_set_tiebreak || false,
           isBestOfFive: match.sets && match.sets.length > 3,
+          reflectionPromptUsed: (match as any).reflection_prompt_used || null,
+          reflectionPromptLevel: (match as any).reflection_prompt_level || null,
         }}
       />
       </div>

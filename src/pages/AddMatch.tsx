@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
-import { ArrowLeft, Trophy, Target, Zap } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
 import { useEffect } from "react";
 import { Header } from "@/components/Header";
@@ -70,7 +69,9 @@ const AddMatch = () => {
           user_id: session.user.id,
           final_set_tiebreak: formData.finalSetTiebreak,
           court_type: formData.courtType || null,
-          sport_id: sport.id // Include sport_id so matches are properly categorized
+          sport_id: sport.id, // Include sport_id so matches are properly categorized
+          reflection_prompt_used: formData.reflectionPromptUsed || null,
+          reflection_prompt_level: formData.reflectionPromptLevel || null,
         })
         .select()
         .single();
@@ -115,25 +116,6 @@ const AddMatch = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
-        {/* Header Section */}
-        <div className="mb-8">
-
-          {/* Hero Section */}
-          <div className="text-center mb-8 p-6 rounded-3xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-white/20">
-            <div className="flex justify-center items-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <Trophy className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold gradient-text">Record Your {sport.terminology.matchLabel}</h1>
-              <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <p className="text-gray-600 text-lg font-medium">Capture every detail of your {sport.name.toLowerCase()} journey!</p>
-            
-          </div>
-        </div>
-
         {/* Form Section */}
         <MatchForm onSubmit={handleSubmit} />
       </div>

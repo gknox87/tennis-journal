@@ -32,9 +32,6 @@ const ViewAllMatches = () => {
         return;
       }
 
-      console.log('ViewAllMatches - Fetching matches for user:', session.user.id);
-      console.log('ViewAllMatches - Current sport.id:', sport.id);
-
       // Fetch ALL matches for the user (not filtered by sport) to show all performances
       // This ensures users can see all their matches regardless of sport_id
       const { data: matchesData, error: matchesError } = await supabase
@@ -57,17 +54,7 @@ const ViewAllMatches = () => {
         throw matchesError;
       }
 
-      console.log('ViewAllMatches - Fetched matches:', matchesData?.length || 0);
-      if (matchesData && matchesData.length > 0) {
-        console.log('ViewAllMatches - Match sport_ids:', matchesData.map(m => ({ 
-          id: m.id, 
-          sport_id: m.sport_id, 
-          date: m.date,
-          opponent: m.opponents?.name 
-        })));
-      }
-
-      const processedMatches = matchesData?.map(match => ({
+      const processedMatches = matchesData?.map((match: any) => ({
         ...match,
         opponent_name: match.opponents?.name || "Unknown Opponent",
         sport_name: match.sports?.name,

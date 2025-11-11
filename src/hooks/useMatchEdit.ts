@@ -78,8 +78,10 @@ export const useMatchEdit = (id: string) => {
       setMatch({
         ...matchData,
         opponent_name: matchData.opponents?.name || "Unknown Opponent",
-        sets: parsedSets
-      });
+        sets: parsedSets,
+        reflection_prompt_used: matchData.reflection_prompt_used || undefined,
+        reflection_prompt_level: matchData.reflection_prompt_level || undefined,
+      } as Match);
     } catch (error: any) {
       console.error("Error in fetchMatch:", error);
       toast({
@@ -142,7 +144,9 @@ export const useMatchEdit = (id: string) => {
           notes: formData.notes || null,
           opponent_id: opponentId,
           final_set_tiebreak: formData.finalSetTiebreak,
-          court_type: formData.courtType || null
+          court_type: formData.courtType || null,
+          reflection_prompt_used: formData.reflectionPromptUsed || null,
+          reflection_prompt_level: formData.reflectionPromptLevel || null,
         })
         .eq("id", id)
         .eq("user_id", session.user.id);
