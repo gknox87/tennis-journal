@@ -14,6 +14,7 @@ import ImprovementNotes from "@/pages/ImprovementNotes";
 import Calendar from "@/pages/Calendar";
 import TrainingNotes from "@/pages/TrainingNotes";
 import Profile from "@/pages/Profile";
+import Pricing from "@/pages/Pricing";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -68,6 +69,10 @@ function App() {
           <Route
             path="/register"
             element={session ? <Navigate to="/dashboard" replace /> : <Register />}
+          />
+          <Route
+            path="/pricing"
+            element={<Pricing />}
           />
 
           {/* Protected routes - redirect to login if not authenticated */}
