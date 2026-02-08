@@ -1,146 +1,100 @@
 
 
-# Roles & Safeguarding System: Players, Coaches, and Teams
+# Teams Management System -- Frontend Implementation
 
-## Overview
+## What We're Building
 
-This plan introduces a robust, futureproof roles system with three layers -- Players (existing), Coaches, and Teams -- while prioritising child safety (safeguarding) throughout. All role checks happen server-side via security-definer functions; no client-side role storage.
+A complete team management experience that lets coaches create and manage teams, invite players, and view rosters. Players can see their team memberships and accept/decline invitations.
 
----
-
-## 1. Safeguarding Requirements for Junior Players
-
-Since the app serves young athletes, the following protections are essential:
-
-- **Parental/guardian consent** -- Junior accounts (under 18) require a linked guardian who approves coach and team connections
-- **Coach verification** -- Coaches must request to link with a player; the player (or their guardian) must accept
-- **No direct messaging initially** -- Coaches see only journal data the player explicitly shares (opt-in visibility, not opt-out)
-- **Audit trail** -- All link/unlink actions are timestamped and logged
-- **Data minimisation** -- Coaches see shared match/training data only; never email, password, or personal contact info
-- **Revocable access** -- Players/guardians can unlink a coach or leave a team at any time, immediately revoking data access
-- **Age-gated features** -- Profile stores date of birth; players under 13 cannot be linked without guardian approval
-- **Team admin accountability** -- Only verified coaches can create and manage teams
+The database layer (tables, RLS policies, security-definer functions) is already in place from the previous migration. This work is purely frontend + one new edge function.
 
 ---
 
-## 2. Database Schema
+## 1. New Edge Function: `team-management`
 
-### New Tables
+A single edge function handling all team operations securely server-side:
 
-```text
-+------------------+       +---------------------+       +------------------+
-|   user_roles     |       |  coach_player_links  |       |      teams       |
-+------------------+       +---------------------+       +------------------+
-| id (uuid PK)     |       | id (uuid PK)        |       | id (uuid PK)     |
-| user_id (uuid)   |       | coach_id (uuid)      |       | name (text)      |
-| role (app_role)  |       | player_id (uuid)     |       | sport_id (text)  |
-| created_at       |       | status (link_status) |       | created_by (uuid)|
-+------------------+       | shared_data (jsonb)  |       | description      |
-                            | requested_at         |       | created_at       |
-                            | approved_at          |       | updated_at       |
-                            | approved_by (uuid)   |       +------------------+
-                            | revoked_at           |
-                            +---------------------+       +------------------+
-                                                          |  team_members    |
-+------------------+                                      +------------------+
-|   guardians      |                                      | id (uuid PK)     |
-+------------------+                                      | team_id (uuid)   |
-| id (uuid PK)     |                                      | user_id (uuid)   |
-| player_id (uuid) |                                      | role (team_role) |
-| guardian_id (uuid)|                                     | joined_at        |
-| relationship     |                                      | invited_by (uuid)|
-| verified_at      |                                      +------------------+
-| created_at       |
-+------------------+
-```
+- **create_team** -- Coach creates a team (name, sport, description). Automatically adds coach as team member with `coach` role.
+- **invite_player** -- Coach invites a player by email. Looks up the player's profile, creates a `team_members` entry with `pending` status (or uses `coach_player_links` for the invitation workflow).
+- **remove_member** -- Coach removes a player from the team.
+- **leave_team** -- Player leaves a team voluntarily.
+- **get_team_details** -- Returns team info with full roster (member names, roles, join dates).
 
-### Enums
-
-- **app_role**: `'player'`, `'coach'`, `'admin'`
-- **link_status**: `'pending'`, `'approved'`, `'revoked'`
-- **team_role**: `'coach'`, `'player'`, `'assistant_coach'`
-
-### Migration SQL Summary
-
-1. Create `app_role` enum and `user_roles` table (separate from profiles, per security rules)
-2. Create `link_status` and `team_role` enums
-3. Create `coach_player_links` table with status workflow (pending -> approved -> revoked)
-4. Create `teams` table
-5. Create `team_members` table linking users to teams with a role
-6. Create `guardians` table for parental consent tracking
-7. Add `date_of_birth` column to `profiles` (nullable, for age-gating)
-8. Seed all existing users with `'player'` role in `user_roles`
-9. Create security-definer functions: `has_role()`, `is_linked_coach()`, `is_team_member()`
-10. Apply RLS policies on every new table
-
-### Key RLS Rules
-
-| Table | Policy Summary |
-|---|---|
-| `user_roles` | Users can read their own roles only. No client-side insert/update/delete (admin-only via edge function). |
-| `coach_player_links` | Coaches can insert (request). Players/guardians can update status to approved/revoked. Both parties can read their own links. |
-| `teams` | Creators (coaches) can manage. Members can read. |
-| `team_members` | Team coaches can insert/remove. Members can read their own membership. |
-| `guardians` | Players and guardians can read their own records. Only guardians can approve links for their player. |
+All operations validate the caller's coach role server-side using the service role key.
 
 ---
 
-## 3. Security-Definer Functions
+## 2. New Hook: `useTeams`
 
-These prevent RLS recursion and keep role checks server-side:
+Located at `src/hooks/useTeams.ts`, provides:
 
-- **`has_role(user_id, role)`** -- Returns boolean; used in all RLS policies
-- **`is_linked_coach(coach_id, player_id)`** -- Returns true only if link status is `'approved'`
-- **`is_team_member(user_id, team_id)`** -- Returns true if user belongs to team
-- **`is_guardian_of(guardian_id, player_id)`** -- Returns true if verified guardian relationship exists
-
----
-
-## 4. Frontend Changes
-
-### Phase 1 (This Implementation)
-
-- **Profile page** -- Add "Account Type" display (Player / Coach) and date of birth field
-- **Coach registration flow** -- During signup, allow choosing "I'm a Coach" which assigns the coach role
-- **Coach dashboard** -- New route `/coach` showing linked players and their shared data
-- **Player linking** -- Coach enters player invite code or email; player sees pending request and approves/declines
-- **Team management** -- Coach can create a team, invite players by code, view team roster
-
-### Phase 2 (Future, Not Built Now)
-
-- Guardian consent workflow UI
-- In-app coach-player messaging (with moderation)
-- Team-level analytics and reporting
-- Bulk data sharing controls
+- `teams` -- List of teams the current user belongs to (as coach or player)
+- `createTeam(name, sportId, description)` -- Calls the edge function
+- `invitePlayer(teamId, playerEmail)` -- Sends invitation
+- `removeMember(teamId, userId)` -- Removes a member
+- `leaveTeam(teamId)` -- Player leaves
+- `isLoading` / `error` state
 
 ---
 
-## 5. Edge Functions
+## 3. New Pages & Components
 
-- **`manage-roles`** -- Admin-only function to assign/revoke roles (not callable from client without admin auth)
-- **`coach-link-request`** -- Handles the coach-to-player link request, validates both parties, sends notification
+### Coach Dashboard (`src/pages/CoachDashboard.tsx`)
+- Route: `/coach`
+- Shows all teams the coach manages
+- Quick stats: total players, total teams
+- Links to create new team or manage existing ones
+
+### Team Detail Page (`src/pages/TeamDetail.tsx`)
+- Route: `/team/:id`
+- Shows team name, sport, description
+- Full roster with member names and roles
+- Invite player form (email input)
+- Remove member button (coach only)
+
+### Team Components
+- `src/components/teams/TeamCard.tsx` -- Card showing team name, sport, member count
+- `src/components/teams/CreateTeamDialog.tsx` -- Dialog with name, sport selector, description fields
+- `src/components/teams/InvitePlayerForm.tsx` -- Email input + invite button
+- `src/components/teams/TeamRoster.tsx` -- List of team members with roles and actions
 
 ---
 
-## 6. Implementation Steps
+## 4. Route & Navigation Updates
 
-1. **Database migrations** -- Create all new tables, enums, functions, RLS policies, and indexes
-2. **Update registration** -- Add coach/player role selection to signup flow
-3. **Profile updates** -- Add date of birth field and role display
-4. **Coach dashboard page** -- New `/coach` route with linked players list
-5. **Player linking flow** -- Request/approve/revoke UI for both coach and player views
-6. **Team CRUD** -- Create, view, and manage teams (coach-only)
-7. **Shared data views** -- Coaches see only explicitly shared match/training data from linked players
-8. **Fix existing build errors** -- Address the pre-existing TypeScript errors (coaches table reference, missing columns) as part of this work
+### App.tsx
+- Add `/coach` route (protected, coach-only via `useUserRoles`)
+- Add `/team/:id` route (protected)
+
+### BottomNavigation
+- For coach users: replace "Opponents" with "Teams" nav item (or add a 6th item)
+- Uses `useUserRoles` hook to conditionally show coach nav
+
+### Profile Page
+- Display account role badge (Player / Coach)
+- Add date of birth field
+- Link to coach dashboard if user is a coach
 
 ---
 
-## Technical Notes
+## 5. Implementation Order
 
-- Roles are stored in a dedicated `user_roles` table, never on `profiles` (per security guidelines)
-- All role checks use `security definer` functions to avoid RLS recursion
-- The `coach_player_links` table uses a status-based workflow rather than delete-based, preserving audit history
-- `shared_data` JSONB column on links allows granular control: `{"matches": true, "training": true, "notes": false}`
-- No PII (email, contact details) is ever exposed through coach or team views
-- All foreign keys reference `profiles.id` (not `auth.users`), keeping the public schema self-contained
+1. Create `team-management` edge function and deploy
+2. Create `useTeams` hook
+3. Build `TeamCard`, `CreateTeamDialog`, `InvitePlayerForm`, `TeamRoster` components
+4. Build `CoachDashboard` page
+5. Build `TeamDetail` page
+6. Update `App.tsx` with new routes
+7. Update `BottomNavigation` for coach users
+8. Update `Profile` page with role display and date of birth
+
+---
+
+## Technical Details
+
+- The `teams` and `team_members` tables already exist with full RLS
+- Security-definer functions `has_role()`, `is_team_member()` are already deployed
+- The edge function uses the service role key for operations that bypass RLS (like looking up a player by email)
+- Player email lookup in the edge function queries `auth.users` via service role -- only returns the user ID, never exposes email to the coach client-side
+- Team creation requires `has_role(auth.uid(), 'coach')` -- enforced both in RLS and the edge function
 
