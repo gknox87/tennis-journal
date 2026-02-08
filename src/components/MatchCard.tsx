@@ -68,26 +68,17 @@ export const MatchCard = ({
       <div className={`absolute top-0 left-0 w-full h-1 ${isWin ? 'bg-green-500' : 'bg-red-500'}`} />
       
       <CardHeader className="pb-4 pt-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={`p-2 rounded-full ${isWin ? 'bg-green-100' : 'bg-red-100'} flex-shrink-0`}>
-              <ResultIcon className={`h-4 w-4 ${iconColor}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-bold text-gray-800 truncate mb-1 text-left">
+        <div className="flex flex-col gap-2">
+          {/* Line 1: Icon + Opponent Name + Badge */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className={`p-2 rounded-full ${isWin ? 'bg-green-100' : 'bg-red-100'} flex-shrink-0`}>
+                <ResultIcon className={`h-4 w-4 ${iconColor}`} />
+              </div>
+              <CardTitle className="text-lg font-bold text-gray-800 text-left break-words">
                 {opponent_name}
               </CardTitle>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="h-3 w-3 flex-shrink-0" />
-                <span>{formatDate(date)}</span>
-              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-gray-800">
-              {score}
-            </span>
             <Badge 
               variant={isWin ? "default" : "destructive"}
               className={`text-xs font-bold px-3 py-1 flex-shrink-0 ${
@@ -99,6 +90,16 @@ export const MatchCard = ({
               <Trophy className="h-3 w-3 mr-1" />
               {isWin ? "WIN" : "LOSS"}
             </Badge>
+          </div>
+          {/* Line 2: Date + Score */}
+          <div className="flex items-center justify-between gap-2 pl-11 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-gray-600 flex-shrink-0">
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span>{formatDate(date)}</span>
+            </div>
+            <span className="text-base font-bold text-gray-800 text-right">
+              {score}
+            </span>
           </div>
         </div>
       </CardHeader>

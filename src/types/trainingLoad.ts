@@ -65,9 +65,9 @@ export const RPE_SCALE: RPEDescriptor[] = [
   { value: 3, label: "Moderate", color: "#81C784" },
   { value: 4, label: "Somewhat Hard", color: "#FFF59D" },
   { value: 5, label: "Hard", color: "#FFE082" },
-  { value: 6, label: "—", color: "#FFD54F" },
+  { value: 6, label: "Hard+", color: "#FFD54F" },
   { value: 7, label: "Very Hard", color: "#FFB74D" },
-  { value: 8, label: "—", color: "#FF8A65" },
+  { value: 8, label: "Very, Very Hard", color: "#FF8A65" },
   { value: 9, label: "Really, Really Hard", color: "#EF5350" },
   { value: 10, label: "Maximal", color: "#C62828" },
 ];

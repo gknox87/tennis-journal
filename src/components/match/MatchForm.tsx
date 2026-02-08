@@ -160,6 +160,8 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
         }
         return options[0] ?? "";
       });
+    } else {
+      setCourtType("");
     }
   }, [hasVenueOptions, sport]);
 

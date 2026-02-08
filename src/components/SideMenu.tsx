@@ -208,7 +208,7 @@ export const SideMenu = ({ open, onOpenChange }: SideMenuProps) => {
           </button>
           <div className="flex items-center justify-between px-3 py-2">
             <p className="text-[11px] text-gray-300 font-medium">
-              v1.4.0
+              v1.6.0
             </p>
             <p className="text-[11px] text-gray-300">
               Updated 8 Feb 2026

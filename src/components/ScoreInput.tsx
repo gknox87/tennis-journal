@@ -55,6 +55,14 @@ export const ScoreInput = ({
     opponentGamesWon?: number;
   }>({ playerWon: false, matchComplete: false });
 
+  // Local state for immediate visual feedback on keystroke
+  const [localSets, setLocalSets] = useState<SetScore[]>(sets);
+
+  // Sync local state when parent prop changes (e.g. auto-complete, reset)
+  useEffect(() => {
+    setLocalSets(sets);
+  }, [sets]);
+
   // Pure match status computation (no side effects like onIsWinChange)
   const computeMatchStatus = (updatedSets: SetScore[]) => {
     if (isSetBased) {
@@ -316,6 +324,8 @@ export const ScoreInput = ({
       }
     }
 
+    // Update local state immediately for instant visual feedback
+    setLocalSets(newSets);
     onSetsChange(newSets);
     const status = calculateWinner(newSets);
     setMatchStatus(status || { playerWon: false, matchComplete: false });
@@ -333,22 +343,22 @@ export const ScoreInput = ({
   const getVisibleSets = () => {
     if (!matchStatus.matchComplete) {
       // Match not complete - show all sets
-      return sets;
+      return localSets;
     }
 
     // Match complete - find last completed set and show only up to there
-    const lastCompletedIndex = sets.findIndex((set, index) => {
+    const lastCompletedIndex = localSets.findIndex((set, index) => {
       const isEmpty = !set.playerScore && !set.opponentScore;
       return isEmpty;
     });
 
     if (lastCompletedIndex === -1) {
       // All sets have scores
-      return sets;
+      return localSets;
     }
 
     // Show completed sets only
-    return sets.slice(0, lastCompletedIndex);
+    return localSets.slice(0, lastCompletedIndex);
   };
 
   const visibleSets = getVisibleSets();
@@ -509,7 +519,7 @@ export const ScoreInput = ({
                 </div>
               )}
               
-              {index < sets.length - 1 && (
+              {index < localSets.length - 1 && (
                 <div className="flex justify-center">
                   <div className="w-12 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                 </div>
