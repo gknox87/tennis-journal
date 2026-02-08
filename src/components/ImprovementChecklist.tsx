@@ -23,7 +23,7 @@ export const ImprovementChecklist = () => {
     try {
       setIsRefreshing(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.session) {
+      if (!session) {
         // Session might not be ready yet, just return silently
         return;
       }
@@ -31,7 +31,7 @@ export const ImprovementChecklist = () => {
       const { data, error } = await supabase
         .from('improvement_points')
         .select('*')
-        .eq('user_id', session.session.user.id)
+        .eq('user_id', session.user.id)
         .order('created_at', {
           ascending: false
         })
@@ -62,7 +62,7 @@ export const ImprovementChecklist = () => {
     try {
       setIsGenerating(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.session) {
+      if (!session) {
         toast({
           title: "Error",
           description: "Please log in to generate tips",
@@ -75,7 +75,7 @@ export const ImprovementChecklist = () => {
       const { data: matches, error: matchesError } = await supabase
         .from('matches')
         .select('id, notes, sport_id, date')
-        .eq('user_id', session.session.user.id)
+        .eq('user_id', session.user.id)
         .not('notes', 'is', null)
         .neq('notes', '')
         .order('date', { ascending: false })
@@ -96,7 +96,7 @@ export const ImprovementChecklist = () => {
       const { data: existingPoints } = await supabase
         .from('improvement_points')
         .select('source_match_id')
-        .eq('user_id', session.session.user.id)
+        .eq('user_id', session.user.id)
         .not('source_match_id', 'is', null);
 
       const matchesWithPoints = new Set(
@@ -138,7 +138,7 @@ export const ImprovementChecklist = () => {
               .from('improvement_points')
               .insert(
                 aiResponse.suggestions.map((point: string) => ({
-                  user_id: session.session.user.id,
+                  user_id: session.user.id,
                   point: point.trim(),
                   source_match_id: match.id
                 }))

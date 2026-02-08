@@ -188,8 +188,8 @@ export const TimePicker = ({
                       onClick={() => {
                         setHour(time.hour);
                         setMinute(time.minute);
-                        setPeriod(time.period);
-                        onChange(formatTime(time.hour, time.minute, time.period));
+                        setPeriod(time.period as "AM" | "PM");
+                        onChange(formatTime(time.hour, time.minute, time.period as "AM" | "PM"));
                         // Close on mobile after selection for better UX
                         if (window.innerWidth < 640) {
                           setTimeout(() => setIsOpen(false), 150);

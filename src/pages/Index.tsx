@@ -81,10 +81,10 @@ const Index = () => {
     };
     
     // Wait for both auth and sport context to be ready
-    if (!isLoading && !sport.isLoading) {
+    if (!isLoading) {
       loadInitialData();
     }
-  }, [refreshMatches, refreshNotes, isLoading, sport.isLoading]);
+  }, [refreshMatches, refreshNotes, isLoading]);
 
 
   // Initialize filteredMatches with all matches when matches are loaded

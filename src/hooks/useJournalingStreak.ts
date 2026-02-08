@@ -117,20 +117,7 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
       const calculated = calculateStreak(dates);
       const weeklyConsistency = calculateWeeklyConsistency(calculated.journaledDates);
 
-      // Also try to get streak data from profile (for longest streak preservation)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('longest_streak')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile?.longest_streak) {
-          // Use the maximum of calculated and stored longest streak
-          calculated.longestStreak = Math.max(calculated.longestStreak, profile.longest_streak);
-        }
-      }
+      // Longest streak is calculated from journaling dates only
 
       setStreakData({
         ...calculated,

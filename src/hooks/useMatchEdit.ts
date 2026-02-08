@@ -79,8 +79,8 @@ export const useMatchEdit = (id: string) => {
         ...matchData,
         opponent_name: matchData.opponents?.name || "Unknown Opponent",
         sets: parsedSets,
-        reflection_prompt_used: matchData.reflection_prompt_used || undefined,
-        reflection_prompt_level: matchData.reflection_prompt_level || undefined,
+        reflection_prompt_used: (matchData as any).reflection_prompt_used || undefined,
+        reflection_prompt_level: (matchData as any).reflection_prompt_level || undefined,
       } as Match);
     } catch (error: any) {
       console.error("Error in fetchMatch:", error);
@@ -145,8 +145,7 @@ export const useMatchEdit = (id: string) => {
           opponent_id: opponentId,
           final_set_tiebreak: formData.finalSetTiebreak,
           court_type: formData.courtType || null,
-          reflection_prompt_used: formData.reflectionPromptUsed || null,
-          reflection_prompt_level: formData.reflectionPromptLevel || null,
+          // reflection_prompt_used and reflection_prompt_level not yet in schema
         })
         .eq("id", id)
         .eq("user_id", session.user.id);
