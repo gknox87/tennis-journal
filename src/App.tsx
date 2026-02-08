@@ -25,6 +25,10 @@ import HelpCenter from "@/pages/HelpCenter";
 import Contact from "@/pages/Contact";
 import Privacy from "@/pages/Privacy";
 import InjuryTracker from "@/pages/InjuryTracker";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminTeams from "@/pages/AdminTeams";
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -165,6 +169,19 @@ function App() {
           <Route
             path="/injury-tracker"
             element={session ? <InjuryTracker /> : <Navigate to="/login" replace />}
+          />
+          {/* Admin routes - require admin role */}
+          <Route
+            path="/admin"
+            element={session ? <AdminRoute><AdminDashboard /></AdminRoute> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/admin/users"
+            element={session ? <AdminRoute><AdminUsers /></AdminRoute> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/admin/teams"
+            element={session ? <AdminRoute><AdminTeams /></AdminRoute> : <Navigate to="/login" replace />}
           />
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
           <Route

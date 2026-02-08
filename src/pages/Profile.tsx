@@ -36,7 +36,7 @@ interface LiveStats {
 
 const Profile = () => {
   const { sport } = useSport();
-  const { roles, isCoach } = useUserRoles();
+  const { roles, isCoach, isAdmin } = useUserRoles();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
@@ -290,6 +290,25 @@ const Profile = () => {
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground">Coach Dashboard</h3>
                   <p className="text-sm text-muted-foreground">Manage your teams and players</p>
+                </div>
+                <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+              </div>
+            </Card>
+          )}
+
+          {/* Admin Dashboard Link */}
+          {isAdmin && (
+            <Card
+              className="p-4 cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-red-200/50 hover:border-red-400/60"
+              onClick={() => navigate("/admin")}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-100">
+                  <Shield className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground">Admin Dashboard</h3>
+                  <p className="text-sm text-muted-foreground">Manage users, roles, and teams</p>
                 </div>
                 <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
               </div>

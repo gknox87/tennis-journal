@@ -222,7 +222,7 @@ const Landing = () => {
       tagline: "Sharpen your dinks, drives, and court IQ",
       gradient: "from-yellow-500 to-amber-600",
       accentGradient: "from-yellow-400/20 to-amber-400/20",
-      emoji: "🥒",
+      emoji: "⚪",
       scoreExample: "11-7, 11-9",
       scoreLabel: "Game Won!",
       statLabel: "3rd Shot %",
@@ -872,7 +872,7 @@ const Landing = () => {
                   }`}
                 >
                   <span className="text-base">
-                    {sport.icon === "padel" ? "🎾" : sport.icon === "pickleball" ? "🥒" : sport.icon}
+                    {sport.icon === "padel" ? "🎾" : sport.icon === "pickleball" ? "⚪" : sport.icon}
                   </span>
                   {sport.name}
                 </button>
