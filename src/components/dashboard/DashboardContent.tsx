@@ -10,6 +10,7 @@ import { ImprovementChecklist } from "@/components/ImprovementChecklist";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { JournalingStreak } from "@/components/dashboard/JournalingStreak";
 import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebration";
+import { TrainingLoadWidget } from "@/components/dashboard/TrainingLoadWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, memo, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -114,14 +115,23 @@ export const DashboardContent = ({
         </Suspense>
       </div>
 
-      {/* Journaling Streak */}
-      <Suspense fallback={
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-        </div>
-      }>
-        <JournalingStreak />
-      </Suspense>
+      {/* Journaling Streak & Training Load */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          </div>
+        }>
+          <JournalingStreak />
+        </Suspense>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        }>
+          <TrainingLoadWidget />
+        </Suspense>
+      </div>
 
       {/* Notes Section */}
       <Suspense fallback={
