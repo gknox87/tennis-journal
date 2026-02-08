@@ -20,6 +20,8 @@ const PROTECTED_ROUTES = [
   "/match",
   "/profile",
   "/improvement-notes",
+  "/coach",
+  "/team",
 ];
 
 export const BottomNavigationWrapper = () => {
