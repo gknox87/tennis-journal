@@ -13,6 +13,7 @@ import KeyOpponents from "@/pages/KeyOpponents";
 import ImprovementNotes from "@/pages/ImprovementNotes";
 import Calendar from "@/pages/Calendar";
 import TrainingNotes from "@/pages/TrainingNotes";
+import TrainingLoad from "@/pages/TrainingLoad";
 import Profile from "@/pages/Profile";
 import CoachDashboard from "@/pages/CoachDashboard";
 import TeamDetail from "@/pages/TeamDetail";
@@ -108,6 +109,10 @@ function App() {
           <Route
             path="/training-notes"
             element={session ? <TrainingNotes /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/training-load"
+            element={session ? <TrainingLoad /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/profile"
