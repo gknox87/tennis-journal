@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_player_links: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          coach_id: string
+          created_at: string
+          id: string
+          player_id: string
+          requested_at: string
+          revoked_at: string | null
+          shared_data: Json
+          status: Database["public"]["Enums"]["link_status"]
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          coach_id: string
+          created_at?: string
+          id?: string
+          player_id: string
+          requested_at?: string
+          revoked_at?: string | null
+          shared_data?: Json
+          status?: Database["public"]["Enums"]["link_status"]
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          coach_id?: string
+          created_at?: string
+          id?: string
+          player_id?: string
+          requested_at?: string
+          revoked_at?: string | null
+          shared_data?: Json
+          status?: Database["public"]["Enums"]["link_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_player_links_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_player_links_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_player_links_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guardians: {
+        Row: {
+          created_at: string
+          guardian_id: string
+          id: string
+          player_id: string
+          relationship: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          guardian_id: string
+          id?: string
+          player_id: string
+          relationship?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          guardian_id?: string
+          id?: string
+          player_id?: string
+          relationship?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardians_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardians_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       improvement_points: {
         Row: {
           created_at: string | null
@@ -225,6 +328,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           club: string | null
+          date_of_birth: string | null
           full_name: string | null
           id: string
           performance_goal: string | null
@@ -236,6 +340,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           club?: string | null
+          date_of_birth?: string | null
           full_name?: string | null
           id: string
           performance_goal?: string | null
@@ -247,6 +352,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           club?: string | null
+          date_of_birth?: string | null
           full_name?: string | null
           id?: string
           performance_goal?: string | null
@@ -383,6 +489,107 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string
+          role: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          sport_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          sport_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sport_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_notes: {
         Row: {
           coach_name: string | null
@@ -439,6 +646,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -531,9 +759,31 @@ export type Database = {
           terminology: Json
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_guardian_of: {
+        Args: { _guardian_id: string; _player_id: string }
+        Returns: boolean
+      }
+      is_linked_coach: {
+        Args: { _coach_id: string; _player_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "player" | "coach" | "admin"
+      link_status: "pending" | "approved" | "revoked"
       session_type: "training" | "recovery" | "match"
+      team_role: "coach" | "player" | "assistant_coach"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -661,7 +911,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["player", "coach", "admin"],
+      link_status: ["pending", "approved", "revoked"],
       session_type: ["training", "recovery", "match"],
+      team_role: ["coach", "player", "assistant_coach"],
     },
   },
 } as const

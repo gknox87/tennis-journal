@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { User2, Clock } from "lucide-react";
+import { User2 } from "lucide-react";
 import { useSport } from "@/context/SportContext";
 
 interface Coach {
@@ -28,72 +28,58 @@ export const CoachInput = ({
 }: CoachInputProps) => {
   const { sport } = useSport();
   const [suggestions, setSuggestions] = useState<Coach[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchCoaches = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setError("Please log in to access coaches");
-          setSuggestions([]);
-          return;
-        }
-
-        // Fetch coaches for the current user, optionally filtered by sport
-        let query = supabase
-          .from('coaches')
-          .select('id, name, sport_id')
-          .eq('user_id', session.user.id)
-          .order('name');
-
-        // Optionally filter by current sport if available
-        if (sport?.id) {
-          query = query.or(`sport_id.eq.${sport.id},sport_id.is.null`);
-        }
-
-        const { data, error: fetchError } = await query;
-        
-        if (fetchError) {
-          console.error('Error fetching coaches:', fetchError);
-          // If table doesn't exist yet (migration not applied), don't show error
-          // Just allow users to type coach names without autocomplete
-          if (fetchError.message.includes('relation') && fetchError.message.includes('does not exist')) {
-            console.warn('Coaches table does not exist yet. Migration may need to be applied.');
-            setSuggestions([]);
-            setError(null); // Don't show error to user
-            return;
-          }
-          // For other errors, log but don't block the input
-          setError(null);
-          setSuggestions([]);
-          return;
-        }
-        
-        if (data) {
-          const validCoaches = data.filter(coach => 
-            coach && coach.name && coach.name.trim() !== ''
-          );
-          setSuggestions(validCoaches);
-        } else {
-          setSuggestions([]);
-        }
-      } catch (err: any) {
-        console.error('Error in fetchCoaches:', err);
-        setError(err.message || 'An error occurred while fetching coaches');
+  // Fetch unique coach names from training_notes for autocomplete
+  const fetchCoachNames = async () => {
+    setIsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         setSuggestions([]);
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
 
-    fetchCoaches();
+      const { data, error } = await supabase
+        .from('training_notes')
+        .select('coach_name')
+        .eq('user_id', session.user.id)
+        .not('coach_name', 'is', null)
+        .neq('coach_name', '');
+
+      if (error) {
+        console.error('Error fetching coach names:', error);
+        setSuggestions([]);
+        return;
+      }
+
+      // Deduplicate coach names
+      const uniqueNames = new Map<string, Coach>();
+      data?.forEach((row, idx) => {
+        const name = row.coach_name?.trim();
+        if (name && !uniqueNames.has(name.toLowerCase())) {
+          uniqueNames.set(name.toLowerCase(), {
+            id: `coach-${idx}`,
+            name,
+            sport_id: null,
+          });
+        }
+      });
+
+      setSuggestions(Array.from(uniqueNames.values()));
+    } catch (err) {
+      console.error('Error in fetchCoachNames:', err);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoachNames();
   }, [sport?.id]);
 
   const filteredSuggestions = value && showSuggestions
@@ -101,7 +87,7 @@ export const CoachInput = ({
         coach.name.toLowerCase().includes(value.toLowerCase())
       )
     : showSuggestions && value.length === 0
-    ? suggestions.slice(0, 5) // Show up to 5 recent coaches when input is empty
+    ? suggestions.slice(0, 5)
     : [];
 
   const handleInputChange = (newValue: string) => {
@@ -109,61 +95,19 @@ export const CoachInput = ({
     setShowSuggestions(true);
   };
 
-  const handleSelectCoach = async (coachName: string) => {
+  const handleSelectCoach = (coachName: string) => {
     onChange(coachName);
     setShowSuggestions(false);
     inputRef.current?.blur();
   };
 
   const handleInputBlur = () => {
-    // Small delay to allow click events on suggestions to fire
     setTimeout(() => {
       if (!suggestionsRef.current?.matches(':hover')) {
         setShowSuggestions(false);
       }
     }, 200);
   };
-
-  const handleInputFocus = () => {
-    setShowSuggestions(true);
-  };
-
-  // Refresh suggestions when value changes (in case a new coach was added)
-  useEffect(() => {
-    if (onCoachSave && value && value.trim() !== '') {
-      // Parent will save the coach when form is submitted
-      // We can refresh suggestions after a delay to pick up new coaches
-      const timer = setTimeout(() => {
-        const refreshSuggestions = async () => {
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            let query = supabase
-              .from('coaches')
-              .select('id, name, sport_id')
-              .eq('user_id', session.user.id)
-              .order('name');
-
-            if (sport?.id) {
-              query = query.or(`sport_id.eq.${sport.id},sport_id.is.null`);
-            }
-
-            const { data: updatedCoaches } = await query;
-            if (updatedCoaches) {
-              setSuggestions(updatedCoaches.filter(c => c && c.name && c.name.trim() !== ''));
-            }
-          } catch (err) {
-            console.error('Error refreshing coaches:', err);
-          }
-        };
-
-        refreshSuggestions();
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [value, onCoachSave, sport?.id]);
 
   return (
     <div className="space-y-2">
@@ -180,7 +124,7 @@ export const CoachInput = ({
           type="text"
           value={value || ''}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={handleInputFocus}
+          onFocus={() => setShowSuggestions(true)}
           onBlur={handleInputBlur}
           placeholder={placeholder}
           className="bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 h-11 sm:h-12 rounded-xl transition-all duration-200 touch-manipulation"
@@ -189,7 +133,7 @@ export const CoachInput = ({
           <div
             ref={suggestionsRef}
             className="absolute z-50 w-full mt-2 bg-white/95 backdrop-blur-sm border-2 border-blue-200/50 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"
-            onMouseDown={(e) => e.preventDefault()} // Prevent input blur when clicking suggestions
+            onMouseDown={(e) => e.preventDefault()}
           >
             {filteredSuggestions.map((coach) => (
               <button
@@ -205,14 +149,8 @@ export const CoachInput = ({
           </div>
         )}
       </div>
-      
-      {error && (
-        <p className="text-xs text-red-500 bg-red-50 p-2 rounded-lg border border-red-200">
-          {error}
-        </p>
-      )}
-      
-      {!error && suggestions.length === 0 && !isLoading && (
+
+      {!isLoading && suggestions.length === 0 && (
         <p className="text-xs text-gray-500">
           💡 Start typing to save coach names for quick selection later
         </p>
@@ -220,29 +158,3 @@ export const CoachInput = ({
     </div>
   );
 };
-
-// Export function to save coach (can be called from parent component)
-export const saveCoachToDatabase = async (
-  coachName: string,
-  userId: string,
-  sportId: string | null
-): Promise<void> => {
-  if (!coachName || coachName.trim() === '') return;
-
-  try {
-    const { error } = await supabase.rpc('get_or_create_coach', {
-      p_name: coachName.trim(),
-      p_user_id: userId,
-      p_sport_id: sportId,
-    });
-
-    if (error) {
-      console.error('Error saving coach:', error);
-      throw error;
-    }
-  } catch (err) {
-    console.error('Error in saveCoachToDatabase:', err);
-    throw err;
-  }
-};
-

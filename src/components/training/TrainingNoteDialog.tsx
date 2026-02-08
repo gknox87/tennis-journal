@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
-import { CoachInput, saveCoachToDatabase } from "@/components/training/CoachInput";
+import { CoachInput } from "@/components/training/CoachInput";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
@@ -97,19 +97,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         throw new Error("You must be logged in");
       }
 
-      // Save coach to database if coach name is provided
-      if (formData.coach_name && formData.coach_name.trim() !== '') {
-        try {
-          await saveCoachToDatabase(
-            formData.coach_name.trim(),
-            session.user.id,
-            sport.id
-          );
-        } catch (coachError) {
-          // Log error but don't block form submission
-          console.error('Error saving coach:', coachError);
-        }
-      }
+      // Coach name is stored directly on the training note
 
       const noteData = {
         ...formData,

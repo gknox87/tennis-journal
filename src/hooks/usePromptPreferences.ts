@@ -27,7 +27,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('journaling_preferences')
+        .select('*')
         .eq('id', session.user.id)
         .single();
 
@@ -44,7 +44,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
         }
       }
 
-      const preferences = (profile?.journaling_preferences as JournalingPreferences) || {};
+      const preferences = ((profile as any)?.journaling_preferences as JournalingPreferences) || {};
       const level = preferences.prompt_level || 'standard';
       
       // Validate the level
@@ -75,11 +75,11 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
       // Fetch current preferences
       const { data: profile } = await supabase
         .from('profiles')
-        .select('journaling_preferences')
+        .select('*')
         .eq('id', session.user.id)
         .single();
 
-      const currentPreferences = (profile?.journaling_preferences as JournalingPreferences) || {};
+      const currentPreferences = ((profile as any)?.journaling_preferences as JournalingPreferences) || {};
       const updatedPreferences: JournalingPreferences = {
         ...currentPreferences,
         prompt_level: level,
@@ -89,9 +89,8 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
       const { error } = await supabase
         .from('profiles')
         .update({
-          journaling_preferences: updatedPreferences,
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq('id', session.user.id);
 
       if (error) {
