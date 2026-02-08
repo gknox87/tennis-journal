@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
-import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Zap } from "lucide-react";
 import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
 import { TrainingNoteDialog } from "@/components/training/TrainingNoteDialog";
 import { format } from "date-fns";
@@ -115,10 +115,14 @@ const TrainingNotes = () => {
             </div>
           </div>
           
-          <div className="flex justify-center sm:justify-end">
+          <div className="flex flex-col sm:flex-row gap-2 justify-center sm:justify-end">
             <Button onClick={handleAddNote} size="lg" className="w-full sm:w-auto shadow-lg">
               <Plus className="mr-2 h-5 w-5" />
               Add Training Note
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/training-load")} size="lg" className="w-full sm:w-auto">
+              <Zap className="mr-2 h-5 w-5" />
+              Training Load
             </Button>
           </div>
         </div>

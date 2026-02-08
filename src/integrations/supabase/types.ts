@@ -647,6 +647,85 @@ export type Database = {
           },
         ]
       }
+      training_sessions: {
+        Row: {
+          activity_type: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          planned_duration: number | null
+          rpe: number
+          rpe_collected_at: string | null
+          session_date: string
+          session_end_time: string | null
+          session_start_time: string | null
+          sport_id: string | null
+          sport_specific: string | null
+          training_load: number
+          training_note_id: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type?: string
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          notes?: string | null
+          planned_duration?: number | null
+          rpe: number
+          rpe_collected_at?: string | null
+          session_date?: string
+          session_end_time?: string | null
+          session_start_time?: string | null
+          sport_id?: string | null
+          sport_specific?: string | null
+          training_load: number
+          training_note_id?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          planned_duration?: number | null
+          rpe?: number
+          rpe_collected_at?: string | null
+          session_date?: string
+          session_end_time?: string | null
+          session_start_time?: string | null
+          sport_id?: string | null
+          sport_specific?: string | null
+          training_load?: number
+          training_note_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_sessions_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_sessions_training_note_id_fkey"
+            columns: ["training_note_id"]
+            isOneToOne: false
+            referencedRelation: "training_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
