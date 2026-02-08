@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
-import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera } from "lucide-react";
+import { useUserRoles } from "@/hooks/useUserRoles";
+import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield } from "lucide-react";
 import { Header } from "@/components/Header";
 
 interface ProfileData {
@@ -19,6 +20,7 @@ interface ProfileData {
   ranking: string | null;
   preferred_surface: string | null;
   avatar_url: string | null;
+  date_of_birth: string | null;
 }
 
 interface LiveStats {
@@ -29,12 +31,14 @@ interface LiveStats {
 
 const Profile = () => {
   const { sport } = useSport();
+  const { roles, isCoach } = useUserRoles();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
     ranking: "",
     preferred_surface: "",
     avatar_url: null,
+    date_of_birth: null,
   });
   const [liveStats, setLiveStats] = useState<LiveStats>({
     matchesWon: 0,
@@ -55,11 +59,7 @@ const Profile = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Error",
-          description: "No active session found",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "No active session found", variant: "destructive" });
         return;
       }
 
@@ -71,11 +71,7 @@ const Profile = () => {
 
       if (error) {
         console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch profile data",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to fetch profile data", variant: "destructive" });
         return;
       }
 
@@ -86,15 +82,12 @@ const Profile = () => {
           ranking: data.ranking || "",
           preferred_surface: data.preferred_surface || "",
           avatar_url: data.avatar_url || null,
+          date_of_birth: data.date_of_birth || null,
         });
       }
     } catch (err) {
       console.error("Error in fetchProfile:", err);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "An unexpected error occurred", variant: "destructive" });
     }
   };
 
@@ -103,36 +96,26 @@ const Profile = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Fetch matches won
       const { data: matchesData } = await supabase
         .from("matches")
         .select("is_win")
         .eq("user_id", session.user.id);
-
       const matchesWon = matchesData?.filter(match => match.is_win).length || 0;
 
-      // Fetch training sessions
       const { data: trainingData } = await supabase
         .from("training_notes")
         .select("id")
         .eq("user_id", session.user.id);
-
       const trainingSessions = trainingData?.length || 0;
 
-      // Fetch key opponents
       const { data: opponentsData } = await supabase
         .from("opponents")
         .select("id")
         .eq("user_id", session.user.id)
         .eq("is_key_opponent", true);
-
       const keyOpponents = opponentsData?.length || 0;
 
-      setLiveStats({
-        matchesWon,
-        trainingSessions,
-        keyOpponents,
-      });
+      setLiveStats({ matchesWon, trainingSessions, keyOpponents });
     } catch (error) {
       console.error("Error fetching live stats:", error);
     }
@@ -143,11 +126,7 @@ const Profile = () => {
       setIsLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Error",
-          description: "No active session found",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "No active session found", variant: "destructive" });
         return;
       }
 
@@ -155,32 +134,26 @@ const Profile = () => {
         .from("profiles")
         .upsert({
           id: session.user.id,
-          ...profileData,
+          full_name: profileData.full_name,
+          club: profileData.club,
+          ranking: profileData.ranking,
+          preferred_surface: profileData.preferred_surface,
+          avatar_url: profileData.avatar_url,
+          date_of_birth: profileData.date_of_birth || null,
           updated_at: new Date().toISOString(),
         });
 
       if (error) {
         console.error("Error updating profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
         return;
       }
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
+      toast({ title: "Success", description: "Profile updated successfully" });
       setIsEditing(false);
     } catch (err) {
       console.error("Error in handleSave:", err);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "An unexpected error occurred", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -235,6 +208,15 @@ const Profile = () => {
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2">
                   {profileData.full_name || `${sport.name} Player`}
                 </h2>
+                {/* Role Badges */}
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
+                  {roles.map((role) => (
+                    <Badge key={role} className="capitalize bg-white/20 text-white border-white/30">
+                      <Shield className="h-3 w-3 mr-1" />
+                      {role}
+                    </Badge>
+                  ))}
+                </div>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm opacity-90">
                   {profileData.club && (
                     <div className="flex items-center gap-1">
@@ -259,6 +241,25 @@ const Profile = () => {
             </div>
           </Card>
 
+          {/* Coach Dashboard Link */}
+          {isCoach && (
+            <Card
+              className="p-4 cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-primary/20 hover:border-primary/40"
+              onClick={() => navigate("/coach")}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground">Coach Dashboard</h3>
+                  <p className="text-sm text-muted-foreground">Manage your teams and players</p>
+                </div>
+                <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+              </div>
+            </Card>
+          )}
+
           {/* Profile Details */}
           <Card className="p-6 sm:p-8 bg-white border-2 border-gray-200/50 shadow-xl">
             <div className="space-y-6">
@@ -277,6 +278,18 @@ const Profile = () => {
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
                     placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dob" className="text-gray-700 font-medium">Date of Birth</Label>
+                  <Input
+                    id="dob"
+                    type="date"
+                    value={profileData.date_of_birth || ""}
+                    onChange={(e) => setProfileData({ ...profileData, date_of_birth: e.target.value })}
+                    disabled={!isEditing}
+                    className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
                   />
                 </div>
 

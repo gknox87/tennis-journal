@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Trophy, BookOpen, Calendar, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 interface NavItem {
   label: string;
@@ -8,43 +9,35 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const navItems: NavItem[] = [
-  {
-    label: "Home",
-    path: "/dashboard",
-    icon: Home,
-  },
-  {
-    label: "Performances",
-    path: "/matches",
-    icon: Trophy,
-  },
-  {
-    label: "Notes",
-    path: "/training-notes",
-    icon: BookOpen,
-  },
-  {
-    label: "Planner",
-    path: "/calendar",
-    icon: Calendar,
-  },
-  {
-    label: "Opponents",
-    path: "/key-opponents",
-    icon: Users,
-  },
+const playerNavItems: NavItem[] = [
+  { label: "Home", path: "/dashboard", icon: Home },
+  { label: "Performances", path: "/matches", icon: Trophy },
+  { label: "Notes", path: "/training-notes", icon: BookOpen },
+  { label: "Planner", path: "/calendar", icon: Calendar },
+  { label: "Opponents", path: "/key-opponents", icon: Users },
+];
+
+const coachNavItems: NavItem[] = [
+  { label: "Home", path: "/dashboard", icon: Home },
+  { label: "Performances", path: "/matches", icon: Trophy },
+  { label: "Notes", path: "/training-notes", icon: BookOpen },
+  { label: "Planner", path: "/calendar", icon: Calendar },
+  { label: "Teams", path: "/coach", icon: Users },
 ];
 
 export const BottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isCoach } = useUserRoles();
 
-  // Check if current route matches any nav item (including sub-routes)
+  const navItems = isCoach ? coachNavItems : playerNavItems;
+
   const isActive = (path: string) => {
-    // Special handling for dashboard - only match exact path or root
     if (path === "/dashboard") {
       return location.pathname === "/dashboard" || location.pathname === "/";
+    }
+    if (path === "/coach") {
+      return location.pathname === "/coach" || location.pathname.startsWith("/team/");
     }
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
@@ -63,7 +56,7 @@ export const BottomNavigation = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
-            
+
             return (
               <button
                 key={item.path}
@@ -114,4 +107,3 @@ export const BottomNavigation = () => {
     </nav>
   );
 };
-
