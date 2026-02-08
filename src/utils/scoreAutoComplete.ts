@@ -16,8 +16,8 @@ export function autoCompleteTennisScore(
   playerScore: number,
   currentOpponentScore: number | null
 ): number | null {
-  // Don't override if opponent already has a valid non-zero score
-  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore > 0) {
+  // Don't override if opponent already has a valid score (including 0)
+  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore >= 0) {
     // If both scores are set, check if they make sense together
     if (playerScore === 6 && currentOpponentScore === 6) {
       // 6-6 is valid (tiebreak scenario)
@@ -55,8 +55,8 @@ export function autoCompleteTableTennisScore(
   playerScore: number,
   currentOpponentScore: number | null
 ): number | null {
-  // Don't override if opponent already has a valid non-zero score
-  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore > 0) {
+  // Don't override if opponent already has a valid score (including 0)
+  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore >= 0) {
     return currentOpponentScore;
   }
 
@@ -89,8 +89,8 @@ export function autoCompleteBadmintonScore(
   playerScore: number,
   currentOpponentScore: number | null
 ): number | null {
-  // Don't override if opponent already has a valid non-zero score
-  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore > 0) {
+  // Don't override if opponent already has a valid score (including 0)
+  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore >= 0) {
     return currentOpponentScore;
   }
 
@@ -141,8 +141,8 @@ export function autoCompletePickleballScore(
   currentOpponentScore: number | null,
   pointsToWin: number = 11
 ): number | null {
-  // Don't override if opponent already has a valid non-zero score
-  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore > 0) {
+  // Don't override if opponent already has a valid score (including 0)
+  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore >= 0) {
     return currentOpponentScore;
   }
 
@@ -182,9 +182,9 @@ export function autoCompleteScore(
     return currentOpponentScore.toString();
   }
 
-  // Get current opponent score (null if invalid or empty/zero)
-  // Treat 0, empty string, or "0" as null to trigger auto-complete
-  const currentOpponent = (isNaN(opponentNum) || opponentNum === 0 || currentOpponentScore === "" || currentOpponentScore === "0") ? null : opponentNum;
+  // Get current opponent score (null if invalid or empty)
+  // Preserve 0 as a valid score — only treat empty/NaN as null
+  const currentOpponent = (isNaN(opponentNum) || currentOpponentScore === "") ? null : opponentNum;
 
   let autoCompletedScore: number | null = null;
 
@@ -229,8 +229,8 @@ export function autoCompleteScore(
     return autoCompletedScore.toString();
   }
 
-  // If no auto-complete happened and opponent score is empty/zero, return empty
-  return (currentOpponentScore === "" || currentOpponentScore === "0") ? "" : currentOpponentScore.toString();
+  // If no auto-complete happened, return current opponent score (preserving "0")
+  return currentOpponentScore === "" ? "" : currentOpponentScore.toString();
 }
 
 /**
@@ -246,8 +246,8 @@ export function autoCompleteTiebreakScore(
   const targetPoints = isMatchTiebreak ? 10 : 7;
   const deucePoint = targetPoints - 1;
 
-  // Don't override if opponent already has a valid non-zero score
-  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore > 0) {
+  // Don't override if opponent already has a valid score (including 0)
+  if (currentOpponentScore !== null && !isNaN(currentOpponentScore) && currentOpponentScore >= 0) {
     return currentOpponentScore;
   }
 

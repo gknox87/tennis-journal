@@ -34,7 +34,7 @@ export const StatsSection = ({ matches }: StatsSectionProps) => {
   const setStats = matchesForStats.reduce(
     (acc, match) => {
       if (!match.score) return acc;
-      const sets = match.score.split(" ");
+      const sets = match.score.split(", ");
       sets.forEach((set) => {
         if (!set) return;
         const cleanSet = set.replace(/\([^)]*\)/g, '');

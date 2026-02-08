@@ -260,7 +260,7 @@ export const ScoreInput = ({
 
     const lastPlayedSet = lastPlayedSetIndex >= 0 ? updatedSets[lastPlayedSetIndex] : updatedSets[updatedSets.length - 1];
     
-    if (lastPlayedSet && lastPlayedSet.playerScore && lastPlayedSet.opponentScore) {
+    if (lastPlayedSet && lastPlayedSet.playerScore !== "" && lastPlayedSet.playerScore !== undefined && lastPlayedSet.opponentScore !== "" && lastPlayedSet.opponentScore !== undefined) {
       const playerScore = parseInt(lastPlayedSet.playerScore);
       const opponentScore = parseInt(lastPlayedSet.opponentScore);
       
@@ -289,13 +289,15 @@ export const ScoreInput = ({
       if (!isNaN(currentValue) && currentValue >= 0) {
         const autoCompletedValue = autoCompleteScore(
           currentValue,
-          "", // Always pass empty to force recalculation
+          currentOtherValue || "",
           format,
           sport.id
         );
 
-        // Always update the opponent score when player score changes
-        newSets[index][otherField] = autoCompletedValue;
+        // Only update opponent score if auto-complete produced a value, or opponent is empty
+        if (autoCompletedValue !== "" || currentOtherValue === "" || currentOtherValue === undefined) {
+          newSets[index][otherField] = autoCompletedValue;
+        }
       }
     }
 
