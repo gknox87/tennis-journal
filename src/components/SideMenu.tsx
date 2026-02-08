@@ -15,6 +15,7 @@ import {
   User,
   LogOut,
   Trophy,
+  Shield,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -89,7 +90,23 @@ const menuItems: MenuItem[] = [
 export const SideMenu = ({ open, onOpenChange }: SideMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isCoach } = useUserRoles();
+  const { isCoach, isAdmin } = useUserRoles();
+
+  const allMenuItems: MenuItem[] = [
+    ...menuItems,
+    ...(isAdmin
+      ? [
+          {
+            label: "Admin Panel",
+            path: "/admin",
+            icon: Shield,
+            description: "Manage users & platform",
+            iconBg: "bg-red-100",
+            iconColor: "text-red-600",
+          },
+        ]
+      : []),
+  ];
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -134,7 +151,7 @@ export const SideMenu = ({ open, onOpenChange }: SideMenuProps) => {
         {/* Menu items */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           <div className="space-y-1">
-            {menuItems.map((item) => {
+            {allMenuItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
 
