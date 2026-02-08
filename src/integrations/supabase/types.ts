@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       improvement_points: {
@@ -102,6 +107,13 @@ export type Database = {
             referencedRelation: "sports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "matches_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
         ]
       }
       opponents: {
@@ -152,6 +164,13 @@ export type Database = {
             referencedRelation: "sports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "opponents_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
         ]
       }
       player_notes: {
@@ -191,6 +210,13 @@ export type Database = {
             columns: ["sport_id"]
             isOneToOne: false
             referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_notes_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
             referencedColumns: ["id"]
           },
         ]
@@ -237,6 +263,13 @@ export type Database = {
             referencedRelation: "sports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_primary_sport_id_fkey"
+            columns: ["primary_sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
         ]
       }
       scheduled_events: {
@@ -246,9 +279,9 @@ export type Database = {
           id: string
           notes: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          sport_id: string | null
           start_time: string
           title: string
-          sport_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -258,9 +291,9 @@ export type Database = {
           id?: string
           notes?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          sport_id?: string | null
           start_time: string
           title: string
-          sport_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -270,9 +303,9 @@ export type Database = {
           id?: string
           notes?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
+          sport_id?: string | null
           start_time?: string
           title?: string
-          sport_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -284,13 +317,78 @@ export type Database = {
             referencedRelation: "sports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "scheduled_events_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      sports: {
+        Row: {
+          accent_colour: string | null
+          ai_context: Json | null
+          category: string | null
+          created_at: string | null
+          icon_url: string | null
+          id: string
+          is_individual: boolean | null
+          is_published: boolean | null
+          name: string
+          popularity: number | null
+          primary_colour: string | null
+          scoring_format: Json | null
+          short_name: string | null
+          slug: string
+          subcategory: string | null
+          terminology: Json | null
+        }
+        Insert: {
+          accent_colour?: string | null
+          ai_context?: Json | null
+          category?: string | null
+          created_at?: string | null
+          icon_url?: string | null
+          id: string
+          is_individual?: boolean | null
+          is_published?: boolean | null
+          name: string
+          popularity?: number | null
+          primary_colour?: string | null
+          scoring_format?: Json | null
+          short_name?: string | null
+          slug: string
+          subcategory?: string | null
+          terminology?: Json | null
+        }
+        Update: {
+          accent_colour?: string | null
+          ai_context?: Json | null
+          category?: string | null
+          created_at?: string | null
+          icon_url?: string | null
+          id?: string
+          is_individual?: boolean | null
+          is_published?: boolean | null
+          name?: string
+          popularity?: number | null
+          primary_colour?: string | null
+          scoring_format?: Json | null
+          short_name?: string | null
+          slug?: string
+          subcategory?: string | null
+          terminology?: Json | null
+        }
+        Relationships: []
       }
       training_notes: {
         Row: {
           coach_name: string | null
           created_at: string
           id: string
+          sport_id: string | null
           training_date: string
           training_time: string | null
           updated_at: string
@@ -298,12 +396,12 @@ export type Database = {
           what_didnt_feel_good: string | null
           what_felt_good: string | null
           what_worked_on: string | null
-          sport_id: string | null
         }
         Insert: {
           coach_name?: string | null
           created_at?: string
           id?: string
+          sport_id?: string | null
           training_date?: string
           training_time?: string | null
           updated_at?: string
@@ -311,12 +409,12 @@ export type Database = {
           what_didnt_feel_good?: string | null
           what_felt_good?: string | null
           what_worked_on?: string | null
-          sport_id?: string | null
         }
         Update: {
           coach_name?: string | null
           created_at?: string
           id?: string
+          sport_id?: string | null
           training_date?: string
           training_time?: string | null
           updated_at?: string
@@ -324,7 +422,6 @@ export type Database = {
           what_didnt_feel_good?: string | null
           what_felt_good?: string | null
           what_worked_on?: string | null
-          sport_id?: string | null
         }
         Relationships: [
           {
@@ -334,49 +431,105 @@ export type Database = {
             referencedRelation: "sports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "training_notes_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
         ]
-      }
-      sports: {
-        Row: {
-          id: string
-          created_at: string
-          name: string
-          slug: string
-          short_name: string
-          category: string
-          scoring_format: Json
-          icon_url: string | null
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          name: string
-          slug: string
-          short_name?: string
-          category?: string
-          scoring_format?: Json
-          icon_url?: string | null
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          name?: string
-          slug?: string
-          short_name?: string
-          category?: string
-          scoring_format?: Json
-          icon_url?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      sports_catalogue: {
+        Row: {
+          accent_colour: string | null
+          ai_context: Json | null
+          category: string | null
+          icon_url: string | null
+          id: string | null
+          is_individual: boolean | null
+          name: string | null
+          popularity: number | null
+          primary_colour: string | null
+          scoring_format: Json | null
+          short_name: string | null
+          slug: string | null
+          subcategory: string | null
+          terminology: Json | null
+        }
+        Insert: {
+          accent_colour?: string | null
+          ai_context?: Json | null
+          category?: string | null
+          icon_url?: string | null
+          id?: string | null
+          is_individual?: boolean | null
+          name?: string | null
+          popularity?: number | null
+          primary_colour?: string | null
+          scoring_format?: Json | null
+          short_name?: string | null
+          slug?: string | null
+          subcategory?: string | null
+          terminology?: Json | null
+        }
+        Update: {
+          accent_colour?: string | null
+          ai_context?: Json | null
+          category?: string | null
+          icon_url?: string | null
+          id?: string | null
+          is_individual?: boolean | null
+          name?: string | null
+          popularity?: number | null
+          primary_colour?: string | null
+          scoring_format?: Json | null
+          short_name?: string | null
+          slug?: string | null
+          subcategory?: string | null
+          terminology?: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_or_create_opponent: {
         Args: { p_name: string; p_user_id: string }
         Returns: string
+      }
+      get_popular_sports: {
+        Args: { p_limit?: number }
+        Returns: {
+          accent_colour: string
+          category: string
+          icon_url: string
+          id: string
+          name: string
+          primary_colour: string
+          short_name: string
+          slug: string
+        }[]
+      }
+      get_sports_by_category: {
+        Args: { p_category?: string }
+        Returns: {
+          accent_colour: string
+          ai_context: Json
+          category: string
+          icon_url: string
+          id: string
+          is_individual: boolean
+          name: string
+          popularity: number
+          primary_colour: string
+          scoring_format: Json
+          short_name: string
+          slug: string
+          subcategory: string
+          terminology: Json
+        }[]
       }
     }
     Enums: {
@@ -388,21 +541,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -420,14 +577,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -443,14 +602,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -466,14 +627,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -481,14 +644,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
