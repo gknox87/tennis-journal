@@ -60,13 +60,18 @@ export function autoCompleteTableTennisScore(
     return currentOpponentScore;
   }
 
+  // If player entered 11 or higher, this could be a winning score
+  // Don't auto-complete opponent score for potential wins
+  if (playerScore >= 11) {
+    return null;
+  }
+
   if (playerScore <= 9) {
     // Player lost 0-11 through 9-11 (standard loss)
     return 11;
-  } else if (playerScore >= 10) {
-    // Deuce or extended deuce: opponent wins by 2
-    // 10 → 12, 11 → 13, 12 → 14, etc.
-    return playerScore + 2;
+  } else if (playerScore === 10) {
+    // Player lost 10-12 (deuce loss)
+    return 12;
   }
 
   return null;
@@ -89,16 +94,24 @@ export function autoCompleteBadmintonScore(
     return currentOpponentScore;
   }
 
+  // If player entered 21 or higher, this could be a winning score
+  // Don't auto-complete opponent score for potential wins
+  if (playerScore >= 21) {
+    return null;
+  }
+
   if (playerScore <= 19) {
     // Player lost 0-21 through 19-21 (standard loss)
     return 21;
-  } else if (playerScore >= 20 && playerScore <= 28) {
-    // Deuce or extended deuce: opponent wins by 2
-    // 20 → 22, 21 → 23, 22 → 24, etc.
-    return playerScore + 2;
+  } else if (playerScore === 20) {
+    // Player lost 20-22 (deuce loss)
+    return 22;
+  } else if (playerScore >= 21 && playerScore <= 28) {
+    // These could be winning scores, don't auto-complete
+    return null;
   } else if (playerScore === 29) {
-    // Maximum score: 29-30 (golden point at 29-29, opponent wins 30-29)
-    return 30;
+    // This could be a winning score (29-30), don't auto-complete
+    return null;
   }
 
   return null;
@@ -120,8 +133,8 @@ export function autoCompleteSquashScore(
 /**
  * Pickleball Auto-Complete Rules:
  * - Games can be to 11, 15, or 21 points, must win by 2
- * - MIXED logic: Low scores = lost (get higher), High scores = won (get lower)
- * - Dynamic based on the format's pointsToWin
+ * - Only auto-complete for clear losing scores
+ * - Don't auto-complete for potential winning scores
  */
 export function autoCompletePickleballScore(
   playerScore: number,
@@ -133,6 +146,12 @@ export function autoCompletePickleballScore(
     return currentOpponentScore;
   }
 
+  // If player entered pointsToWin or higher, this could be a winning score
+  // Don't auto-complete opponent score for potential wins
+  if (playerScore >= pointsToWin) {
+    return null;
+  }
+
   const deucePoint = pointsToWin - 1;
 
   if (playerScore < deucePoint) {
@@ -141,15 +160,6 @@ export function autoCompletePickleballScore(
   } else if (playerScore === deucePoint) {
     // Player at deuce and lost (e.g., 10 for pointsToWin=11 → opponent gets 12)
     return pointsToWin + 1;
-  } else if (playerScore === pointsToWin) {
-    // Player won at target score (e.g., 11 for pointsToWin=11 → opponent gets 9, most common)
-    return deucePoint - 2;
-  } else if (playerScore === pointsToWin + 1) {
-    // Player won in deuce (e.g., 12 for pointsToWin=11 → opponent gets 10)
-    return deucePoint;
-  } else if (playerScore > pointsToWin + 1) {
-    // Extended deuce: player won by 2 (e.g., 13 → 11, 14 → 12)
-    return playerScore - 2;
   }
 
   return null;

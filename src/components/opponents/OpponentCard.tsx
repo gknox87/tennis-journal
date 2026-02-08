@@ -45,23 +45,25 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
   return (
     <>
       <Card 
-        className="match-card w-full cursor-pointer group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-0 bg-gradient-to-br from-white/90 to-gray-50/90"
+        className="w-full cursor-pointer group transition-all duration-300 active:scale-[0.98] sm:hover:-translate-y-1 border-0 rounded-2xl overflow-hidden shadow-md hover:shadow-xl bg-white"
         onClick={() => setShowDetails(true)}
       >
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {currentOpponent.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                  {currentOpponent.name}
-                </h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <Trophy className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm font-medium text-gray-600">{winRate}% win rate</span>
-                </div>
+        {/* Win rate accent bar */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500" />
+
+        <CardContent className="p-4 sm:p-5">
+          {/* Header: Avatar + Name + Delete */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-md flex-shrink-0">
+              {currentOpponent.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors truncate">
+                {currentOpponent.name}
+              </h2>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Trophy className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold text-gray-500">{winRate}% win rate</span>
               </div>
             </div>
             <Button
@@ -71,59 +73,51 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
                 e.stopPropagation();
                 onDelete(currentOpponent.id);
               }}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+              className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex justify-center gap-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mb-2 mx-auto shadow-lg">
-                  <span className="text-white font-bold text-lg">{stats.wins}</span>
-                </div>
-                <p className="text-xs font-medium text-gray-600">Wins</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center mb-2 mx-auto shadow-lg">
-                  <span className="text-white font-bold text-lg">{stats.losses}</span>
-                </div>
-                <p className="text-xs font-medium text-gray-600">Losses</p>
-              </div>
+          {/* Stats row */}
+          <div className="flex items-stretch gap-2 sm:gap-3 mb-3">
+            <div className="flex-1 bg-emerald-50 rounded-xl p-2.5 sm:p-3 text-center">
+              <span className="text-xl sm:text-2xl font-extrabold text-emerald-600">{stats.wins}</span>
+              <p className="text-[10px] sm:text-xs font-semibold text-emerald-500 uppercase tracking-wide mt-0.5">Wins</p>
             </div>
-            
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {stats.timesPlayed} matches played
+            <div className="flex-1 bg-rose-50 rounded-xl p-2.5 sm:p-3 text-center">
+              <span className="text-xl sm:text-2xl font-extrabold text-rose-500">{stats.losses}</span>
+              <p className="text-[10px] sm:text-xs font-semibold text-rose-400 uppercase tracking-wide mt-0.5">Losses</p>
+            </div>
+            <div className="flex-1 bg-blue-50 rounded-xl p-2.5 sm:p-3 text-center">
+              <span className="text-xl sm:text-2xl font-extrabold text-blue-600">{stats.timesPlayed}</span>
+              <p className="text-[10px] sm:text-xs font-semibold text-blue-400 uppercase tracking-wide mt-0.5">Played</p>
+            </div>
+          </div>
+
+          {/* Last match info */}
+          {stats.lastMatch && (
+            <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-600 truncate">
+                  {new Date(stats.lastMatch.date).toLocaleDateString()}
                 </span>
+                <span className="text-xs text-gray-400 font-mono flex-shrink-0">{stats.lastMatch.score}</span>
               </div>
-              
-              {stats.lastMatch && (
-                <div className="text-center space-y-1">
-                  <p className="text-xs text-gray-500 font-medium">Last Match</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-sm text-gray-600">
-                      {new Date(stats.lastMatch.date).toLocaleDateString()}
-                    </span>
-                    <Badge 
-                      variant={stats.lastMatch.is_win ? "default" : "destructive"}
-                      className={`text-xs ${stats.lastMatch.is_win ? 'bg-green-500 hover:bg-green-600' : ''}`}
-                    >
-                      {stats.lastMatch.is_win ? "Won" : "Lost"}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-600 font-mono">{stats.lastMatch.score}</p>
-                </div>
-              )}
-              
-              <div className="flex items-center justify-center gap-1 text-blue-600 text-xs font-medium mt-2">
-                <Target className="w-3 h-3" />
-                <span>Tap for strategy notes</span>
-              </div>
+              <Badge 
+                variant={stats.lastMatch.is_win ? "default" : "destructive"}
+                className={`text-[10px] sm:text-xs px-2 py-0.5 flex-shrink-0 ${stats.lastMatch.is_win ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+              >
+                {stats.lastMatch.is_win ? "Won" : "Lost"}
+              </Badge>
             </div>
+          )}
+
+          {/* CTA hint */}
+          <div className="flex items-center justify-center gap-1.5 text-purple-500 text-[10px] sm:text-xs font-medium mt-3 opacity-60 group-hover:opacity-100 transition-opacity">
+            <Target className="w-3 h-3" />
+            <span>Tap for strategy notes</span>
           </div>
         </CardContent>
       </Card>

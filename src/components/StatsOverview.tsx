@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Trophy, Star, TrendingUp } from "lucide-react";
+import { Trophy, Star, TrendingUp, ChevronRight } from "lucide-react";
 import { useSport } from "@/context/SportContext";
 import { cn } from "@/lib/utils";
 
@@ -33,46 +33,56 @@ export const StatsOverview = ({
       title: "Win Rate",
       value: `${winRate}%`,
       icon: Trophy,
-      color: "from-yellow-400 to-orange-500",
-      bgColor: "bg-gradient-to-br from-yellow-50 via-orange-50/80 to-orange-50",
-      borderColor: "border-yellow-300/60",
+      color: "from-amber-400 to-orange-500",
+      iconBg: "bg-amber-500/10",
+      accent: "text-amber-600",
+      ring: "ring-amber-200/60",
     },
     {
       title: "Total Matches",
       value: totalMatches,
       icon: Star,
-      color: "from-blue-500 to-purple-600",
-      bgColor: "bg-gradient-to-br from-blue-50 via-purple-50/80 to-purple-50",
-      borderColor: "border-blue-300/60",
+      color: "from-blue-500 to-indigo-600",
+      iconBg: "bg-blue-500/10",
+      accent: "text-blue-600",
+      ring: "ring-blue-200/60",
     },
     {
       title: "This Year",
       value: matchesThisYear,
       icon: TrendingUp,
-      color: "from-green-400 to-teal-500",
-      bgColor: "bg-gradient-to-br from-green-50 via-teal-50/80 to-teal-50",
-      borderColor: "border-green-300/60",
+      color: "from-emerald-400 to-teal-500",
+      iconBg: "bg-emerald-500/10",
+      accent: "text-emerald-600",
+      ring: "ring-emerald-200/60",
     },
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm p-4 sm:p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent leading-tight">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 leading-tight">
             Your {sportJourneyLabel} Journey
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
+          <p className="text-xs text-gray-500 mt-0.5 hidden sm:block">
             Track your progress and celebrate your wins
           </p>
         </div>
+        <button
+          onClick={handleStatClick}
+          className="text-xs font-medium text-gray-400 hover:text-gray-600 flex items-center gap-0.5 transition-colors"
+        >
+          Details
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
       </div>
       
       {/* Stats Cards */}
       <div className="relative">
         {/* Mobile: Full Width Grid */}
-        <div className="sm:hidden grid grid-cols-3 gap-2">
+        <div className="sm:hidden grid grid-cols-3 gap-2.5">
           {stats.map((stat) => {
             const IconComponent = stat.icon;
             return (
@@ -81,29 +91,22 @@ export const StatsOverview = ({
                 onClick={handleStatClick}
                 className={cn(
                   "flex flex-col items-center justify-center",
-                  "h-[100px] rounded-xl border-2",
-                  stat.bgColor,
-                  stat.borderColor,
-                  "shadow-md active:shadow-lg",
-                  "transition-all duration-200",
-                  "active:scale-[0.96]",
-                  "touch-manipulation",
-                  "relative overflow-hidden"
+                  "py-4 rounded-xl",
+                  "bg-gray-50/80 border border-gray-100",
+                  "active:bg-gray-100/80 active:scale-[0.97]",
+                  "transition-all duration-150",
+                  "touch-manipulation"
                 )}
               >
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                
                 <div className={cn(
-                  "w-8 h-8 rounded-lg bg-gradient-to-br",
-                  stat.color,
-                  "flex items-center justify-center",
-                  "shadow-md mb-2 relative z-10"
+                  "w-8 h-8 rounded-lg",
+                  stat.iconBg,
+                  "flex items-center justify-center mb-2"
                 )}>
-                  <IconComponent className="w-4 h-4 text-white" />
+                  <IconComponent className={cn("w-4 h-4", stat.accent)} />
                 </div>
-                <p className="text-xl font-extrabold text-gray-900 leading-none mb-1 relative z-10">{stat.value}</p>
-                <p className="text-[10px] font-semibold text-gray-700 leading-tight text-center px-1 relative z-10">{stat.title}</p>
+                <p className="text-xl font-bold text-gray-900 leading-none mb-1 tabular-nums">{stat.value}</p>
+                <p className={cn("text-[10px] font-semibold uppercase tracking-wider", stat.accent)}>{stat.title}</p>
               </button>
             );
           })}
@@ -119,29 +122,25 @@ export const StatsOverview = ({
                 onClick={handleStatClick}
                 className={cn(
                   "flex flex-col items-center justify-center",
-                  "h-[110px] md:h-[120px] rounded-xl border-2",
-                  stat.bgColor,
-                  stat.borderColor,
-                  "shadow-md hover:shadow-lg hover:scale-[1.02]",
+                  "py-5 md:py-6 rounded-xl",
+                  "bg-gray-50/60 border border-gray-100",
+                  "hover:bg-white hover:shadow-md hover:border-gray-200",
+                  "hover:ring-2", stat.ring,
                   "transition-all duration-200",
-                  "group cursor-pointer",
-                  "relative overflow-hidden"
+                  "group cursor-pointer"
                 )}
               >
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
-                
                 <div className={cn(
-                  "w-10 h-10 md:w-11 md:h-11 rounded-lg bg-gradient-to-br",
-                  stat.color,
+                  "w-10 h-10 md:w-11 md:h-11 rounded-xl",
+                  stat.iconBg,
                   "flex items-center justify-center",
-                  "shadow-md mb-3 group-hover:scale-110",
-                  "transition-transform duration-200 relative z-10"
+                  "mb-3 group-hover:scale-110",
+                  "transition-transform duration-200"
                 )}>
-                  <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <IconComponent className={cn("w-5 h-5 md:w-5.5 md:h-5.5", stat.accent)} />
                 </div>
-                <p className="text-2xl md:text-3xl font-extrabold text-gray-900 leading-none mb-2 relative z-10">{stat.value}</p>
-                <p className="text-xs md:text-sm font-semibold text-gray-700 leading-tight text-center relative z-10">{stat.title}</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900 leading-none mb-1.5 tabular-nums">{stat.value}</p>
+                <p className={cn("text-[11px] md:text-xs font-semibold uppercase tracking-wider", stat.accent)}>{stat.title}</p>
               </button>
             );
           })}

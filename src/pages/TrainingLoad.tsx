@@ -44,7 +44,11 @@ const TrainingLoad = () => {
                 Session-RPE monitoring for {sport.shortName}
               </p>
             </div>
+            <Button variant="outline" onClick={() => navigate("/training-notes")}>
+              Add a training note
+            </Button>
           </div>
+          {sessions.length > 0 && (
           <div className="flex gap-2 mt-3">
             <Button onClick={() => setShowDialog(true)} size="lg" className="shadow-lg">
               <Plus className="mr-2 h-5 w-5" /> Log Session
@@ -53,6 +57,7 @@ const TrainingLoad = () => {
               Training Notes
             </Button>
           </div>
+        )}
         </div>
 
         {sessions.length === 0 ? (
@@ -63,7 +68,7 @@ const TrainingLoad = () => {
               Log your first training session to start tracking your workload and injury risk.
             </p>
             <Button onClick={() => setShowDialog(true)} size="lg">
-              <Plus className="mr-2 h-5 w-5" /> Log Your First Session
+              <Plus className="mr-2 h-5 w-5" /> Log first training load journal
             </Button>
           </Card>
         ) : (

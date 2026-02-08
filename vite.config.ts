@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5174,
+    port: 8347,
   },
   build: {
     outDir: 'dist',
@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
   },
   // Add fallback for SPA routing
   preview: {
-    port: 5174,
+    port: 8347,
     host: "::",
   },
 }));

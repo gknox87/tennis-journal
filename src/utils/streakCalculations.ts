@@ -54,13 +54,21 @@ function calculateCurrentStreak(journaledDates: Set<string>): number {
   const yesterday = getYesterdayDateString();
 
   // Check if user journaled today or yesterday (allow for timezone differences)
-  if (!journaledDates.has(today) && !journaledDates.has(yesterday)) {
+  const hasToday = journaledDates.has(today);
+  const hasYesterday = journaledDates.has(yesterday);
+  
+  if (!hasToday && !hasYesterday) {
     return 0;
   }
 
   let streak = 0;
   let currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
+
+  // Start from today if journaled today, otherwise start from yesterday
+  if (!hasToday && hasYesterday) {
+    currentDate.setDate(currentDate.getDate() - 1);
+  }
 
   // Count backwards for consecutive days
   while (true) {
@@ -70,17 +78,6 @@ function calculateCurrentStreak(journaledDates: Set<string>): number {
       streak++;
       currentDate.setDate(currentDate.getDate() - 1);
     } else {
-      // If we're checking today/yesterday and it's not there, but the other is, continue
-      if (dateStr === today && journaledDates.has(yesterday)) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-        continue;
-      }
-      if (dateStr === yesterday && journaledDates.has(today)) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-        continue;
-      }
       break;
     }
   }

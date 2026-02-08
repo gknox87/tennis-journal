@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
-import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Zap } from "lucide-react";
+import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Zap, Activity, ArrowRight } from "lucide-react";
+import { useTrainingLoad } from "@/hooks/useTrainingLoad";
 import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
 import { TrainingNoteDialog } from "@/components/training/TrainingNoteDialog";
 import { format } from "date-fns";
@@ -21,6 +22,7 @@ const TrainingNotes = () => {
   const [editingNote, setEditingNote] = useState<TrainingNote | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { sessions, metrics } = useTrainingLoad();
 
   const fetchTrainingNotes = async () => {
     try {
@@ -122,10 +124,37 @@ const TrainingNotes = () => {
             </Button>
             <Button variant="outline" onClick={() => navigate("/training-load")} size="lg" className="w-full sm:w-auto">
               <Zap className="mr-2 h-5 w-5" />
-              Training Load
+              Record a training load journal
             </Button>
           </div>
         </div>
+
+        {/* Quick Link to Training Load */}
+        {sessions.length > 0 && (
+          <Card
+            className="p-4 mb-4 cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-r from-indigo-500 to-blue-600 text-white"
+            onClick={() => navigate("/training-load")}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Training Load Journals</p>
+                  <p className="text-xs text-white/70">{sessions.length} sessions logged · ACWR: {metrics.acwr.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-[11px] uppercase tracking-wide text-white/60">Weekly Load</p>
+                  <p className="text-lg font-bold">{metrics.weeklyTotalLoad}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-white/70" />
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -135,7 +164,7 @@ const TrainingNotes = () => {
                 <Target className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm opacity-90">Total Sessions</p>
+                <p className="text-xs sm:text-sm opacity-90">Total Notes</p>
                 <p className="text-lg sm:text-2xl font-bold">{trainingNotes.length}</p>
               </div>
             </div>

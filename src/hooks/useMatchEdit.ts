@@ -125,16 +125,7 @@ export const useMatchEdit = (id: string) => {
         .map((set: SetScore) => `${set.playerScore}-${set.opponentScore}`)
         .join(', ');
 
-      // First get or create the opponent
-      const { data: opponentId, error: opponentError } = await supabase
-        .rpc('get_or_create_opponent', {
-          p_name: formData.opponent,
-          p_user_id: session.user.id
-        });
-
-      if (opponentError) throw opponentError;
-
-      // Then update the match
+      // Update the match first (without changing opponent) to avoid orphan opponents if update fails
       const { error: matchError } = await supabase
         .from("matches")
         .update({
@@ -142,15 +133,30 @@ export const useMatchEdit = (id: string) => {
           score: scoreString,
           is_win: formData.isWin,
           notes: formData.notes || null,
-          opponent_id: opponentId,
           final_set_tiebreak: formData.finalSetTiebreak,
           court_type: formData.courtType || null,
-          // reflection_prompt_used and reflection_prompt_level not yet in schema
         })
         .eq("id", id)
         .eq("user_id", session.user.id);
 
       if (matchError) throw matchError;
+
+      // Match updated successfully — now get or create opponent and link them
+      if (formData.opponent) {
+        const { data: opponentId, error: opponentError } = await supabase
+          .rpc('get_or_create_opponent', {
+            p_name: formData.opponent,
+            p_user_id: session.user.id
+          });
+
+        if (!opponentError && opponentId) {
+          await supabase
+            .from('matches')
+            .update({ opponent_id: opponentId })
+            .eq('id', id)
+            .eq('user_id', session.user.id);
+        }
+      }
 
       toast({
         title: "Success",

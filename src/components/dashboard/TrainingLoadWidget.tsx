@@ -23,6 +23,10 @@ export const TrainingLoadWidget = () => {
   const riskLabel = riskZone.charAt(0).toUpperCase() + riskZone.slice(1);
   const hasSessions = sessions.length > 0;
 
+  if (!hasSessions) {
+    return null;
+  }
+
   return (
     <Card className="p-4 sm:p-5 bg-white/60 backdrop-blur-sm border-border/50 shadow-sm">
       <div className="flex items-center justify-between mb-3">
@@ -40,38 +44,25 @@ export const TrainingLoadWidget = () => {
         </Button>
       </div>
 
-      {hasSessions ? (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">ACWR</p>
-            <p className="text-2xl font-bold" style={{ color: riskColor }}>
-              {metrics.acwr.toFixed(2)}
-            </p>
-            <p className="text-xs" style={{ color: riskColor }}>{riskLabel}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Weekly Load</p>
-            <p className="text-2xl font-bold text-foreground">
-              {metrics.weeklyTotalLoad.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground flex items-center gap-0.5">
-              <TrendingUp className="h-3 w-3" />
-              {Math.round(metrics.dailyAverageLoad)}/day avg
-            </p>
-          </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">ACWR</p>
+          <p className="text-2xl font-bold" style={{ color: riskColor }}>
+            {metrics.acwr.toFixed(2)}
+          </p>
+          <p className="text-xs" style={{ color: riskColor }}>{riskLabel}</p>
         </div>
-      ) : (
-        <div className="text-center py-3">
-          <p className="text-sm text-muted-foreground mb-2">No sessions logged yet</p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate("/training-load")}
-          >
-            Log your first session
-          </Button>
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">Weekly Load</p>
+          <p className="text-2xl font-bold text-foreground">
+            {metrics.weeklyTotalLoad.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground flex items-center gap-0.5">
+            <TrendingUp className="h-3 w-3" />
+            {Math.round(metrics.dailyAverageLoad)}/day avg
+          </p>
         </div>
-      )}
+      </div>
     </Card>
   );
 };

@@ -1,6 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LandingHeader } from "@/components/LandingHeader";
 import {
   Accordion,
   AccordionContent,
@@ -32,6 +34,7 @@ import {
   Sparkles,
   Shield,
 } from "lucide-react";
+import DemoModal from "@/components/DemoModal";
 
 const PadelIcon = ({ className = "" }: { className?: string }) => (
   <svg
@@ -171,6 +174,7 @@ const PickleballIcon = ({ className = "" }: { className?: string }) => (
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const sports = [
     { icon: "🎾", name: "Tennis" },
@@ -307,14 +311,16 @@ const Landing = () => {
   const benefits = [
     { icon: Rocket, text: "Get started in under 60 seconds" },
     { icon: Globe, text: "Works offline, syncs online" },
-    { icon: Users, text: "500+ athletes already improving" },
+    { icon: Users, text: "100s athletes already improving" },
     { icon: Shield, text: "Your data stays private & secure" },
     { icon: Sparkles, text: "Free forever core features" },
-    { icon: Clock, text: "24/7 support when you need it" },
+    { icon: Clock, text: "email support provided" },
   ];
 
   return (
     <div className="min-h-screen w-full bg-white">
+      <LandingHeader />
+      
       {/* Hero Section - Completely Redesigned */}
       <section className="relative w-full min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         {/* Animated background elements */}
@@ -385,7 +391,7 @@ const Landing = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    onClick={() => navigate("/login")}
+                    onClick={() => setDemoOpen(true)}
                     className="border-2 border-gray-300 hover:border-blue-500 px-8 py-6 text-lg font-semibold rounded-2xl hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto"
                   >
                     <Play className="mr-2 h-5 w-5" />
@@ -407,7 +413,7 @@ const Landing = () => {
                       ))}
                     </div>
                     <span className="text-sm text-gray-600">
-                      <strong className="text-gray-900">500+</strong> athletes
+                      <strong className="text-gray-900">100s</strong> athletes
                     </span>
                   </div>
                 </div>
@@ -512,7 +518,7 @@ const Landing = () => {
       </section>
 
       {/* Features Grid - Enhanced */}
-      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
+      <section id="features" className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
           <div className="text-center mb-12 md:mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-6">
@@ -552,7 +558,7 @@ const Landing = () => {
       </section>
 
       {/* How It Works - Streamlined */}
-      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-white">
+      <section id="how-it-works" className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
           <div className="text-center mb-12 md:mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full mb-6">
@@ -587,14 +593,10 @@ const Landing = () => {
       </section>
 
       {/* Testimonials - Modern Cards */}
-      <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
+      <section id="testimonials" className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
           <div className="text-center mb-12 md:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 rounded-full mb-6">
-              <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-              <span className="text-sm font-semibold text-yellow-900">Rated 4.9/5</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
               Athletes Love Sports Journal
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
@@ -666,6 +668,152 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full mb-6">
+              <Sparkles className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-semibold text-green-900">Simple Pricing</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+              Start Free, Grow Forever
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
+              Powerful features that grow with your athletic journey
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+            {/* Free Plan */}
+            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-gray-200 bg-white relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-400 to-gray-600" />
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Free</h3>
+                  <div className="text-4xl font-black text-gray-900 mb-2">
+                    $0<span className="text-lg font-normal text-gray-600">/month</span>
+                  </div>
+                  <p className="text-gray-600">Perfect for getting started</p>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Unlimited match logging",
+                    "Basic analytics dashboard", 
+                    "5 opponent profiles",
+                    "Mobile app access",
+                    "Offline tracking"
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  onClick={() => navigate("/register")}
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3"
+                >
+                  Start Free
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-blue-500 bg-white relative overflow-hidden scale-105">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
+              <div className="absolute top-4 right-4">
+                <div className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  MOST POPULAR
+                </div>
+              </div>
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Pro</h3>
+                  <div className="text-4xl font-black text-gray-900 mb-2">
+                    $9<span className="text-lg font-normal text-gray-600">/month</span>
+                  </div>
+                  <p className="text-gray-600">For serious athletes</p>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Everything in Free",
+                    "Advanced analytics & insights",
+                    "Unlimited opponent profiles", 
+                    "Video analysis tools",
+                    "Coach sharing & collaboration",
+                    "Priority support",
+                    "Export data & reports"
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  onClick={() => navigate("/register")}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 shadow-lg"
+                >
+                  Start Pro Trial
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Team Plan */}
+            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-gray-200 bg-white relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-600" />
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Team</h3>
+                  <div className="text-4xl font-black text-gray-900 mb-2">
+                    $29<span className="text-lg font-normal text-gray-600">/month</span>
+                  </div>
+                  <p className="text-gray-600">For coaches & teams</p>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "Everything in Pro",
+                    "Up to 20 athletes",
+                    "Team analytics dashboard",
+                    "Bulk data management",
+                    "Custom training templates",
+                    "API access",
+                    "Dedicated support"
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  onClick={() => navigate("/register")}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3"
+                >
+                  Contact Sales
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-4">
+              <strong className="text-gray-900">30-day money-back guarantee</strong> on all paid plans
+            </p>
+            <p className="text-sm text-gray-500">
+              No hidden fees • Cancel anytime • All plans include core features
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ - Cleaner Design */}
       <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gray-50">
         <div className="max-w-4xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
@@ -681,12 +829,12 @@ const Landing = () => {
 
           <Accordion type="single" collapsible className="space-y-4">
             {[
-              { q: "Is Sports Journal really free?", a: "Yes! Core features free forever. Premium coming soon with additional features for competitive athletes." },
-              { q: "Can I track multiple sports?", a: "Absolutely! Switch between sports seamlessly. Your data travels with you across all racket sports." },
-              { q: "How do I share with my coach?", a: "One-tap sharing via WhatsApp, email, or link. Direct coach-player chat coming soon!" },
-              { q: "Does it work offline?", a: "Match logging works offline, syncs when you're back online. Perfect for tournaments!" },
-              { q: "What devices are supported?", a: "Mobile, tablet, and web. Works everywhere you do." },
-              { q: "Can I import past match data?", a: "Yes! Contact support for bulk import help." },
+              { q: "Is Sports Journal really free?", a: "Yes! Core features are free forever — including unlimited match logging, basic analytics, up to 5 opponent profiles, and full mobile access. Our Pro and Team plans offer advanced features like AI-powered coaching insights, detailed video analysis, and team management tools for competitive athletes. See our pricing page for a full comparison. You'll never lose access to the features you already use.", link: "/pricing" },
+              { q: "Can I track multiple sports?", a: "Absolutely! Sports Journal supports tennis, padel, pickleball, table tennis, badminton, and squash. You can switch between sports seamlessly from your dashboard, and each sport has its own tailored scoring system, analytics, and performance metrics. All your data travels with you — no need for separate apps." },
+              { q: "How do I share with my coach?", a: "Sharing is built right in. From any match or analytics page, tap the Share button to send a detailed summary via WhatsApp, email, or a shareable link. Your coach gets a clean, readable view of your scores, notes, and performance trends — no account required on their end. Direct coach-player messaging is coming soon!" },
+              { q: "Does it work offline?", a: "Yes — Sports Journal is designed for real-world conditions, including venues with spotty Wi-Fi. You can log full match details, scores, and notes while completely offline. Once you reconnect, everything syncs automatically to your account in the background. No data is ever lost, making it perfect for tournaments and away matches." },
+              { q: "What devices are supported?", a: "Sports Journal works on any device with a modern web browser — phones, tablets, laptops, and desktops. The interface adapts to your screen size so you get a great experience whether you're courtside on your phone or reviewing analytics on your laptop at home. No app download required." },
+              { q: "Can I import past match data?", a: "Yes! If you have historical match data in spreadsheets or other formats, our support team can help you bulk-import it so your full playing history is in one place from day one. Just reach out to support@sportsjournal.com with your data and we'll handle the rest — typically within 48 hours." },
             ].map((faq, idx) => (
               <AccordionItem
                 key={idx}
@@ -698,6 +846,14 @@ const Landing = () => {
                 </AccordionTrigger>
                 <AccordionContent className="text-base text-gray-600 pb-6 leading-relaxed">
                   {faq.a}
+                  {faq.link && (
+                    <button
+                      onClick={() => navigate(faq.link!)}
+                      className="inline-block mt-2 text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2 transition-colors"
+                    >
+                      View Pricing →
+                    </button>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -734,16 +890,15 @@ const Landing = () => {
             </Button>
             <Button
               size="lg"
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white/10 px-10 py-7 text-xl font-semibold rounded-2xl transition-all duration-300"
+              className="border-2 border-white bg-transparent text-white hover:bg-white/10 px-10 py-7 text-xl font-semibold rounded-2xl transition-all duration-300"
               onClick={() => navigate("/login")}
             >
               Sign In
             </Button>
           </div>
 
-          {/* Trust indicators */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 opacity-90">
+          {/* Trust indicators - Hidden for now */}
+          {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 opacity-90">
             {[
               { icon: Users, label: "500+ Athletes" },
               { icon: Globe, label: "25+ Countries" },
@@ -755,7 +910,7 @@ const Landing = () => {
                 <div className="text-sm font-medium">{item.label}</div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -793,9 +948,9 @@ const Landing = () => {
             <div>
               <h4 className="font-bold mb-4 text-white">Product</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Demo</a></li>
+                <li><Link to="/features" className="text-gray-400 hover:text-white transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/demo" className="text-gray-400 hover:text-white transition-colors">Demo</Link></li>
               </ul>
             </div>
 
@@ -803,20 +958,22 @@ const Landing = () => {
             <div>
               <h4 className="font-bold mb-4 text-white">Support</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
+                <li><Link to="/help" className="text-gray-400 hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
+                <li><Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-800 pt-8 text-center">
             <p className="text-sm text-gray-400">
-              © 2025 Sports Journal. Built with ❤️ for athletes who refuse to settle.
+              © 2026 Sports Journal. Built with ❤️ for athletes who refuse to settle.
             </p>
           </div>
         </div>
       </footer>
+
+      <DemoModal open={demoOpen} onOpenChange={setDemoOpen} />
     </div>
   );
 };

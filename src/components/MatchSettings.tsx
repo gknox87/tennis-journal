@@ -51,7 +51,7 @@ export const MatchSettings = ({
     return daysSince <= 1;
   }, [matchDate]);
 
-  // Initialize guided prompts preference
+  // Initialize guided prompts preference (only on mount / when entry context changes)
   useEffect(() => {
     // For new users (beginner), default to guided prompts
     // For existing entries with prompts, use guided mode
@@ -65,7 +65,8 @@ export const MatchSettings = ({
       const hasPromptFormat = notes.includes('\n\n') && notes.split('\n\n').length > 1;
       setUseGuidedPrompts(hasPromptFormat || totalEntries < 5);
     }
-  }, [isExistingEntry, reflectionPromptUsed, totalEntries, notes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExistingEntry, reflectionPromptUsed, totalEntries]);
 
   // Initialize prompt level from existing entry or preferences
   const currentPromptLevel: PromptLevel = useMemo(() => {

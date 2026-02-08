@@ -74,41 +74,36 @@ export const MatchCard = ({
               <ResultIcon className={`h-4 w-4 ${iconColor}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-bold text-gray-800 truncate mb-1">
+              <CardTitle className="text-lg font-bold text-gray-800 truncate mb-1 text-left">
                 {opponent_name}
               </CardTitle>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
                 <span>{formatDate(date)}</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  <span aria-hidden>{resolvedSport.icon}</span>
-                  {sportName ?? resolvedSport.shortName}
-                </span>
               </div>
             </div>
           </div>
           
-          <Badge 
-            variant={isWin ? "default" : "destructive"}
-            className={`text-xs font-bold px-3 py-1 flex-shrink-0 ${
-              isWin 
-                ? "bg-green-500 hover:bg-green-600 text-white" 
-                : "bg-red-500 hover:bg-red-600 text-white"
-            }`}
-          >
-            <Trophy className="h-3 w-3 mr-1" />
-            {isWin ? "WIN" : "LOSS"}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-bold text-gray-800">
+              {score}
+            </span>
+            <Badge 
+              variant={isWin ? "default" : "destructive"}
+              className={`text-xs font-bold px-3 py-1 flex-shrink-0 ${
+                isWin 
+                  ? "bg-green-500 hover:bg-green-600 text-white" 
+                  : "bg-red-500 hover:bg-red-600 text-white"
+              }`}
+            >
+              <Trophy className="h-3 w-3 mr-1" />
+              {isWin ? "WIN" : "LOSS"}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="pt-0 pb-6">
-        <div className="flex items-center gap-3">
-          <Target className={`h-4 w-4 ${iconColor} flex-shrink-0`} />
-          <span className="text-2xl font-bold text-gray-800">
-            {score}
-          </span>
-        </div>
       </CardContent>
     </Card>
   );

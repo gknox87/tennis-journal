@@ -14,9 +14,17 @@ import ImprovementNotes from "@/pages/ImprovementNotes";
 import Calendar from "@/pages/Calendar";
 import TrainingNotes from "@/pages/TrainingNotes";
 import TrainingLoad from "@/pages/TrainingLoad";
+import Wellness from "@/pages/Wellness";
 import Profile from "@/pages/Profile";
 import CoachDashboard from "@/pages/CoachDashboard";
 import TeamDetail from "@/pages/TeamDetail";
+import Features from "@/pages/Features";
+import Pricing from "@/pages/Pricing";
+import Demo from "@/pages/Demo";
+import HelpCenter from "@/pages/HelpCenter";
+import Contact from "@/pages/Contact";
+import Privacy from "@/pages/Privacy";
+import InjuryTracker from "@/pages/InjuryTracker";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -72,6 +80,30 @@ function App() {
             path="/register"
             element={session ? <Navigate to="/dashboard" replace /> : <Register />}
           />
+          <Route
+            path="/features"
+            element={<Features />}
+          />
+          <Route
+            path="/pricing"
+            element={<Pricing />}
+          />
+          <Route
+            path="/demo"
+            element={<Demo />}
+          />
+          <Route
+            path="/help"
+            element={<HelpCenter />}
+          />
+          <Route
+            path="/contact"
+            element={<Contact />}
+          />
+          <Route
+            path="/privacy"
+            element={<Privacy />}
+          />
 
           {/* Protected routes - redirect to login if not authenticated */}
           <Route
@@ -115,6 +147,10 @@ function App() {
             element={session ? <TrainingLoad /> : <Navigate to="/login" replace />}
           />
           <Route
+            path="/wellness"
+            element={session ? <Wellness /> : <Navigate to="/login" replace />}
+          />
+          <Route
             path="/profile"
             element={session ? <Profile /> : <Navigate to="/login" replace />}
           />
@@ -125,6 +161,10 @@ function App() {
           <Route
             path="/team/:id"
             element={session ? <TeamDetail /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/injury-tracker"
+            element={session ? <InjuryTracker /> : <Navigate to="/login" replace />}
           />
           {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
           <Route

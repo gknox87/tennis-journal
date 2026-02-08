@@ -39,10 +39,6 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
             <span className="font-semibold text-gray-800">
               {format(new Date(note.training_date), 'MMM dd, yyyy')}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              <span aria-hidden>{sport.icon}</span>
-              {sport.shortName}
-            </span>
           </div>
           <div className="flex gap-1">
             <Button
@@ -87,9 +83,7 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
               <Target className="h-4 w-4 text-blue-500" />
               <span className="font-medium text-blue-700">What We Worked On</span>
             </div>
-            <p className="text-gray-700 text-sm pl-6 bg-blue-50 p-3 rounded-lg">
-              {note.what_worked_on}
-            </p>
+            <p className="text-gray-700 text-sm pl-6 bg-blue-50 p-3 rounded-lg text-left">{note.what_worked_on}</p>
           </div>
         )}
 
@@ -100,7 +94,7 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
               <ThumbsUp className="h-4 w-4 text-green-500" />
               <span className="font-medium text-green-700">What Felt Good</span>
             </div>
-            <p className="text-gray-700 text-sm pl-6 bg-green-50 p-3 rounded-lg">
+            <p className="text-gray-700 text-sm pl-6 bg-green-50 p-3 rounded-lg text-left">
               {note.what_felt_good}
             </p>
           </div>
@@ -113,7 +107,7 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
               <ThumbsDown className="h-4 w-4 text-orange-500" />
               <span className="font-medium text-orange-700">Areas to Improve</span>
             </div>
-            <p className="text-gray-700 text-sm pl-6 bg-orange-50 p-3 rounded-lg">
+            <p className="text-gray-700 text-sm pl-6 bg-orange-50 p-3 rounded-lg text-left">
               {note.what_didnt_feel_good}
             </p>
           </div>

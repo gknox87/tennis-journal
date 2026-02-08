@@ -56,13 +56,15 @@ export const NotesSection = ({
           Capture your {sport.name.toLowerCase()} insights and improve your game
         </p>
 
-        <Button
-          onClick={handleCreateEntry}
-          className="btn-primary text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          Create New Entry
-        </Button>
+        {playerNotes.length > 0 && (
+          <Button
+            onClick={handleCreateEntry}
+            className="btn-primary text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Create New Entry
+          </Button>
+        )}
       </div>
 
       {playerNotes.length > 0 ? (

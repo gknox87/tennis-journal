@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useSport } from "@/context/SportContext";
 import { Camera } from "lucide-react";
 
 interface ProfileData {
@@ -18,6 +19,7 @@ interface ProfileData {
 }
 
 export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { sport } = useSport();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
@@ -190,23 +192,26 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 onChange={(e) => setProfileData({ ...profileData, ranking: e.target.value })}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="surface">Preferred Surface</Label>
-              <Select
-                value={profileData.preferred_surface || ""}
-                onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a surface" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hard">Hard Court</SelectItem>
-                  <SelectItem value="clay">Clay Court</SelectItem>
-                  <SelectItem value="grass">Grass Court</SelectItem>
-                  <SelectItem value="carpet">Carpet Court</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {sport.venueOptions && sport.venueOptions.length > 0 && (
+              <div className="grid gap-2">
+                <Label htmlFor="surface">Preferred Venue</Label>
+                <Select
+                  value={profileData.preferred_surface || ""}
+                  onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a venue type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sport.venueOptions.map((venue) => (
+                      <SelectItem key={venue} value={venue.toLowerCase().replace(/\s+/g, '_')}>
+                        {venue}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <Button onClick={handleSave} disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Changes"}

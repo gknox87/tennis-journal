@@ -22,8 +22,8 @@ export const MatchList = ({
   };
 
   return <div>
-      <div className={`mb-4 flex flex-col sm:flex-row items-start sm:items-center ${showAddButton ? 'justify-between' : ''} gap-3`}>
-        <h2 className="text-lg font-semibold">Recent Performances</h2>
+      <div className={`mb-0 flex flex-col sm:flex-row items-start sm:items-center ${showAddButton ? 'justify-between' : ''} gap-3 -mt-2`}>
+        <h2 className="text-lg font-semibold"></h2>
         {showAddButton && (
           <Button
             onClick={handleAddPerformance}
@@ -34,8 +34,9 @@ export const MatchList = ({
           </Button>
         )}
       </div>
+      {showAddButton && <div className="mb-4"></div>}
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-1 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {matches.map(match => (
           <MatchCard
             key={match.id}

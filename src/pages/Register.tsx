@@ -20,6 +20,8 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [sportId, setSportId] = useState<SupportedSportId | null>(null);
   const [goalId, setGoalId] = useState<string>("performance");
   const [accountType, setAccountType] = useState<AccountType>("player");
@@ -29,6 +31,8 @@ const Register = () => {
     email?: string;
     password?: string;
     confirmPassword?: string;
+    firstName?: string;
+    lastName?: string;
     sport?: string;
   }>({});
   const navigate = useNavigate();
@@ -37,6 +41,8 @@ const Register = () => {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +51,23 @@ const Register = () => {
     const finalEmail = emailRef.current?.value || email;
     const finalPassword = passwordRef.current?.value || password;
     const finalConfirmPassword = confirmPasswordRef.current?.value || confirmPassword;
+    const finalFirstName = firstNameRef.current?.value || firstName;
+    const finalLastName = lastNameRef.current?.value || lastName;
 
     setErrors({});
 
     const newErrors: typeof errors = {};
     let hasErrors = false;
+
+    if (!finalFirstName?.trim()) {
+      newErrors.firstName = "First name is required";
+      hasErrors = true;
+    }
+
+    if (!finalLastName?.trim()) {
+      newErrors.lastName = "Last name is required";
+      hasErrors = true;
+    }
 
     if (!finalEmail?.trim()) {
       newErrors.email = "Email is required";
@@ -89,6 +107,8 @@ const Register = () => {
       if (newErrors.email) missingFields.push("email");
       if (newErrors.password) missingFields.push("password");
       if (newErrors.confirmPassword) missingFields.push("confirm password");
+      if (newErrors.firstName) missingFields.push("first name");
+      if (newErrors.lastName) missingFields.push("last name");
       if (newErrors.sport) missingFields.push("sport selection");
 
       if (missingFields.length > 0) {
@@ -109,6 +129,8 @@ const Register = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
+            first_name: finalFirstName.trim(),
+            last_name: finalLastName.trim(),
             primary_sport_id: sportId,
             performance_goal: goalId,
             account_type: accountType,
@@ -239,6 +261,46 @@ const Register = () => {
           </div>
 
           <form onSubmit={handleSignUp} className="space-y-5" noValidate>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">
+                  First Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  ref={firstNameRef}
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (errors.firstName) setErrors((prev) => ({ ...prev, firstName: undefined }));
+                  }}
+                  className={cn("h-12 rounded-xl", errors.firstName && "border-destructive")}
+                  placeholder="Enter your first name"
+                />
+                {errors.firstName && <p className="text-sm text-destructive">{errors.firstName}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">
+                  Last Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  ref={lastNameRef}
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (errors.lastName) setErrors((prev) => ({ ...prev, lastName: undefined }));
+                  }}
+                  className={cn("h-12 rounded-xl", errors.lastName && "border-destructive")}
+                  placeholder="Enter your last name"
+                />
+                {errors.lastName && <p className="text-sm text-destructive">{errors.lastName}</p>}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">
                 Email <span className="text-destructive">*</span>

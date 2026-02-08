@@ -22,6 +22,9 @@ const PROTECTED_ROUTES = [
   "/improvement-notes",
   "/coach",
   "/team",
+  "/wellness",
+  "/injury-tracker",
+  "/training-load",
 ];
 
 export const BottomNavigationWrapper = () => {

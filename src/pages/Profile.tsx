@@ -21,6 +21,7 @@ interface ProfileData {
   preferred_surface: string | null;
   avatar_url: string | null;
   date_of_birth: string | null;
+  show_menstrual_tracking: boolean;
 }
 
 interface LiveStats {
@@ -39,6 +40,7 @@ const Profile = () => {
     preferred_surface: "",
     avatar_url: null,
     date_of_birth: null,
+    show_menstrual_tracking: false,
   });
   const [liveStats, setLiveStats] = useState<LiveStats>({
     matchesWon: 0,
@@ -83,6 +85,7 @@ const Profile = () => {
           preferred_surface: data.preferred_surface || "",
           avatar_url: data.avatar_url || null,
           date_of_birth: data.date_of_birth || null,
+          show_menstrual_tracking: data.show_menstrual_tracking === true,
         });
       }
     } catch (err) {
@@ -140,6 +143,7 @@ const Profile = () => {
           preferred_surface: profileData.preferred_surface,
           avatar_url: profileData.avatar_url,
           date_of_birth: profileData.date_of_birth || null,
+          show_menstrual_tracking: profileData.show_menstrual_tracking,
           updated_at: new Date().toISOString(),
         });
 
@@ -230,10 +234,10 @@ const Profile = () => {
                       <span>Rank: {profileData.ranking}</span>
                     </div>
                   )}
-                  {profileData.preferred_surface && (
+                  {profileData.preferred_surface && sport.venueOptions?.length && (
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{profileData.preferred_surface} Court</span>
+                      <span>{sport.venueOptions.find(v => v.toLowerCase().replace(/\s+/g, '_') === profileData.preferred_surface) || profileData.preferred_surface}</span>
                     </div>
                   )}
                 </div>
@@ -317,25 +321,54 @@ const Profile = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="surface" className="text-gray-700 font-medium">Preferred Surface</Label>
-                  <Select
-                    value={profileData.preferred_surface || ""}
-                    onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 shadow-sm">
-                      <SelectValue placeholder="Select a surface" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hard">Hard Court</SelectItem>
-                      <SelectItem value="clay">Clay Court</SelectItem>
-                      <SelectItem value="grass">Grass Court</SelectItem>
-                      <SelectItem value="carpet">Carpet Court</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {sport.venueOptions && sport.venueOptions.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="surface" className="text-gray-700 font-medium">Preferred Venue</Label>
+                    <Select
+                      value={profileData.preferred_surface || ""}
+                      onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 shadow-sm">
+                        <SelectValue placeholder="Select a venue type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sport.venueOptions.map((venue) => (
+                          <SelectItem key={venue} value={venue.toLowerCase().replace(/\s+/g, '_')}>
+                            {venue}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
+
+              {isEditing && (
+                <div className="space-y-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-700 font-medium">Menstrual Cycle Tracking</Label>
+                      <p className="text-xs text-gray-500 mt-0.5">Show cycle day field in wellness check-ins</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={profileData.show_menstrual_tracking}
+                      onClick={() => setProfileData({ ...profileData, show_menstrual_tracking: !profileData.show_menstrual_tracking })}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        profileData.show_menstrual_tracking ? 'bg-purple-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          profileData.show_menstrual_tracking ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {isEditing && (
                 <div className="flex justify-center pt-6 border-t border-gray-200">
@@ -367,7 +400,7 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
-              <p className="text-sm opacity-90">{sport.terminology.matchLabel}s Won</p>
+              <p className="text-sm opacity-90">Matches Won</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />

@@ -53,7 +53,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
                 <span className="text-2xl sm:text-3xl" aria-hidden>{sport.icon}</span>
               </div>
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 leading-tight">
+                <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-1 sm:mb-2 leading-tight text-left">
                   {sport.terminology.matchLabel}: vs {match.opponent_name}
                 </CardTitle>
                 <div className="flex items-center gap-2 text-gray-600">
@@ -62,34 +62,8 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-3 py-1 text-xs font-medium text-gray-600">
-                <span className="text-lg" aria-hidden>{sport.icon}</span>
-                {sport.name}
-              </span>
-              {match.sport_name && (
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{match.sport_name}</span>
-              )}
-            </div>
-            
-            {/* Bottom row with result and score */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <Badge 
-                variant={match.is_win ? "default" : "destructive"}
-                className={`text-base sm:text-lg font-bold px-4 sm:px-6 py-2 w-fit ${
-                  match.is_win 
-                    ? "bg-green-500 hover:bg-green-600 text-white" 
-                    : "bg-red-500 hover:bg-red-600 text-white"
-                } shadow-lg`}
-              >
-                {match.is_win ? "VICTORY" : "DEFEAT"}
-              </Badge>
-              <div className="sm:text-right">
-                <p className="text-xs sm:text-sm text-gray-500 font-medium mb-1">Final Score</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800">{match.score}</p>
-              </div>
-            </div>
-          </div>
+                        
+                      </div>
         </CardHeader>
       </Card>
 
@@ -154,10 +128,16 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-100">
+            <div className={`p-4 sm:p-6 rounded-lg sm:rounded-xl border ${
+              match.is_win 
+                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-100' 
+                : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-100'
+            }`}>
               <div className="text-center">
                 <p className="text-xs sm:text-sm text-gray-600 font-medium mb-2">Final Score</p>
-                <p className="text-3xl sm:text-4xl font-bold text-gray-800 break-all">{match.score}</p>
+                <p className={`text-3xl sm:text-4xl font-bold break-all ${
+                  match.is_win ? 'text-green-600' : 'text-red-600'
+                }`}>{match.score}</p>
               </div>
             </div>
           </CardContent>

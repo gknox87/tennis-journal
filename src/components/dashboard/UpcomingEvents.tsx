@@ -19,21 +19,7 @@ export const UpcomingEvents = ({ events }: UpcomingEventsProps) => {
   const navigate = useNavigate();
 
   if (!events.length) {
-    return (
-      <div className="text-center py-8">
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8">
-          <Calendar className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">No upcoming events</h3>
-          <p className="text-gray-600 mb-4">Schedule your next training session or match!</p>
-          <button
-            onClick={() => navigate('/calendar')}
-            className="btn-primary px-6 py-2 rounded-2xl font-semibold"
-          >
-            Open Calendar
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

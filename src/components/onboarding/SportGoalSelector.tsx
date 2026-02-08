@@ -71,7 +71,7 @@ export const SportGoalSelector = ({
 
   const renderSportsList = (sports: SportMetadata[]) => (
     <ScrollArea className="max-h-[360px] rounded-xl border bg-muted/10 p-3">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
         {sports.map((sport) => {
           const selected = sport.id === sportId;
           const secondaryLabel = sport.subcategory
@@ -92,7 +92,7 @@ export const SportGoalSelector = ({
             >
               <span className="text-2xl">{sport.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">{sport.name}</p>
+                <p className="font-semibold text-sm leading-tight">{sport.name}</p>
                 <p className="text-xs text-muted-foreground capitalize">{secondaryLabel}</p>
               </div>
               {selected && (
@@ -138,7 +138,7 @@ export const SportGoalSelector = ({
               <TabsList className="flex w-max items-center gap-2 bg-transparent px-1 pb-2 pt-1">
                 <TabsTrigger
                   value="popular"
-                  className="shrink-0 rounded-full border border-border px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+                  className="shrink-0 rounded-full border border-border px-4 py-2 text-sm font-medium data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
                 >
                   ⭐ Popular
                 </TabsTrigger>
@@ -146,7 +146,7 @@ export const SportGoalSelector = ({
                   <TabsTrigger
                     key={category}
                     value={category}
-                    className="shrink-0 rounded-full border border-border px-3 py-2 text-xs font-medium capitalize data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+                    className="shrink-0 rounded-full border border-border px-4 py-2 text-sm font-medium capitalize data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
                   >
                     <span className="mr-1">{getCategoryIcon(category)}</span>
                     {category}

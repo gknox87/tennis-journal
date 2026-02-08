@@ -394,6 +394,11 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "professional padel",
       focusAreas: ["net pressure", "lob defence", "court positioning"],
     },
+    venueOptions: [
+      "Indoor Court",
+      "Outdoor Court",
+      "Covered Court"
+    ],
     stats: {
       primary: [
         {
@@ -478,6 +483,11 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "competitive pickleball",
       focusAreas: ["dink control", "third-shot drop", "transition positioning"],
     },
+    venueOptions: [
+      "Indoor Court",
+      "Outdoor Hard Court",
+      "Outdoor Dedicated Court"
+    ],
     stats: {
       primary: [
         {
@@ -560,6 +570,10 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "elite badminton",
       focusAreas: ["net play", "rear-court clears", "smash recovery"],
     },
+    venueOptions: [
+      "Indoor Hall",
+      "Outdoor Court"
+    ],
     stats: {
       primary: [
         {
@@ -642,6 +656,11 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "professional squash",
       focusAreas: ["T-position control", "length accuracy", "pressure building"],
     },
+    venueOptions: [
+      "Glass-Back Court",
+      "All-Glass Court",
+      "Traditional Court"
+    ],
     stats: {
       primary: [
         {
@@ -733,6 +752,10 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "elite sprinting",
       focusAreas: ["explosive start", "drive phase", "top-end speed"],
     },
+    venueOptions: [
+      "Outdoor Track",
+      "Indoor Track"
+    ],
     stats: {
       primary: [
         {
@@ -823,6 +846,10 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "quarter-mile racing",
       focusAreas: ["pace distribution", "lactate tolerance", "finishing speed"],
     },
+    venueOptions: [
+      "Outdoor Track",
+      "Indoor Track"
+    ],
     stats: {
       primary: [
         {
@@ -903,6 +930,12 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "competitive 5K racing",
       focusAreas: ["pacing strategy", "aerobic capacity", "kick finish"],
     },
+    venueOptions: [
+      "Road",
+      "Track",
+      "Trail",
+      "Cross Country"
+    ],
     stats: {
       primary: [
         {
@@ -982,6 +1015,11 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "marathon endurance",
       focusAreas: ["negative splits", "fueling strategy", "mental toughness"],
     },
+    venueOptions: [
+      "Road",
+      "Trail",
+      "Mixed Terrain"
+    ],
     stats: {
       primary: [
         {
@@ -1062,6 +1100,12 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "competitive swimming",
       focusAreas: ["stroke efficiency", "turn technique", "underwater phase"],
     },
+    venueOptions: [
+      "25m Indoor Pool",
+      "50m Indoor Pool",
+      "50m Outdoor Pool",
+      "Open Water"
+    ],
     stats: {
       primary: [
         {
@@ -1380,6 +1424,11 @@ export const SPORTS: Record<string, SportMetadata> = {
       stylePrompt: "competitive cycling",
       focusAreas: ["power output", "drafting technique", "climb pacing"],
     },
+    venueOptions: [
+      "Road",
+      "Velodrome",
+      "Time Trial Course"
+    ],
     stats: {
       primary: [
         {

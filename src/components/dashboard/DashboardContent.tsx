@@ -11,11 +11,16 @@ import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { JournalingStreak } from "@/components/dashboard/JournalingStreak";
 import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebration";
 import { TrainingLoadWidget } from "@/components/dashboard/TrainingLoadWidget";
-import { Card, CardContent } from "@/components/ui/card";
+import { WellnessWidget } from "@/components/dashboard/WellnessWidget";
+import { InjuryWidget } from "@/components/dashboard/InjuryWidget";
+import { Heart } from "lucide-react";
 import { useState, memo, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useJournalingStreak } from "@/hooks/useJournalingStreak";
+import { useTrainingLoad } from "@/hooks/useTrainingLoad";
+import { useWellness } from "@/hooks/useWellness";
+import { useInjuryReports } from "@/hooks/useInjuryReports";
 import { isMilestone } from "@/utils/streakCalculations";
 
 const MemoizedStatsSection = memo(StatsSection);
@@ -45,6 +50,16 @@ export const DashboardContent = ({
   const { streakData } = useJournalingStreak();
   const previousStreakRef = useRef<number>(0);
   const celebratedMilestonesRef = useRef<Set<number>>(new Set());
+  
+  // Check if any wellness data exists
+  const { sessions } = useTrainingLoad();
+  const { metrics: wellnessMetrics } = useWellness();
+  const { activeInjuries } = useInjuryReports();
+  
+  const hasWellnessData = 
+    sessions.length > 0 || 
+    wellnessMetrics.todayScore !== null || 
+    activeInjuries.length > 0;
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -96,7 +111,7 @@ export const DashboardContent = ({
   const recentMatches = matchesToShow.slice(0, 9);
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-8">
       {/* Milestone Celebration */}
       <MilestoneCelebration
         streak={milestoneStreak}
@@ -104,62 +119,30 @@ export const DashboardContent = ({
         onOpenChange={setShowMilestone}
       />
 
-      {/* Stats Section */}
-      <div className="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-200/50 shadow-sm">
-        <Suspense fallback={
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-          </div>
-        }>
-          <MemoizedStatsSection matches={matches} />
-        </Suspense>
-      </div>
-
-      {/* Journaling Streak & Training Load */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Suspense fallback={
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-          </div>
-        }>
-          <JournalingStreak />
-        </Suspense>
-        <Suspense fallback={
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        }>
-          <TrainingLoadWidget />
-        </Suspense>
-      </div>
-
-      {/* Notes Section */}
+      {/* ─── 1. JOURNALING STREAK ─── */}
       <Suspense fallback={
         <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
         </div>
       }>
-        <NotesSection
-          playerNotes={playerNotes}
-          onEditNote={handleEditNote}
-          onDeleteNote={onDeleteNote}
-          hasMatches={matches.length > 0}
-        />
+        <JournalingStreak />
       </Suspense>
 
-      <Suspense fallback={
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      {/* ─── 2. PERFORMANCE SNAPSHOT ─── */}
+      <section>
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-gray-200/50 shadow-sm">
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+            </div>
+          }>
+            <MemoizedStatsSection matches={matches} />
+          </Suspense>
         </div>
-      }>
-        <MatchList
-          matches={recentMatches}
-          onMatchDelete={onMatchDelete}
-          showAddButton={false}
-        />
-      </Suspense>
+      </section>
 
-      <div className="space-y-6">
+      {/* ─── 3. WHAT'S NEXT ─── */}
+      <section>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -167,19 +150,75 @@ export const DashboardContent = ({
         }>
           <UpcomingEvents events={upcomingEvents} />
         </Suspense>
-      </div>
+      </section>
 
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-3xl p-6 md:p-8">
-        <h2 className="text-xl md:text-2xl font-bold gradient-text mb-6 text-center">🎯 Level Up Your Game</h2>
+      {/* ─── 4. JOURNAL NOTES ─── */}
+      <section>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           </div>
         }>
-          <MemoizedImprovementChecklist />
+          <NotesSection
+            playerNotes={playerNotes}
+            onEditNote={handleEditNote}
+            onDeleteNote={onDeleteNote}
+            hasMatches={matches.length > 0}
+          />
         </Suspense>
-      </div>
+      </section>
 
+      {/* ─── 5. RECENT MATCHES ─── */}
+      <section>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        }>
+          <MatchList
+            matches={recentMatches}
+            onMatchDelete={onMatchDelete}
+            showAddButton={false}
+          />
+        </Suspense>
+      </section>
+
+      {/* ─── 6. BODY & WELLNESS ─── */}
+      {hasWellnessData && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <Heart className="h-5 w-5 text-rose-500" />
+            Body & Wellness
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }>
+              <TrainingLoadWidget />
+            </Suspense>
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
+              </div>
+            }>
+              <WellnessWidget />
+            </Suspense>
+          </div>
+          <div className="mt-4">
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+              </div>
+            }>
+              <InjuryWidget />
+            </Suspense>
+          </div>
+        </section>
+      )}
+
+      
       <NotesDialog
         open={showNotesDialog}
         onOpenChange={setShowNotesDialog}

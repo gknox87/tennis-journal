@@ -117,6 +117,100 @@ export type Database = {
           },
         ]
       }
+      injury_reports: {
+        Row: {
+          id: string
+          user_id: string
+          sport_id: string | null
+          created_at: string
+          updated_at: string
+          body_region: Database["public"]["Enums"]["body_region"]
+          body_part: string
+          coordinates: Json | null
+          pain_level: number
+          impact_on_training: Database["public"]["Enums"]["impact_level"]
+          pain_types: string[]
+          onset_type: Database["public"]["Enums"]["onset_type"]
+          duration: string
+          trend: Database["public"]["Enums"]["injury_trend"]
+          previous_report_id: string | null
+          treatment_notes: string | null
+          sought_medical_attention: boolean
+          restricted_from_training: boolean
+          photo_urls: string[]
+          shared_with_coach: boolean
+          coach_notified: boolean
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sport_id?: string | null
+          created_at?: string
+          updated_at?: string
+          body_region: Database["public"]["Enums"]["body_region"]
+          body_part: string
+          coordinates?: Json | null
+          pain_level: number
+          impact_on_training?: Database["public"]["Enums"]["impact_level"]
+          pain_types?: string[]
+          onset_type?: Database["public"]["Enums"]["onset_type"]
+          duration?: string
+          trend?: Database["public"]["Enums"]["injury_trend"]
+          previous_report_id?: string | null
+          treatment_notes?: string | null
+          sought_medical_attention?: boolean
+          restricted_from_training?: boolean
+          photo_urls?: string[]
+          shared_with_coach?: boolean
+          coach_notified?: boolean
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sport_id?: string | null
+          created_at?: string
+          updated_at?: string
+          body_region?: Database["public"]["Enums"]["body_region"]
+          body_part?: string
+          coordinates?: Json | null
+          pain_level?: number
+          impact_on_training?: Database["public"]["Enums"]["impact_level"]
+          pain_types?: string[]
+          onset_type?: Database["public"]["Enums"]["onset_type"]
+          duration?: string
+          trend?: Database["public"]["Enums"]["injury_trend"]
+          previous_report_id?: string | null
+          treatment_notes?: string | null
+          sought_medical_attention?: boolean
+          restricted_from_training?: boolean
+          photo_urls?: string[]
+          shared_with_coach?: boolean
+          coach_notified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "injury_reports_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "injury_reports_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "injury_reports_previous_report_id_fkey"
+            columns: ["previous_report_id"]
+            isOneToOne: false
+            referencedRelation: "injury_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       improvement_points: {
         Row: {
           created_at: string | null
@@ -335,6 +429,7 @@ export type Database = {
           preferred_surface: string | null
           primary_sport_id: string | null
           ranking: string | null
+          show_menstrual_tracking: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -347,6 +442,7 @@ export type Database = {
           preferred_surface?: string | null
           primary_sport_id?: string | null
           ranking?: string | null
+          show_menstrual_tracking?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -359,6 +455,7 @@ export type Database = {
           preferred_surface?: string | null
           primary_sport_id?: string | null
           ranking?: string | null
+          show_menstrual_tracking?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -372,6 +469,81 @@ export type Database = {
           {
             foreignKeyName: "profiles_primary_sport_id_fkey"
             columns: ["primary_sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wellness_entries: {
+        Row: {
+          id: string
+          user_id: string
+          sport_id: string | null
+          entry_date: string
+          sleep_quality: number
+          sleep_duration_hours: number | null
+          fatigue: number
+          muscle_soreness: number
+          stress_level: number
+          mood: number
+          total_wellness_score: number
+          motivation: number | null
+          energy: number | null
+          appetite: number | null
+          notes: string | null
+          menstrual_cycle_day: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sport_id?: string | null
+          entry_date?: string
+          sleep_quality: number
+          sleep_duration_hours?: number | null
+          fatigue: number
+          muscle_soreness: number
+          stress_level: number
+          mood: number
+          total_wellness_score: number
+          motivation?: number | null
+          energy?: number | null
+          appetite?: number | null
+          notes?: string | null
+          menstrual_cycle_day?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sport_id?: string | null
+          entry_date?: string
+          sleep_quality?: number
+          sleep_duration_hours?: number | null
+          fatigue?: number
+          muscle_soreness?: number
+          stress_level?: number
+          mood?: number
+          total_wellness_score?: number
+          motivation?: number | null
+          energy?: number | null
+          appetite?: number | null
+          notes?: string | null
+          menstrual_cycle_day?: number | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_entries_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wellness_entries_sport_id_fkey"
+            columns: ["sport_id"]
             isOneToOne: false
             referencedRelation: "sports_catalogue"
             referencedColumns: ["id"]
@@ -860,7 +1032,12 @@ export type Database = {
     }
     Enums: {
       app_role: "player" | "coach" | "admin"
+      body_region: "head_neck" | "shoulder_arm" | "elbow_forearm" | "wrist_hand" | "chest_upper_back" | "lower_back" | "hip_groin" | "thigh" | "knee" | "lower_leg" | "ankle_foot"
+      impact_level: "none" | "minor" | "moderate" | "severe" | "unable"
+      injury_trend: "improving" | "stable" | "worsening" | "new"
       link_status: "pending" | "approved" | "revoked"
+      onset_type: "sudden" | "gradual" | "unknown"
+      pain_type: "sharp" | "dull" | "aching" | "burning" | "stabbing" | "throbbing" | "tingling" | "stiffness"
       session_type: "training" | "recovery" | "match"
       team_role: "coach" | "player" | "assistant_coach"
     }
@@ -991,7 +1168,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["player", "coach", "admin"],
+      body_region: ["head_neck", "shoulder_arm", "elbow_forearm", "wrist_hand", "chest_upper_back", "lower_back", "hip_groin", "thigh", "knee", "lower_leg", "ankle_foot"],
+      impact_level: ["none", "minor", "moderate", "severe", "unable"],
+      injury_trend: ["improving", "stable", "worsening", "new"],
       link_status: ["pending", "approved", "revoked"],
+      onset_type: ["sudden", "gradual", "unknown"],
+      pain_type: ["sharp", "dull", "aching", "burning", "stabbing", "throbbing", "tingling", "stiffness"],
       session_type: ["training", "recovery", "match"],
       team_role: ["coach", "player", "assistant_coach"],
     },

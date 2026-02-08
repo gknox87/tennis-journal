@@ -342,12 +342,18 @@ export const ScoreInput = ({
                     You
                   </Label>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={set.playerScore}
-                    onChange={(e) => handleSetScoreChange(index, 'playerScore', e.target.value)}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    min="0"
-                    max={scoreMaxValue}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9]/g, '');
+                      if (scoreMaxValue === undefined || v === '' || parseInt(v) <= scoreMaxValue) {
+                        handleSetScoreChange(index, 'playerScore', v);
+                      }
+                    }}
+                    onFocus={(e) => e.target.select()}
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg"
                     placeholder=""
                   />
                 </div>
@@ -357,12 +363,18 @@ export const ScoreInput = ({
                     Opponent
                   </Label>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={set.opponentScore}
-                    onChange={(e) => handleSetScoreChange(index, 'opponentScore', e.target.value)}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    min="0"
-                    max={scoreMaxValue}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9]/g, '');
+                      if (scoreMaxValue === undefined || v === '' || parseInt(v) <= scoreMaxValue) {
+                        handleSetScoreChange(index, 'opponentScore', v);
+                      }
+                    }}
+                    onFocus={(e) => e.target.select()}
+                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg"
                     placeholder=""
                   />
                 </div>
@@ -380,22 +392,32 @@ export const ScoreInput = ({
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold text-gray-600">Your Tiebreak</Label>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={set.playerTiebreak || ""}
-                        onChange={(e) => handleSetScoreChange(index, 'playerTiebreak', e.target.value)}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/[^0-9]/g, '');
+                          handleSetScoreChange(index, 'playerTiebreak', v);
+                        }}
+                        onFocus={(e) => e.target.select()}
                         className="h-10 text-lg font-bold text-center rounded-xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400"
-                        min="0"
                         placeholder="0"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold text-gray-600">Opponent Tiebreak</Label>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={set.opponentTiebreak || ""}
-                        onChange={(e) => handleSetScoreChange(index, 'opponentTiebreak', e.target.value)}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/[^0-9]/g, '');
+                          handleSetScoreChange(index, 'opponentTiebreak', v);
+                        }}
+                        onFocus={(e) => e.target.select()}
                         className="h-10 text-lg font-bold text-center rounded-xl bg-white/90 border-2 border-red-200/50 focus:border-red-400"
-                        min="0"
                         placeholder="0"
                       />
                     </div>

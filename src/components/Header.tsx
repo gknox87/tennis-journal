@@ -13,9 +13,11 @@ import {
 import { 
   Trophy,
   LogOut, 
-  User
+  User,
+  Menu
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { SideMenu } from "@/components/SideMenu";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -35,6 +37,7 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState<Profile | null>(userProfile || null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [sideMenuOpen, setSideMenuOpen] = useState(false);
 
   // Fetch profile data if not provided
   useEffect(() => {
@@ -100,6 +103,7 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
     .slice(0, 2) || 'P';
 
   return (
+    <>
     <header 
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
@@ -111,21 +115,16 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo Section - Left */}
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-3 min-h-[44px] min-w-[44px] -ml-2 px-2 rounded-xl hover:bg-purple-700/30 active:bg-purple-700/50 transition-colors"
-            aria-label="Sports Journal Home"
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-md border border-white/20">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg sm:text-xl font-bold text-white">
-                Sports Journal
-              </h1>
-            </div>
-          </button>
+          {/* Left: Hamburger + Logo */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSideMenuOpen(true)}
+              className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl hover:bg-purple-700/30 active:bg-purple-700/50 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="h-6 w-6 text-white" />
+            </button>
+          </div>
 
           {/* Right Section - Profile & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -188,5 +187,8 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
         </div>
       </div>
     </header>
+
+      <SideMenu open={sideMenuOpen} onOpenChange={setSideMenuOpen} />
+    </>
   );
 };

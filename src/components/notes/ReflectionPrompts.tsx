@@ -38,9 +38,13 @@ export const ReflectionPrompts = ({
     setPromptLevel(initialPromptLevel);
   }, [initialPromptLevel]);
 
+  // Only sync from parent when the serialized content actually changes,
+  // avoiding resets caused by new object references on every parent render.
+  const initialAnswersKey = JSON.stringify(initialAnswers);
   useEffect(() => {
     setAnswers(initialAnswers);
-  }, [initialAnswers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAnswersKey]);
 
   const handleAnswerChange = (questionId: string, value: string) => {
     const newAnswers = { ...answers, [questionId]: value };

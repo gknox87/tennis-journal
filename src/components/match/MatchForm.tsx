@@ -19,6 +19,7 @@ import { useSport } from "@/context/SportContext";
 
 interface MatchFormProps {
   onSubmit: (formData: any) => Promise<void>;
+  isSubmitting?: boolean;
   initialData?: {
     date: Date;
     opponent: string;
@@ -46,7 +47,7 @@ const venueGradientMap: Record<string, string> = {
   "Carpet Court": "from-blue-500 to-indigo-600",
 };
 
-export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
+export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: MatchFormProps) => {
   const { sport } = useSport();
   const isSetBasedSport = sport.defaultScoreFormat.type === "sets";
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
@@ -311,10 +312,11 @@ export const MatchForm = ({ onSubmit, initialData }: MatchFormProps) => {
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <Button 
           type="submit" 
-          className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+          disabled={isSubmitting}
+          className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           <Save className="mr-3 h-6 w-6" />
-          Save Match
+          {isSubmitting ? "Saving..." : "Save Match"}
         </Button>
         <Button
           type="button"
