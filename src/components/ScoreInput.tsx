@@ -275,6 +275,9 @@ export const ScoreInput = ({
   };
 
   const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
+    console.log(`[SCORE-TRACE] handleSetScoreChange called: index=${index}, field=${field}, value="${value}" (type: ${typeof value})`);
+    console.log(`[SCORE-TRACE] localSets BEFORE:`, JSON.stringify(localSets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
+    console.log(`[SCORE-TRACE] sets (parent prop) BEFORE:`, JSON.stringify(sets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
     const newSets = [...localSets];
     newSets[index] = { ...newSets[index], [field]: value };
 
@@ -329,6 +332,7 @@ export const ScoreInput = ({
     }
 
     // Update local state immediately for instant visual feedback
+    console.log(`[SCORE-TRACE] newSets AFTER all logic:`, JSON.stringify(newSets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
     setLocalSets(newSets);
     onSetsChange(newSets);
     const status = calculateWinner(newSets);

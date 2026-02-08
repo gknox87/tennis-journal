@@ -118,10 +118,14 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('[FORM-TRACE] handleSubmit - sets state:', JSON.stringify(sets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
+    
     // Validate that at least one set is entered
     const validSets = sets.filter(set => 
       set.playerScore !== "" && set.opponentScore !== ""
     );
+    
+    console.log('[FORM-TRACE] validSets after filter:', JSON.stringify(validSets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
     
     if (validSets.length === 0) {
       return; // Let the backend handle the error message

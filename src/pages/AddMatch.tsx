@@ -54,9 +54,11 @@ const AddMatch = () => {
       }
 
       // Build score string with tiebreak support
+      console.log('[SAVE-TRACE] formData.sets at save time:', JSON.stringify(formData.sets.map((s: any) => ({p: s.playerScore, pType: typeof s.playerScore, o: s.opponentScore, oType: typeof s.opponentScore}))));
       const score = formData.sets
         .filter((set: any) => set.playerScore !== "" || set.opponentScore !== "")
         .map((set: any) => {
+          console.log(`[SAVE-TRACE] building score: player="${set.playerScore}" opponent="${set.opponentScore}" → "${set.playerScore}-${set.opponentScore}"`);
           let setScore = `${set.playerScore}-${set.opponentScore}`;
           if (set.playerTiebreak && set.opponentTiebreak) {
             setScore += ` (${set.playerTiebreak}-${set.opponentTiebreak})`;
@@ -64,6 +66,7 @@ const AddMatch = () => {
           return setScore;
         })
         .join(", ");
+      console.log('[SAVE-TRACE] final score string:', JSON.stringify(score));
 
       // Insert match first (without opponent) to avoid orphan opponents if save fails
       const { data: matchData, error: matchError } = await supabase
