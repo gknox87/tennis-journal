@@ -275,28 +275,30 @@ export const ScoreInput = ({
   };
 
   const handleSetScoreChange = (index: number, field: keyof SetScore, value: string) => {
-    const newSets = [...sets];
+    const newSets = [...localSets];
     newSets[index] = { ...newSets[index], [field]: value };
 
     // Auto-complete logic for regular scores
-    // Only auto-complete when the player enters their score, not when opponent enters theirs
+    // ONLY auto-complete when:
+    //   1. The user is editing the PLAYER score field
+    //   2. The player score is non-empty
+    //   3. The opponent score is genuinely empty ("" or undefined)
+    // NEVER overwrite an existing opponent value — including "0"
     if (field === 'playerScore' && value !== "") {
       const currentValue = parseInt(value);
-      const otherField = 'opponentScore';
-      const currentOtherValue = newSets[index][otherField];
+      const existingOpponent = newSets[index].opponentScore;
 
-      // Use the new auto-complete logic
-      if (!isNaN(currentValue) && currentValue >= 0) {
+      // Only auto-complete if opponent field is truly empty
+      if ((existingOpponent === "" || existingOpponent === undefined) && !isNaN(currentValue) && currentValue >= 0) {
         const autoCompletedValue = autoCompleteScore(
           currentValue,
-          currentOtherValue || "",
+          "",
           format,
           sport.id
         );
 
-        // Only update opponent score if auto-complete produced a value, or opponent is empty
-        if (autoCompletedValue !== "" || currentOtherValue === "" || currentOtherValue === undefined) {
-          newSets[index][otherField] = autoCompletedValue;
+        if (autoCompletedValue !== "") {
+          newSets[index].opponentScore = autoCompletedValue;
         }
       }
     }
