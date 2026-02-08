@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -175,6 +175,8 @@ const PickleballIcon = ({ className = "" }: { className?: string }) => (
 const Landing = () => {
   const navigate = useNavigate();
   const [demoOpen, setDemoOpen] = useState(false);
+  const [selectedSport, setSelectedSport] = useState("Tennis");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const sports = [
     { icon: "🎾", name: "Tennis" },
@@ -184,6 +186,96 @@ const Landing = () => {
     { icon: "🏸", name: "Badminton" },
     { icon: "⚫", name: "Squash" },
   ];
+
+  const sportHeroData: Record<string, { tagline: string; gradient: string; accentGradient: string; emoji: string; scoreExample: string; scoreLabel: string; statLabel: string; statValue: string }> = {
+    "Tennis": {
+      tagline: "Track every serve, rally, and match point",
+      gradient: "from-green-500 to-emerald-600",
+      accentGradient: "from-green-400/20 to-emerald-400/20",
+      emoji: "🎾",
+      scoreExample: "6-4, 6-2",
+      scoreLabel: "Match Won!",
+      statLabel: "Win Rate",
+      statValue: "+15% ↗",
+    },
+    "Table Tennis": {
+      tagline: "Master your spin, speed, and strategy",
+      gradient: "from-orange-500 to-red-600",
+      accentGradient: "from-orange-400/20 to-red-400/20",
+      emoji: "🏓",
+      scoreExample: "11-8, 11-6, 9-11, 11-7",
+      scoreLabel: "Match Won!",
+      statLabel: "Rally Win %",
+      statValue: "+22% ↗",
+    },
+    "Padel": {
+      tagline: "Dominate the glass court with your partner",
+      gradient: "from-blue-600 to-indigo-700",
+      accentGradient: "from-blue-400/20 to-indigo-400/20",
+      emoji: "🎾",
+      scoreExample: "6-3, 7-5",
+      scoreLabel: "Match Won!",
+      statLabel: "Net Points",
+      statValue: "+18% ↗",
+    },
+    "Pickleball": {
+      tagline: "Sharpen your dinks, drives, and court IQ",
+      gradient: "from-yellow-500 to-amber-600",
+      accentGradient: "from-yellow-400/20 to-amber-400/20",
+      emoji: "🥒",
+      scoreExample: "11-7, 11-9",
+      scoreLabel: "Game Won!",
+      statLabel: "3rd Shot %",
+      statValue: "+20% ↗",
+    },
+    "Badminton": {
+      tagline: "Elevate your smashes and court coverage",
+      gradient: "from-sky-500 to-blue-600",
+      accentGradient: "from-sky-400/20 to-blue-400/20",
+      emoji: "🏸",
+      scoreExample: "21-18, 21-15",
+      scoreLabel: "Match Won!",
+      statLabel: "Smash Acc.",
+      statValue: "+12% ↗",
+    },
+    "Squash": {
+      tagline: "Control the T and outlast every opponent",
+      gradient: "from-gray-700 to-gray-900",
+      accentGradient: "from-gray-400/20 to-gray-600/20",
+      emoji: "⚫",
+      scoreExample: "11-8, 11-6, 11-9",
+      scoreLabel: "Match Won!",
+      statLabel: "Fitness Score",
+      statValue: "+25% ↗",
+    },
+  };
+
+  const handleSportSelect = (sportName: string) => {
+    if (sportName === selectedSport) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setSelectedSport(sportName);
+      setIsTransitioning(false);
+    }, 200);
+  };
+
+  const currentHero = sportHeroData[selectedSport];
+
+  // Auto-rotate sports every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setSelectedSport(prev => {
+          const currentIdx = sports.findIndex(s => s.name === prev);
+          const nextIdx = (currentIdx + 1) % sports.length;
+          return sports[nextIdx].name;
+        });
+        setIsTransitioning(false);
+      }, 200);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [selectedSport]);
 
   const valuePillars = [
     {
@@ -286,27 +378,167 @@ const Landing = () => {
       quote:
         "Sports Journal transformed how my son approaches tennis. He actually enjoys logging matches now and plays with more focus. Game-changer!",
       author: "Michael R.",
-      role: "Performance Parent",
+      role: "Tennis Parent",
       avatar: "🎾",
       rating: 5,
+      sport: "Tennis",
     },
     {
       quote:
-        "As a coach, seeing players' journal entries is like being courtside. It helps me tailor training to what they really need. Invaluable tool!",
+        "As a tennis coach, seeing players' journal entries is like being courtside. It helps me tailor training to what they really need.",
       author: "Coach Maria L.",
-      role: "National Squad Coach",
+      role: "National Tennis Coach",
       avatar: "🏆",
       rating: 5,
+      sport: "Tennis",
     },
     {
       quote:
-        "I'm winning matches I used to lose. Better prep, smarter reflection, tracking what matters. Sports Journal makes improving fun!",
+        "I'm winning tennis matches I used to lose. Better prep, smarter reflection, tracking what matters. Sports Journal makes improving fun!",
       author: "David T.",
-      role: "Adult Competitor",
+      role: "Adult Tennis Competitor",
       avatar: "⭐",
       rating: 5,
+      sport: "Tennis",
+    },
+    {
+      quote:
+        "Tracking my table tennis matches has completely changed my training focus. I can see exactly where I'm losing points and fix it.",
+      author: "Wei L.",
+      role: "Club Table Tennis Player",
+      avatar: "🏓",
+      rating: 5,
+      sport: "Table Tennis",
+    },
+    {
+      quote:
+        "My third-ball attack improved 30% after I started journaling patterns. The analytics are incredibly insightful for table tennis.",
+      author: "Coach Henrik S.",
+      role: "Table Tennis Academy Coach",
+      avatar: "🏆",
+      rating: 5,
+      sport: "Table Tennis",
+    },
+    {
+      quote:
+        "Finally an app that understands table tennis scoring and strategy. The post-match reflections help me prepare for rematches.",
+      author: "Priya K.",
+      role: "Regional TT Champion",
+      avatar: "⭐",
+      rating: 5,
+      sport: "Table Tennis",
+    },
+    {
+      quote:
+        "Padel is all about partnerships and Sports Journal helps us track what works as a team. Our communication on court has never been better.",
+      author: "Carlos M.",
+      role: "Padel Doubles Player",
+      avatar: "🎾",
+      rating: 5,
+      sport: "Padel",
+    },
+    {
+      quote:
+        "I coach 12 padel pairs and this tool lets me see each team's progress at a glance. The sharing feature is a lifesaver.",
+      author: "Coach Ana R.",
+      role: "Padel Academy Director",
+      avatar: "🏆",
+      rating: 5,
+      sport: "Padel",
+    },
+    {
+      quote:
+        "Tracking net approaches and lob patterns in padel has given us a real tactical edge. We've climbed two league positions!",
+      author: "James & Tom W.",
+      role: "Competitive Padel Pair",
+      avatar: "⭐",
+      rating: 5,
+      sport: "Padel",
+    },
+    {
+      quote:
+        "Pickleball is growing so fast and Sports Journal is the only app that truly gets our sport. Love the dink tracking insights!",
+      author: "Sarah B.",
+      role: "Senior Pickleball Pro",
+      avatar: "🥒",
+      rating: 5,
+      sport: "Pickleball",
+    },
+    {
+      quote:
+        "My kitchen game improved dramatically once I started logging what works. The pattern recognition is spot on for pickleball.",
+      author: "Coach Rick D.",
+      role: "Pickleball Instructor",
+      avatar: "🏆",
+      rating: 5,
+      sport: "Pickleball",
+    },
+    {
+      quote:
+        "From rec play to tournament wins — Sports Journal helped me take my pickleball seriously. The mental game tracking is key.",
+      author: "Linda P.",
+      role: "Tournament Pickleball Player",
+      avatar: "⭐",
+      rating: 5,
+      sport: "Pickleball",
+    },
+    {
+      quote:
+        "Badminton requires such fast reflexes — reviewing my journal entries helps me spot patterns I'd never notice in real-time.",
+      author: "Anika S.",
+      role: "National Badminton Squad",
+      avatar: "🏸",
+      rating: 5,
+      sport: "Badminton",
+    },
+    {
+      quote:
+        "The smash and drop shot analytics are perfect for badminton. My players love seeing their improvement visualized.",
+      author: "Coach Tan W.",
+      role: "Badminton Performance Coach",
+      avatar: "🏆",
+      rating: 5,
+      sport: "Badminton",
+    },
+    {
+      quote:
+        "I've been playing badminton for 15 years and wish I'd had this tool from the start. The opponent profiling is brilliant.",
+      author: "Raj M.",
+      role: "Veteran Badminton Player",
+      avatar: "⭐",
+      rating: 5,
+      sport: "Badminton",
+    },
+    {
+      quote:
+        "Squash is so mentally demanding. The pre-match prep and post-match reflection tools have transformed my approach to big matches.",
+      author: "Oliver H.",
+      role: "County Squash Player",
+      avatar: "⚫",
+      rating: 5,
+      sport: "Squash",
+    },
+    {
+      quote:
+        "Tracking fitness alongside match performance is crucial in squash. Sports Journal connects the dots beautifully.",
+      author: "Coach Fatima A.",
+      role: "Squash Academy Coach",
+      avatar: "🏆",
+      rating: 5,
+      sport: "Squash",
+    },
+    {
+      quote:
+        "The T-position analytics and movement tracking insights have made me a much more efficient squash player. Highly recommend!",
+      author: "Nathan C.",
+      role: "Competitive Squash Player",
+      avatar: "⭐",
+      rating: 5,
+      sport: "Squash",
     },
   ];
+
+  const filteredTestimonials = testimonials.filter(t => t.sport === selectedSport);
 
   const benefits = [
     { icon: Rocket, text: "Get started in under 60 seconds" },
@@ -355,12 +587,17 @@ const Landing = () => {
                   The intelligent performance companion for ambitious athletes. Track matches, master your mindset, and dominate your sport.
                 </p>
 
-                {/* Sport badges */}
+                {/* Sport badges - Interactive */}
                 <div className="flex flex-wrap justify-center lg:justify-start gap-3">
                   {sports.map((sport, idx) => (
-                    <div
+                    <button
                       key={idx}
-                      className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 cursor-pointer group"
+                      onClick={() => handleSportSelect(sport.name)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-300 cursor-pointer group ${
+                        selectedSport === sport.name
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 border-transparent shadow-lg scale-105 text-white"
+                          : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-md text-gray-700"
+                      }`}
                     >
                   <div className="flex h-9 w-9 items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     {sport.icon === "padel" ? (
@@ -371,10 +608,12 @@ const Landing = () => {
                       <span className="text-2xl">{sport.icon}</span>
                     )}
                   </div>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className={`text-sm font-medium ${
+                        selectedSport === sport.name ? "text-white" : "text-gray-700"
+                      }`}>
                         {sport.name}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
 
@@ -419,38 +658,55 @@ const Landing = () => {
                 </div>
               </div>
 
-              {/* Right - Hero Image with Enhanced Design */}
+              {/* Right - Dynamic Sport-Specific Hero Visual */}
               <div className="relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
-                  <img
-                    src="/lovable-uploads/008aa3aa-1776-43dd-9916-f0b8fd2a8faa.png"
-                    alt="Sports Journal App Interface"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent" />
+                <div className={`relative aspect-square lg:aspect-auto lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+                  {/* Sport-themed gradient background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${currentHero.gradient} transition-all duration-500`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/10" />
+                  
+                  {/* Large sport emoji */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[120px] sm:text-[160px] lg:text-[200px] opacity-20 select-none">
+                      {currentHero.emoji}
+                    </span>
+                  </div>
+
+                  {/* Sport name overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <div className="text-white">
+                      <div className="text-sm font-semibold uppercase tracking-widest opacity-80 mb-2">Now Viewing</div>
+                      <div className="text-4xl sm:text-5xl font-extrabold mb-2">{selectedSport}</div>
+                      <div className="text-lg opacity-90 max-w-sm">{currentHero.tagline}</div>
+                    </div>
+                  </div>
+
+                  {/* Decorative circles */}
+                  <div className="absolute top-8 right-8 w-24 h-24 border-2 border-white/20 rounded-full" />
+                  <div className="absolute top-12 right-12 w-16 h-16 border-2 border-white/10 rounded-full" />
                 </div>
 
-                {/* Floating elements */}
-                <div className="absolute -top-6 -left-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float">
+                {/* Floating elements - dynamic per sport */}
+                <div className={`absolute -top-6 -left-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float transition-all duration-500 ${isTransitioning ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center`}>
                       <CheckCircle className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-gray-900">Match Won!</div>
-                      <div className="text-xs text-gray-600">6-4, 6-2</div>
+                      <div className="text-sm font-bold text-gray-900">{currentHero.scoreLabel}</div>
+                      <div className="text-xs text-gray-600">{currentHero.scoreExample}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float" style={{ animationDelay: '1s' }}>
+                <div className={`absolute -bottom-6 -right-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 animate-float transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`} style={{ animationDelay: '1s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-gray-900">Win Rate</div>
-                      <div className="text-xs text-gray-600">+15% ↗</div>
+                      <div className="text-sm font-bold text-gray-900">{currentHero.statLabel}</div>
+                      <div className="text-xs text-gray-600">{currentHero.statValue}</div>
                     </div>
                   </div>
                 </div>
@@ -592,23 +848,43 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials - Modern Cards */}
+      {/* Testimonials - Sport-Filtered */}
       <section id="testimonials" className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 md:px-12 lg:px-16">
           <div className="text-center mb-12 md:mb-16">
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-gray-900">
               Athletes Love Sports Journal
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
               Real stories from real athletes seeing real results
             </p>
+
+            {/* Sport filter pills for testimonials */}
+            <div className="flex flex-wrap justify-center gap-2 mt-8">
+              {sports.map((sport, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSportSelect(sport.name)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                    selectedSport === sport.name
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md scale-105"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600"
+                  }`}
+                >
+                  <span className="text-base">
+                    {sport.icon === "padel" ? "🎾" : sport.icon === "pickleball" ? "🥒" : sport.icon}
+                  </span>
+                  {sport.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {testimonials.map((testimonial, idx) => (
+            {filteredTestimonials.map((testimonial, idx) => (
               <Card
-                key={idx}
-                className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white relative overflow-hidden"
+                key={`${selectedSport}-${idx}`}
+                className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white relative overflow-hidden animate-fade-in"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
                 <CardContent className="p-8">

@@ -55,14 +55,38 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         return;
       }
 
+      let fullName = data?.full_name || "";
+
+      // Fallback: populate full_name from auth user_metadata if profile name is empty
+      if (!fullName) {
+        const meta = session.user.user_metadata;
+        const first = meta?.first_name || "";
+        const last = meta?.last_name || "";
+        const metaName = [first, last].filter(Boolean).join(" ")
+          || meta?.full_name || meta?.name || "";
+        if (metaName) {
+          fullName = metaName;
+          // Persist to profiles so it sticks for future loads
+          await supabase
+            .from("profiles")
+            .upsert({
+              id: session.user.id,
+              full_name: metaName,
+              updated_at: new Date().toISOString(),
+            });
+        }
+      }
+
       if (data) {
         setProfileData({
-          full_name: data.full_name || "",
+          full_name: fullName,
           club: data.club || "",
           ranking: data.ranking || "",
           preferred_surface: data.preferred_surface || "",
           avatar_url: data.avatar_url || null,
         });
+      } else if (fullName) {
+        setProfileData(prev => ({ ...prev, full_name: fullName }));
       }
     } catch (err) {
       console.error("Error in fetchProfile:", err);
@@ -148,7 +172,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div className="relative">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={profileData.avatar_url || ""} />
-                <AvatarFallback>{profileData.full_name?.[0] || "U"}</AvatarFallback>
+                <AvatarFallback>{profileData.full_name ? profileData.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : "U"}</AvatarFallback>
               </Avatar>
               <label className="absolute bottom-0 right-0 p-2 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
                 <Camera className="h-4 w-4 text-white" />

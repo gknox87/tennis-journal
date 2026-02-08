@@ -179,6 +179,7 @@ export const DashboardContent = ({
             matches={recentMatches}
             onMatchDelete={onMatchDelete}
             showAddButton={false}
+            showEmptySearchMessage={false}
           />
         </Suspense>
       </section>

@@ -7,11 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield } from "lucide-react";
+import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon } from "lucide-react";
+import { format, parse } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 
 interface ProfileData {
@@ -49,6 +53,7 @@ const Profile = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDobPickerOpen, setIsDobPickerOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -77,9 +82,31 @@ const Profile = () => {
         return;
       }
 
+      let fullName = data?.full_name || "";
+
+      // Fallback: populate full_name from auth user_metadata if profile name is empty
+      if (!fullName) {
+        const meta = session.user.user_metadata;
+        const first = meta?.first_name || "";
+        const last = meta?.last_name || "";
+        const metaName = [first, last].filter(Boolean).join(" ")
+          || meta?.full_name || meta?.name || "";
+        if (metaName) {
+          fullName = metaName;
+          // Persist to profiles so it sticks for future loads
+          await supabase
+            .from("profiles")
+            .upsert({
+              id: session.user.id,
+              full_name: metaName,
+              updated_at: new Date().toISOString(),
+            });
+        }
+      }
+
       if (data) {
         setProfileData({
-          full_name: data.full_name || "",
+          full_name: fullName,
           club: data.club || "",
           ranking: data.ranking || "",
           preferred_surface: data.preferred_surface || "",
@@ -87,6 +114,9 @@ const Profile = () => {
           date_of_birth: data.date_of_birth || null,
           show_menstrual_tracking: data.show_menstrual_tracking === true,
         });
+      } else if (fullName) {
+        // Profile row didn't exist yet but we have a name from metadata
+        setProfileData(prev => ({ ...prev, full_name: fullName }));
       }
     } catch (err) {
       console.error("Error in fetchProfile:", err);
@@ -196,7 +226,9 @@ const Profile = () => {
                 <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-white/20 shadow-xl">
                   <AvatarImage src={profileData.avatar_url || ""} />
                   <AvatarFallback className="text-2xl bg-white/20 text-white">
-                    {profileData.full_name?.[0] || "U"}
+                    {profileData.full_name
+                      ? profileData.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                      : "U"}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -287,14 +319,51 @@ const Profile = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="dob" className="text-gray-700 font-medium">Date of Birth</Label>
-                  <Input
-                    id="dob"
-                    type="date"
-                    value={profileData.date_of_birth || ""}
-                    onChange={(e) => setProfileData({ ...profileData, date_of_birth: e.target.value })}
-                    disabled={!isEditing}
-                    className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                  />
+                  <Popover open={isDobPickerOpen} onOpenChange={isEditing ? setIsDobPickerOpen : undefined}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="dob"
+                        type="button"
+                        variant="outline"
+                        disabled={!isEditing}
+                        className={cn(
+                          "w-full justify-start text-left font-medium h-12 rounded-xl bg-white border-2 border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 shadow-sm disabled:bg-gray-50 disabled:border-gray-200 disabled:opacity-100",
+                          !profileData.date_of_birth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-3 h-4 w-4 text-blue-500 flex-shrink-0" />
+                        <span className="flex-1 text-sm">
+                          {profileData.date_of_birth
+                            ? format(parse(profileData.date_of_birth, 'yyyy-MM-dd', new Date()), "MMM d, yyyy")
+                            : "Select date of birth"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto p-0 rounded-2xl border-2 border-white/30 shadow-2xl z-[100] max-w-[calc(100vw-2rem)]"
+                      align="start"
+                      side="bottom"
+                      sideOffset={8}
+                    >
+                      <CalendarComponent
+                        mode="single"
+                        selected={profileData.date_of_birth ? parse(profileData.date_of_birth, 'yyyy-MM-dd', new Date()) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setProfileData({ ...profileData, date_of_birth: format(date, 'yyyy-MM-dd') });
+                            setIsDobPickerOpen(false);
+                          }
+                        }}
+                        defaultMonth={profileData.date_of_birth ? parse(profileData.date_of_birth, 'yyyy-MM-dd', new Date()) : undefined}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1930}
+                        toYear={new Date().getFullYear()}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                        className="rounded-2xl bg-white/95 backdrop-blur-sm"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="space-y-2">

@@ -83,10 +83,6 @@ const Login = () => {
 
       if (data.user) {
         console.log('Login successful:', data.user.id);
-        toast({
-          title: "Success",
-          description: "Login successful",
-        });
         navigate("/dashboard");
       }
     } catch (error: any) {

@@ -55,10 +55,89 @@ export const ScoreInput = ({
     opponentGamesWon?: number;
   }>({ playerWon: false, matchComplete: false });
 
-  // Calculate match status whenever sets change
+  // Pure match status computation (no side effects like onIsWinChange)
+  const computeMatchStatus = (updatedSets: SetScore[]) => {
+    if (isSetBased) {
+      let playerSetsWon = 0;
+      let opponentSetsWon = 0;
+
+      updatedSets.forEach((set) => {
+        const playerScore = parseInt(set.playerScore);
+        const opponentScore = parseInt(set.opponentScore);
+
+        if (!isNaN(playerScore) && !isNaN(opponentScore)) {
+          if (playerScore === 6 && opponentScore === 6) {
+            const playerTiebreak = parseInt(set.playerTiebreak || "0");
+            const opponentTiebreak = parseInt(set.opponentTiebreak || "0");
+
+            if (
+              !isNaN(playerTiebreak) &&
+              !isNaN(opponentTiebreak) &&
+              Math.abs(playerTiebreak - opponentTiebreak) >= 2
+            ) {
+              if (playerTiebreak > opponentTiebreak) {
+                playerSetsWon++;
+              } else {
+                opponentSetsWon++;
+              }
+            }
+          } else if (playerScore === 7 && opponentScore === 6) {
+            playerSetsWon++;
+          } else if (playerScore === 6 && opponentScore === 7) {
+            opponentSetsWon++;
+          } else if (playerScore > opponentScore && playerScore >= 6) {
+            playerSetsWon++;
+          } else if (opponentScore > playerScore && opponentScore >= 6) {
+            opponentSetsWon++;
+          }
+        }
+      });
+
+      const setsNeededToWin = isBestOfFive ? 3 : 2;
+      const matchComplete = playerSetsWon >= setsNeededToWin || opponentSetsWon >= setsNeededToWin;
+      const playerWon = playerSetsWon >= setsNeededToWin;
+
+      return { playerWon, matchComplete, playerSetsWon, opponentSetsWon };
+    }
+
+    if (isRallyFormat) {
+      let playerGamesWon = 0;
+      let opponentGamesWon = 0;
+
+      updatedSets.forEach((set) => {
+        const playerScore = parseInt(set.playerScore);
+        const opponentScore = parseInt(set.opponentScore);
+        if (isNaN(playerScore) || isNaN(opponentScore)) return;
+
+        const diff = Math.abs(playerScore - opponentScore);
+        const playerWins =
+          playerScore >= (rallyPointsTarget ?? 0) &&
+          diff >= (rallyWinBy ?? 2) &&
+          playerScore > opponentScore;
+        const opponentWins =
+          opponentScore >= (rallyPointsTarget ?? 0) &&
+          diff >= (rallyWinBy ?? 2) &&
+          opponentScore > playerScore;
+
+        if (playerWins) playerGamesWon++;
+        if (opponentWins) opponentGamesWon++;
+      });
+
+      const seriesLength = format.bestOf ?? updatedSets.length;
+      const gamesNeeded = Math.floor(seriesLength / 2) + 1;
+      const matchComplete = playerGamesWon >= gamesNeeded || opponentGamesWon >= gamesNeeded;
+      const playerWon = playerGamesWon >= gamesNeeded && playerGamesWon > opponentGamesWon;
+
+      return { playerWon, matchComplete, playerGamesWon, opponentGamesWon };
+    }
+
+    return { playerWon: false, matchComplete: false };
+  };
+
+  // Calculate match status whenever sets change — pure computation only, no parent state updates
   useEffect(() => {
-    const status = calculateWinner(sets);
-    setMatchStatus(status || { playerWon: false, matchComplete: false });
+    const status = computeMatchStatus(sets);
+    setMatchStatus(status);
   }, [sets]);
 
   const unitLabel = (() => {
@@ -238,7 +317,8 @@ export const ScoreInput = ({
     }
 
     onSetsChange(newSets);
-    calculateWinner(newSets);
+    const status = calculateWinner(newSets);
+    setMatchStatus(status || { playerWon: false, matchComplete: false });
     checkForTiebreak(newSets);
   };
 
@@ -354,7 +434,8 @@ export const ScoreInput = ({
                     }}
                     onFocus={(e) => e.target.select()}
                     className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg"
-                    placeholder=""
+                    placeholder="0"
+                    aria-label={`Your score for ${unitLabel} ${index + 1}`}
                   />
                 </div>
                 <div className="space-y-3">
@@ -375,7 +456,8 @@ export const ScoreInput = ({
                     }}
                     onFocus={(e) => e.target.select()}
                     className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg"
-                    placeholder=""
+                    placeholder="0"
+                    aria-label={`Opponent score for ${unitLabel} ${index + 1}`}
                   />
                 </div>
               </div>
@@ -403,6 +485,7 @@ export const ScoreInput = ({
                         onFocus={(e) => e.target.select()}
                         className="h-10 text-lg font-bold text-center rounded-xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400"
                         placeholder="0"
+                        aria-label={`Your tiebreak score for ${unitLabel} ${index + 1}`}
                       />
                     </div>
                     <div className="space-y-2">
@@ -419,6 +502,7 @@ export const ScoreInput = ({
                         onFocus={(e) => e.target.select()}
                         className="h-10 text-lg font-bold text-center rounded-xl bg-white/90 border-2 border-red-200/50 focus:border-red-400"
                         placeholder="0"
+                        aria-label={`Opponent tiebreak score for ${unitLabel} ${index + 1}`}
                       />
                     </div>
                   </div>

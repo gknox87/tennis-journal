@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { MessageCircle, Sparkles, PenTool, HelpCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +34,7 @@ export const MatchSettings = ({
 
   // Determine if this is a new entry or editing existing one
   const isExistingEntry = Boolean(reflectionPromptUsed);
+  const wasExistingOnMount = useRef(isExistingEntry);
   
   // Determine prompt type based on match outcome
   const promptType: PromptType = useMemo(() => {
@@ -76,9 +77,9 @@ export const MatchSettings = ({
     return promptLevel;
   }, [reflectionPromptLevel, promptLevel]);
 
-  // Parse existing notes if they were created with prompts
+  // Parse existing notes if they were created with prompts (only on mount for pre-existing entries)
   useEffect(() => {
-    if (isExistingEntry && reflectionPromptUsed && notes) {
+    if (wasExistingOnMount.current && reflectionPromptUsed && notes) {
       // Try to parse existing prompt-based notes
       // Format: "Question\nAnswer\n\nQuestion\nAnswer"
       const sections = notes.split('\n\n').filter(s => s.trim());
@@ -99,7 +100,8 @@ export const MatchSettings = ({
         setPromptAnswers(parsedAnswers);
       }
     }
-  }, [isExistingEntry, reflectionPromptUsed, notes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePromptAnswersChange = (
     formattedNotes: string,

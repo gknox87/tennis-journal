@@ -120,6 +120,7 @@ export const UniversalScoreInput = ({
           disabled={disabled}
           className={!isValid ? "border-destructive" : ""}
           step={format.type === "numeric" && format.decimals ? `0.${"0".repeat(format.decimals - 1)}1` : "any"}
+          aria-label={label || `Score input for ${format.type} format`}
         />
 
         {hint && (
@@ -214,6 +215,7 @@ export const RoundsScoreInput = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={`Enter result (KO/TKO Round ${format.totalRounds} or Points Decision)`}
           disabled={props.disabled}
+          aria-label={label}
         />
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />

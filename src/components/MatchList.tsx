@@ -7,11 +7,13 @@ interface MatchListProps {
   matches: Match[];
   onMatchDelete: () => void;
   showAddButton?: boolean;
+  showEmptySearchMessage?: boolean;
 }
 export const MatchList = ({
   matches,
   onMatchDelete,
-  showAddButton = true
+  showAddButton = true,
+  showEmptySearchMessage = true
 }: MatchListProps) => {
   const navigate = useNavigate();
   const handleEditMatch = (matchId: string) => {
@@ -52,7 +54,7 @@ export const MatchList = ({
             onEdit={() => handleEditMatch(match.id)}
           />
         ))}
-        {matches.length === 0 && <div className="col-span-full text-center py-8 text-muted-foreground">
+        {matches.length === 0 && showEmptySearchMessage && <div className="col-span-full text-center py-8 text-muted-foreground">
             No matches found. Try adjusting your search or filters.
           </div>}
       </div>
