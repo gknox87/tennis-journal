@@ -1017,12 +1017,13 @@ const Landing = () => {
                 <ul className="space-y-3 mb-8">
                   {[
                     "Everything in Free",
+                    "Unlimited match logging",
+                    "Unlimited key opponents",
                     "Advanced analytics & insights",
-                    "Unlimited opponent profiles", 
-                    "Video analysis tools",
                     "Coach sharing & collaboration",
-                    "Priority support",
-                    "Export data & reports"
+                    "AI match analysis",
+                    "Export data & reports",
+                    "Priority support"
                   ].map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -1105,7 +1106,7 @@ const Landing = () => {
 
           <Accordion type="single" collapsible className="space-y-4">
             {[
-              { q: "Is Sports Journal really free?", a: "Yes! Core features are free forever — including unlimited match logging, basic analytics, up to 5 opponent profiles, and full mobile access. Our Pro and Team plans offer advanced features like AI-powered coaching insights, detailed video analysis, and team management tools for competitive athletes. See our pricing page for a full comparison. You'll never lose access to the features you already use.", link: "/pricing" },
+              { q: "Is Sports Journal really free?", a: "Yes! Core features are free forever — including 10 matches per month, basic analytics, up to 3 key opponent profiles, and full mobile access. Our Pro and Team plans offer advanced features like unlimited logging, AI-powered coaching insights, coach sharing, and team management tools for competitive athletes. See our pricing page for a full comparison. You'll never lose access to the features you already use.", link: "/pricing" },
               { q: "Can I track multiple sports?", a: "Absolutely! Sports Journal supports tennis, padel, pickleball, table tennis, badminton, and squash. You can switch between sports seamlessly from your dashboard, and each sport has its own tailored scoring system, analytics, and performance metrics. All your data travels with you — no need for separate apps." },
               { q: "How do I share with my coach?", a: "Sharing is built right in. From any match or analytics page, tap the Share button to send a detailed summary via WhatsApp, email, or a shareable link. Your coach gets a clean, readable view of your scores, notes, and performance trends — no account required on their end. Direct coach-player messaging is coming soon!" },
               { q: "Does it work offline?", a: "Yes — Sports Journal is designed for real-world conditions, including venues with spotty Wi-Fi. You can log full match details, scores, and notes while completely offline. Once you reconnect, everything syncs automatically to your account in the background. No data is ever lost, making it perfect for tournaments and away matches." },
