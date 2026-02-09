@@ -1,148 +1,162 @@
 
 
-# Session-RPE Training Load Monitoring
+# Business Model & Subscription System
 
 ## Overview
 
-Add a comprehensive training load monitoring system based on Foster's Session-RPE method. Athletes log RPE (0-10) and session duration after each training session. The system calculates derived metrics (ACWR, monotony, strain) and displays them via interactive charts -- all to help athletes and coaches manage workload and reduce injury risk.
+Build a complete subscription tier system (Free, Pro, Team) with usage limits enforced in the database and surfaced in the UI. This replaces the current static pricing page with a functional system that gates features based on the user's plan.
 
----
+## Plan Tiers & Limits
 
-## 1. Database Changes
+| Feature | Free | Pro ($9/mo) | Team ($29/mo) |
+|---|---|---|---|
+| Match logging | 10 per month | Unlimited | Unlimited |
+| Key opponents | 3 | Unlimited | Unlimited |
+| Training load | View only | Full access | Full access |
+| Wellness tracking | Basic | Full access | Full access |
+| Coach sharing | No | Yes | Yes |
+| Team management | No | No | Unlimited players & coaches |
+| Video analytics | Removed from all tiers | -- | -- |
+| AI match analysis | No | Yes | Yes |
+| Export data | No | Yes | Yes |
 
-### New Table: `training_sessions`
+## Implementation Steps
 
-Stores each RPE-rated session. This is separate from the existing `training_notes` table (which captures qualitative reflections) -- the two serve different purposes but can coexist.
+### 1. Database: Create `subscriptions` table and helper function
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid PK | Auto-generated |
-| user_id | uuid | FK to profiles, RLS-protected |
-| sport_id | text | Nullable, links to sports |
-| rpe | smallint | 0-10, NOT NULL |
-| duration_minutes | integer | NOT NULL |
-| training_load | integer | Computed: rpe x duration_minutes, stored for query efficiency |
-| activity_type | text | One of: technical, tactical, conditioning, strength, plyometrics, match_play, practice_match, recovery, other |
-| sport_specific | text | Free text (e.g., "serve practice") |
-| session_date | date | NOT NULL |
-| session_start_time | timestamptz | Nullable |
-| session_end_time | timestamptz | Nullable |
-| rpe_collected_at | timestamptz | When RPE was logged |
-| planned_duration | integer | Coach-prescribed duration (optional) |
-| notes | text | Optional free text |
-| training_note_id | uuid | Nullable FK to training_notes (link qualitative note to load data) |
-| created_at | timestamptz | Default now() |
+Create a new `subscriptions` table to track each user's current plan:
 
-**RLS Policies**: Same pattern as `training_notes` -- users can CRUD their own rows only. Linked coaches can SELECT via `is_linked_coach()`.
+- `id` (uuid, PK)
+- `user_id` (uuid, FK to auth.users, unique)
+- `plan` (text: 'free', 'pro', 'team')
+- `status` (text: 'active', 'cancelled', 'past_due')
+- `current_period_start` (timestamptz)
+- `current_period_end` (timestamptz)
+- `created_at`, `updated_at`
 
-**Migration**: Single SQL migration creating the table, RLS policies, and an index on `(user_id, session_date)`.
+Enable RLS so users can only read their own subscription. Default all existing users to 'free'.
 
----
+Create a `SECURITY DEFINER` function `get_user_plan(uuid)` that returns the plan string (defaulting to 'free' if no row exists). This avoids RLS recursion if plan checks are needed in policies later.
 
-## 2. New Files
+### 2. Create a `useSubscription` hook
 
-### Types
-- **`src/types/trainingLoad.ts`** -- TypeScript interfaces for `TrainingSession`, `ActivityType` enum, `WeeklyLoadMetrics`, RPE scale descriptor data, and chart data shapes.
+A new React hook (`src/hooks/useSubscription.ts`) that:
 
-### Utility / Calculations
-- **`src/utils/trainingLoadCalc.ts`** -- Pure functions for:
-  - `calculateTrainingLoad(rpe, duration)`
-  - `calculateACWR(sessions)` using EWMA method
-  - `calculateMonotony(dailyLoads)`
-  - `calculateStrain(weeklyLoad, monotony)`
-  - `getWeeklyMetrics(sessions)`
-  - `getRiskZone(acwr)` returning "optimal" | "caution" | "danger"
+- Fetches the current user's subscription from the `subscriptions` table
+- Exposes: `plan` ('free' | 'pro' | 'team'), `isFreePlan`, `isProPlan`, `isTeamPlan`, `isLoading`
+- Provides helper functions: `canLogMatch()` (checks monthly count against limit), `canAddKeyOpponent()` (checks count against limit), `canShareWithCoach()`, `canUseAI()`
+- Counts current month's matches via a query to determine if the free cap (10) is reached
+- Counts key opponents to check the free cap (3)
 
-### Hook
-- **`src/hooks/useTrainingLoad.ts`** -- Data fetching and mutations:
-  - Fetches sessions for the current user and sport
-  - `logSession(data)` -- inserts a new training session
-  - `updateSession(id, data)` / `deleteSession(id)`
-  - Exposes computed metrics (ACWR, monotony, strain, weekly totals)
-  - 28-day rolling window fetch for chronic load calculation
+### 3. Create a reusable `UpgradePrompt` component
 
-### Components
-- **`src/components/training/RPESlider.tsx`** -- Foster's CR-10 vertical slider with:
-  - Large touch targets (minimum 48px)
-  - Color gradient from green (0) to red (10)
-  - Verbal anchor labels displayed alongside each value
-  - Prompt text: "How was your workout?"
+A small component (`src/components/UpgradePrompt.tsx`) shown when a user hits a limit:
 
-- **`src/components/training/LogSessionDialog.tsx`** -- Dialog for logging a session:
-  - RPE slider (required)
-  - Duration input in minutes (required)
-  - Activity type dropdown (required)
-  - Sport-specific text input (optional)
-  - Session date picker (defaults to today)
-  - Optional link to an existing training note
-  - Shows calculated training load in real-time as RPE/duration change
-  - Notes textarea (optional)
+- Displays a friendly message like "You've reached your free plan limit of 10 matches this month"
+- Shows a button linking to the upgrade/pricing page
+- Used inline wherever limits are enforced
 
-- **`src/components/training/LoadDashboard.tsx`** -- Main dashboard container with tabs for:
-  - Overview (key metric cards + daily bar chart)
-  - Trends (ACWR line chart + weekly comparison)
-  - Distribution (activity type pie chart)
+### 4. Enforce limits in the UI
 
-- **`src/components/training/DailyLoadChart.tsx`** -- Recharts bar chart showing daily training load for the past 7-14 days. Color-coded bars by activity type.
+**Match logging (AddMatch page):**
+- Before allowing submission, check `canLogMatch()` from the hook
+- If at limit, show the `UpgradePrompt` instead of submitting
+- Show remaining count in the UI (e.g., "7 of 10 matches used this month")
 
-- **`src/components/training/ACWRChart.tsx`** -- Recharts line chart showing ACWR over time with shaded zones:
-  - Green band: 0.8-1.3 (optimal)
-  - Yellow band: 1.3-1.5 (caution)
-  - Red zone: above 1.5 (danger)
+**Key opponents (KeyOpponents page):**
+- Before allowing "Add Opponent" as key, check `canAddKeyOpponent()`
+- If at limit (3 for free), show `UpgradePrompt`
+- Display count indicator
 
-- **`src/components/training/WeeklyTrendChart.tsx`** -- Line chart comparing weekly total loads over 4-8 weeks.
+**Coach sharing (MatchShareButtons):**
+- Hide or disable sharing options for free users
+- Show `UpgradePrompt` when they try
 
-- **`src/components/training/ActivityDistribution.tsx`** -- Pie/donut chart showing percentage breakdown by activity type.
+**AI analysis:**
+- Gate the "Analyze" button behind pro/team check
 
-- **`src/components/training/LoadMetricCards.tsx`** -- Summary cards displaying:
-  - Current ACWR (with risk zone color)
-  - Weekly total load
-  - Training monotony (with warning if > 2.0)
-  - Training strain
+### 5. Remove video analytics references
 
-### Page
-- **`src/pages/TrainingLoad.tsx`** -- New page at route `/training-load` combining:
-  - Header with sport context
-  - "Log Session" button
-  - LoadDashboard with all charts
-  - Recent sessions list (last 7 days)
+- Remove any video analytics menu items, buttons, or page links from the sidebar, dashboard, and navigation
+- Keep the underlying hooks/code for now but remove all UI entry points
 
----
+### 6. Update the Pricing page
 
-## 3. Modifications to Existing Files
+- Update the static feature lists to match the actual enforced limits (10 matches/mo, 3 key opponents for free)
+- Remove "Video Analysis" from all tiers
+- Add "Coach Sharing" to Pro and Team
+- Update Team description: "Unlimited players and coaches"
+- Wire the "Start Pro Trial" / upgrade buttons to navigate to a plan selection flow (initially just a profile-based upgrade indicator until Stripe is connected)
 
-| File | Change |
-|---|---|
-| `src/App.tsx` | Add `/training-load` route |
-| `src/components/BottomNavigation.tsx` | Update "Notes" nav item to link to `/training-notes` with a sub-menu or add a new "Load" nav item -- likely replace the Notes label to encompass both, or add a 6th item for training load accessible from the training notes page |
-| `src/types/training.ts` | Add optional `training_session_id` field to link notes to sessions |
-| `src/pages/TrainingNotes.tsx` | Add a banner/link at the top: "Track your training load" linking to `/training-load` |
-| `src/integrations/supabase/types.ts` | Will be auto-updated after migration |
+### 7. Add subscription display to Profile page
 
----
+- Show the current plan as a badge on the profile page
+- Add an "Upgrade" button for free users
+- Show usage stats (matches this month, key opponents count) relative to limits
 
-## 4. Implementation Order
+### 8. Admin: View user subscriptions
 
-1. **Database migration** -- Create `training_sessions` table with RLS
-2. **Types and calculations** -- `trainingLoad.ts` types + `trainingLoadCalc.ts` pure functions
-3. **RPE Slider component** -- The core input widget with Foster's scale
-4. **Log Session Dialog** -- Form to capture RPE, duration, activity type
-5. **useTrainingLoad hook** -- Data layer connecting to Supabase
-6. **Metric cards** -- ACWR, monotony, strain, weekly load summary
-7. **Charts** -- Daily load bars, ACWR line, weekly trend, activity pie
-8. **LoadDashboard** -- Compose charts and cards into tabbed layout
-9. **TrainingLoad page** -- Wire everything together at `/training-load`
-10. **Navigation and routing** -- Add route, update nav, cross-link from training notes
+- Add a subscription column to the admin users table so admins can see/manage plans
 
----
+## Technical Details
 
-## 5. Technical Details
+### Migration SQL (summary)
 
-- All charts use **Recharts** (already installed) via the existing `ChartContainer` pattern in `src/components/ui/chart.tsx`
-- EWMA lambda defaults to `2 / (7 + 1) = 0.25` for acute load; chronic uses `2 / (28 + 1)`
-- ACWR calculated client-side from the 28-day session fetch -- no edge function needed
-- RPE slider uses Radix `Slider` component (already installed) with custom styling for the color gradient and verbal anchors
-- The `training_load` column is stored (not just computed) so aggregate queries stay fast
-- Activity type is stored as text (not a DB enum) for flexibility -- validated on the frontend
-- Mobile-first design: vertical RPE slider, stacked chart layout on small screens
+```sql
+-- subscriptions table
+CREATE TABLE public.subscriptions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  plan text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'team')),
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'past_due')),
+  current_period_start timestamptz DEFAULT now(),
+  current_period_end timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own subscription
+CREATE POLICY "Users can read own subscription"
+  ON public.subscriptions FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid());
+
+-- Admins can manage all subscriptions
+CREATE POLICY "Admins can manage subscriptions"
+  ON public.subscriptions FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Helper function
+CREATE OR REPLACE FUNCTION public.get_user_plan(_user_id uuid)
+RETURNS text
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    (SELECT plan FROM public.subscriptions
+     WHERE user_id = _user_id AND status = 'active'),
+    'free'
+  )
+$$;
+```
+
+### Files to create
+- `src/hooks/useSubscription.ts` - subscription hook with limit checks
+- `src/components/UpgradePrompt.tsx` - reusable upgrade CTA component
+
+### Files to modify
+- `src/pages/AddMatch.tsx` - enforce 10 match/month limit for free users
+- `src/pages/KeyOpponents.tsx` - enforce 3 key opponent limit for free users
+- `src/components/match/MatchShareButtons.tsx` - gate behind pro/team
+- `src/pages/Pricing.tsx` - update features to match real limits
+- `src/pages/Profile.tsx` - show plan badge and usage stats
+- `src/components/SideMenu.tsx` - remove video analytics entry if any
+- `src/components/dashboard/DashboardContent.tsx` - add plan-aware messaging
+- `src/integrations/supabase/types.ts` - add subscriptions table type
+
+### Stripe integration (future-ready)
+The `subscriptions` table is designed to be updated by Stripe webhooks later. When Stripe is enabled, a webhook edge function will update the `plan`, `status`, and `current_period_end` fields. For now, plan changes can be managed manually by admins via the admin panel.
 
