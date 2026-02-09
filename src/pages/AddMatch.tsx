@@ -8,12 +8,15 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 const AddMatch = () => {
   const { sport } = useSport();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { canLogMatch, matchesThisMonth, matchLimit, isFreePlan, isLoading: subLoading } = useSubscription();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -29,6 +32,15 @@ const AddMatch = () => {
   }, [navigate]);
 
   const handleSubmit = async (formData: any) => {
+    if (!canLogMatch()) {
+      toast({
+        title: "Match limit reached",
+        description: `Free plan allows ${matchLimit} matches per month. Upgrade for unlimited.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -43,7 +55,6 @@ const AddMatch = () => {
         return;
       }
 
-      // Check if user's email is confirmed
       if (!session.user.email_confirmed_at) {
         toast({
           title: "Email not confirmed",
@@ -53,7 +64,6 @@ const AddMatch = () => {
         return;
       }
 
-      // Build score string with tiebreak support
       console.log('[SAVE-TRACE] formData.sets at save time:', JSON.stringify(formData.sets.map((s: any) => ({p: s.playerScore, pType: typeof s.playerScore, o: s.opponentScore, oType: typeof s.opponentScore}))));
       const score = formData.sets
         .filter((set: any) => set.playerScore !== "" || set.opponentScore !== "")
@@ -68,7 +78,6 @@ const AddMatch = () => {
         .join(", ");
       console.log('[SAVE-TRACE] final score string:', JSON.stringify(score));
 
-      // Insert match first (without opponent) to avoid orphan opponents if save fails
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
@@ -89,7 +98,6 @@ const AddMatch = () => {
 
       if (matchError) throw matchError;
 
-      // Match saved successfully — now get or create opponent and link them
       if (formData.opponent) {
         const { data: opponentId, error: opponentError } = await supabase
           .rpc('get_or_create_opponent', {
@@ -106,7 +114,6 @@ const AddMatch = () => {
         }
       }
 
-      // Analyze notes with AI if present (run in background)
       if (formData.notes) {
         supabase.functions.invoke('analyze-match-notes', {
           body: { notes: formData.notes }
@@ -130,12 +137,10 @@ const AddMatch = () => {
         description: "Your match has been recorded successfully.",
       });
 
-      // Navigate immediately to the match detail page
       navigate(`/match/${matchData.id}`);
     } catch (error: any) {
       console.error('Error saving match:', error);
       const message = error?.message || "Failed to save match. Please try again.";
-      // Detect RLS / permission errors that may stem from unconfirmed email
       const isPermissionError = message.toLowerCase().includes('policy') ||
         message.toLowerCase().includes('permission') ||
         message.toLowerCase().includes('rls') ||
@@ -177,8 +182,20 @@ const AddMatch = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
-        {/* Form Section */}
-        <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        {/* Match usage indicator for free users */}
+        {isFreePlan && !subLoading && (
+          <div className="mb-4 text-sm text-gray-600 text-center">
+            {matchesThisMonth} of {matchLimit} free matches used this month
+          </div>
+        )}
+
+        {!canLogMatch() && !subLoading ? (
+          <UpgradePrompt
+            message={`You've reached your free plan limit of ${matchLimit} matches this month. Upgrade to Pro for unlimited match logging.`}
+          />
+        ) : (
+          <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        )}
       </div>
     </div>
   );

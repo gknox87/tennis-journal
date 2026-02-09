@@ -595,6 +595,39 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string
@@ -1019,6 +1052,7 @@ export type Database = {
           terminology: Json
         }[]
       }
+      get_user_plan: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

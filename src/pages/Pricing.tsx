@@ -7,10 +7,6 @@ import {
   CheckCircle,
   ArrowRight,
   Sparkles,
-  Users,
-  Shield,
-  Clock,
-  Star,
   Zap,
   Crown,
   Building,
@@ -23,7 +19,7 @@ const Pricing = () => {
   const plans = [
     {
       name: "Free",
-      price: billingCycle === "monthly" ? 0 : 0,
+      price: 0,
       period: "/month",
       description: "Perfect for getting started",
       icon: Sparkles,
@@ -31,17 +27,19 @@ const Pricing = () => {
       borderColor: "border-gray-200",
       popular: false,
       features: [
-        "Unlimited match logging",
+        "10 matches per month",
+        "3 key opponent profiles",
         "Basic analytics dashboard",
-        "5 opponent profiles",
+        "Training load (view only)",
+        "Basic wellness tracking",
         "Mobile app access",
         "Offline tracking",
         "Basic reflection prompts"
       ],
       limitations: [
-        "Limited analytics",
-        "No video analysis",
-        "Basic opponent tracking"
+        "No coach sharing",
+        "No AI analysis",
+        "No data export"
       ]
     },
     {
@@ -55,15 +53,16 @@ const Pricing = () => {
       popular: true,
       features: [
         "Everything in Free",
+        "Unlimited match logging",
+        "Unlimited key opponents",
         "Advanced analytics & insights",
-        "Unlimited opponent profiles",
-        "Video analysis tools",
+        "Full training load access",
+        "Full wellness tracking",
         "Coach sharing & collaboration",
-        "Priority support",
+        "AI match analysis",
         "Export data & reports",
         "Custom reflection prompts",
-        "Performance predictions",
-        "Mental game tracking"
+        "Priority support"
       ],
       limitations: []
     },
@@ -78,7 +77,7 @@ const Pricing = () => {
       popular: false,
       features: [
         "Everything in Pro",
-        "Up to 20 athletes",
+        "Unlimited players & coaches",
         "Team analytics dashboard",
         "Bulk data management",
         "Custom training templates",
@@ -245,44 +244,30 @@ const Pricing = () => {
             </div>
             
             {[
-              { feature: "Match Logging", free: true, pro: true, team: true },
+              { feature: "Match Logging", free: "10/month", pro: "Unlimited", team: "Unlimited" },
+              { feature: "Key Opponents", free: "3", pro: "Unlimited", team: "Unlimited" },
               { feature: "Basic Analytics", free: true, pro: true, team: true },
-              { feature: "Opponent Profiles", free: "5", pro: "Unlimited", team: "Unlimited" },
-              { feature: "Video Analysis", free: false, pro: true, team: true },
+              { feature: "Training Load", free: "View only", pro: "Full", team: "Full" },
+              { feature: "Wellness Tracking", free: "Basic", pro: "Full", team: "Full" },
               { feature: "Coach Sharing", free: false, pro: true, team: true },
-              { feature: "Priority Support", free: false, pro: true, team: true },
+              { feature: "AI Match Analysis", free: false, pro: true, team: true },
+              { feature: "Export Data", free: false, pro: true, team: true },
+              { feature: "Team Management", free: false, pro: false, team: true },
               { feature: "API Access", free: false, pro: false, team: true },
-              { feature: "Team Dashboard", free: false, pro: false, team: true },
             ].map((row, idx) => (
               <div key={idx} className="grid grid-cols-4 gap-4 p-6 border-b border-gray-100 last:border-b-0">
                 <div className="font-medium text-gray-900">{row.feature}</div>
-                <div className="text-center">
-                  {row.free === true ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-                  ) : row.free === false ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 mx-auto" />
-                  ) : (
-                    <span className="text-gray-700">{row.free}</span>
-                  )}
-                </div>
-                <div className="text-center">
-                  {row.pro === true ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-                  ) : row.pro === false ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 mx-auto" />
-                  ) : (
-                    <span className="text-gray-700">{row.pro}</span>
-                  )}
-                </div>
-                <div className="text-center">
-                  {row.team === true ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-                  ) : row.team === false ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 mx-auto" />
-                  ) : (
-                    <span className="text-gray-700">{row.team}</span>
-                  )}
-                </div>
+                {[row.free, row.pro, row.team].map((val, colIdx) => (
+                  <div key={colIdx} className="text-center">
+                    {val === true ? (
+                      <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                    ) : val === false ? (
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300 mx-auto" />
+                    ) : (
+                      <span className="text-gray-700">{val}</span>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
