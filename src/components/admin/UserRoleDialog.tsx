@@ -55,8 +55,9 @@ export function UserRoleDialog({ userId, open, onOpenChange, onRolesChanged }: U
       setIsLoading(true);
       const data = await getUserDetail(id);
       setDetail(data);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load user details";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -75,8 +76,9 @@ export function UserRoleDialog({ userId, open, onOpenChange, onRolesChanged }: U
         description: `${action === "grant" ? "Granted" : "Revoked"} '${role}' role successfully.`,
       });
       onRolesChanged();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update role";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setIsUpdating(false);
     }
@@ -248,7 +250,7 @@ export function UserRoleDialog({ userId, open, onOpenChange, onRolesChanged }: U
                   <div className="space-y-1">
                     {detail.teams.map((tm) => (
                       <div key={tm.team_id} className="flex items-center justify-between text-sm p-2 rounded bg-muted/50">
-                        <span>{(tm.teams as any)?.name || tm.team_id}</span>
+                        <span>{tm.teams?.name || tm.team_id}</span>
                         <Badge variant="outline" className="capitalize text-xs">
                           {tm.role}
                         </Badge>

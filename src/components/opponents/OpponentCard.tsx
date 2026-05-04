@@ -2,8 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Trophy, Target, Calendar, TrendingUp } from "lucide-react";
+import { Trash2, Trophy, Target, Calendar, TrendingUp, BarChart3 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { OpponentDetailsDialog } from "./OpponentDetailsDialog";
 
@@ -24,6 +25,7 @@ interface OpponentCardProps {
 }
 
 export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
+  const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
   const [currentOpponent, setCurrentOpponent] = useState(opponent);
   
@@ -114,10 +116,23 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
             </div>
           )}
 
-          {/* CTA hint */}
-          <div className="flex items-center justify-center gap-1.5 text-purple-500 text-[10px] sm:text-xs font-medium mt-3 opacity-60 group-hover:opacity-100 transition-opacity">
-            <Target className="w-3 h-3" />
-            <span>Tap for strategy notes</span>
+          {/* CTA buttons */}
+          <div className="flex items-center justify-center gap-3 mt-3 opacity-60 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1.5 text-purple-500 text-[10px] sm:text-xs font-medium">
+              <Target className="w-3 h-3" />
+              <span>Tap for notes</span>
+            </div>
+            <div className="w-px h-3 bg-gray-300" />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/opponent/${currentOpponent.id}`);
+              }}
+              className="flex items-center gap-1.5 text-indigo-500 text-[10px] sm:text-xs font-medium hover:text-indigo-600"
+            >
+              <BarChart3 className="w-3 h-3" />
+              <span>Full Stats</span>
+            </button>
           </div>
         </CardContent>
       </Card>

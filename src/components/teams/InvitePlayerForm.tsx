@@ -24,8 +24,9 @@ export const InvitePlayerForm = ({ teamId, onInvited }: InvitePlayerFormProps) =
       toast({ title: "Player invited!", description: `${email} has been added to the team.` });
       setEmail("");
       onInvited?.();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to invite player";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

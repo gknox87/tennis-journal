@@ -133,12 +133,13 @@ export function parseTimeToSeconds(time: string): number {
  */
 export function validateScoreInput(input: string, format: ScoreFormat): boolean {
   switch (format.type) {
-    case "time":
+    case "time": {
       // Check if it's a valid time format (mm:ss or hh:mm:ss)
       const timeRegex = format.format === "hh:mm:ss"
         ? /^\d{1,2}:\d{2}:\d{2}(\.\d{1,2})?$/
         : /^\d{1,3}:\d{2}(\.\d{1,2})?$/;
       return timeRegex.test(input);
+    }
     case "distance":
       // Check if it's a valid number
       return !isNaN(parseFloat(input)) && parseFloat(input) >= 0;

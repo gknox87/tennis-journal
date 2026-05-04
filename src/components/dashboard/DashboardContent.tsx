@@ -13,6 +13,8 @@ import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebratio
 import { TrainingLoadWidget } from "@/components/dashboard/TrainingLoadWidget";
 import { WellnessWidget } from "@/components/dashboard/WellnessWidget";
 import { InjuryWidget } from "@/components/dashboard/InjuryWidget";
+import { PeriodGoalsSection } from "@/components/goals/PeriodGoalsSection";
+import { BadgeWidget } from "@/components/badges/BadgeWidget";
 import { Heart } from "lucide-react";
 import { useState, memo, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -141,7 +143,29 @@ export const DashboardContent = ({
         </div>
       </section>
 
-      {/* ─── 3. WHAT'S NEXT ─── */}
+      {/* ─── 3. BADGES ─── */}
+      <section>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+          </div>
+        }>
+          <BadgeWidget />
+        </Suspense>
+      </section>
+
+      {/* ─── 4. PERIOD GOALS ─── */}
+      <section>
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          </div>
+        }>
+          <PeriodGoalsSection />
+        </Suspense>
+      </section>
+
+      {/* ─── 5. WHAT'S NEXT ─── */}
       <section>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
@@ -152,7 +176,7 @@ export const DashboardContent = ({
         </Suspense>
       </section>
 
-      {/* ─── 4. JOURNAL NOTES ─── */}
+      {/* ─── 6. JOURNAL NOTES ─── */}
       <section>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
@@ -168,7 +192,7 @@ export const DashboardContent = ({
         </Suspense>
       </section>
 
-      {/* ─── 5. RECENT MATCHES ─── */}
+      {/* ─── 7. RECENT MATCHES ─── */}
       <section>
         <Suspense fallback={
           <div className="flex items-center justify-center p-8">
@@ -184,7 +208,7 @@ export const DashboardContent = ({
         </Suspense>
       </section>
 
-      {/* ─── 6. BODY & WELLNESS ─── */}
+      {/* ─── 8. BODY & WELLNESS ─── */}
       {hasWellnessData && (
         <section>
           <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">

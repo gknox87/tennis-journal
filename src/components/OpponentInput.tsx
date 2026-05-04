@@ -63,9 +63,10 @@ export const OpponentInput = ({
         } else {
           setSuggestions([]);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error in fetchOpponents:', err);
-        setError(err.message || 'An error occurred while fetching opponents');
+        const message = err instanceof Error ? err.message : 'An error occurred while fetching opponents';
+        setError(message);
         setSuggestions([]);
       } finally {
         setIsLoading(false);

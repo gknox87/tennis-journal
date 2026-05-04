@@ -11,6 +11,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { eachDayOfInterval, parseISO, format } from "date-fns";
 import type { ScheduledEvent } from "@/types/calendar";
 import { Header } from "@/components/Header";
@@ -56,7 +57,7 @@ const Calendar = () => {
     setShowEventDialog(true);
   };
 
-  const handleDateSelect = (selectInfo: any) => {
+  const handleDateSelect = (selectInfo: DateSelectArg) => {
     setIsNewEvent(true);
     setSelectedEvent({
       id: crypto.randomUUID(),
@@ -68,7 +69,7 @@ const Calendar = () => {
     setShowEventDialog(true);
   };
 
-  const handleFullCalendarEventClick = (info: any) => {
+  const handleFullCalendarEventClick = (info: EventClickArg) => {
     const event = events.find(e => e.id === info.event.id);
     if (event) {
       handleEventClick(event);

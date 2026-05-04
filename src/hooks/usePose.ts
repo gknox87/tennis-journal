@@ -1,8 +1,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+interface PoseLandmark {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface PoseData {
+  landmarks: PoseLandmark[];
+  worldLandmarks: PoseLandmark[];
+  segmentationMask: null;
+}
+
 export const usePose = (videoRef: React.RefObject<HTMLVideoElement>) => {
-  const [pose, setPose] = useState<any>(null);
+  const [pose, setPose] = useState<PoseData | null>(null);
   const animationFrameRef = useRef<number>();
   const lastUpdateRef = useRef<number>(0);
 

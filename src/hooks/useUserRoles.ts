@@ -37,7 +37,7 @@ export function useUserRoles(): UseUserRolesReturn {
           .select("role")
           .eq("user_id", session.user.id);
 
-        setRoles((directRoles?.map((r: any) => r.role) as AppRole[]) || ["player"]);
+        setRoles((directRoles?.map((r: { role: string }) => r.role) as AppRole[]) || ["player"]);
       } else {
         setRoles((data?.roles as AppRole[]) || ["player"]);
       }

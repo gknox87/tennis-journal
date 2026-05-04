@@ -76,9 +76,10 @@ export function useTrainingLoad() {
       if (error) throw error;
       toast({ title: "Session logged", description: `Training load: ${training_load}` });
       await fetchSessions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error logging session:", error);
-      toast({ title: "Error", description: error.message || "Failed to log session", variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Failed to log session";
+      toast({ title: "Error", description: message, variant: "destructive" });
     }
   }, [sport.id, fetchSessions, toast]);
 
@@ -88,7 +89,8 @@ export function useTrainingLoad() {
       if (error) throw error;
       toast({ title: "Session deleted" });
       await fetchSessions();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error("Error deleting session:", error);
       toast({ title: "Error", description: "Failed to delete session", variant: "destructive" });
     }
   }, [fetchSessions, toast]);

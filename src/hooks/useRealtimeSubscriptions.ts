@@ -1,5 +1,4 @@
-
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
 type RealtimeCallbacks = {
@@ -8,6 +7,11 @@ type RealtimeCallbacks = {
 };
 
 export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
+  // Keep a ref to the latest callbacks so the effect doesn't re-subscribe
+  // every time the parent creates a new object reference.
+  const callbacksRef = useRef(callbacks);
+  callbacksRef.current = callbacks;
+
   useEffect(() => {
     console.log('Setting up realtime subscriptions...');
 
@@ -23,7 +27,7 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
         },
         (payload) => {
           console.log('Matches change detected:', payload);
-          callbacks.onMatchesUpdate();
+          callbacksRef.current.onMatchesUpdate();
         }
       )
       .subscribe((status) => {
@@ -42,7 +46,7 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
         },
         (payload) => {
           console.log('Notes change detected:', payload);
-          callbacks.onNotesUpdate();
+          callbacksRef.current.onNotesUpdate();
         }
       )
       .subscribe((status) => {
@@ -54,5 +58,6 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
       matchesChannel.unsubscribe();
       notesChannel.unsubscribe();
     };
-  }, [callbacks]);
+    // Empty deps: subscribe once on mount, cleanup on unmount.
+  }, []);
 };

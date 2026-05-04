@@ -85,11 +85,12 @@ const Login = () => {
         console.log('Login successful:', data.user.id);
         navigate("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error details:', error);
+      const message = error instanceof Error ? error.message : "Please check your email and password";
       toast({
         title: "Login Failed",
-        description: error.message || "Please check your email and password",
+        description: message,
         variant: "destructive",
       });
     } finally {

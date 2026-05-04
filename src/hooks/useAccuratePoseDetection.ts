@@ -14,6 +14,20 @@ interface PoseResults {
   worldLandmarks: PoseLandmark[];
 }
 
+interface KeyPoint {
+  type: string;
+  x: number;
+  y: number;
+}
+
+interface PlayerRegion {
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+  keyPoints: KeyPoint[];
+}
+
 export const useAccuratePoseDetection = (videoRef: React.RefObject<HTMLVideoElement>) => {
   const [pose, setPose] = useState<PoseResults | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,13 +59,13 @@ export const useAccuratePoseDetection = (videoRef: React.RefObject<HTMLVideoElem
     console.log('Accurate pose generated from real detection:', landmarks.length, 'points');
   }, [playerRegion]);
 
-  const generateAccuratePose = (region: any, videoTime: number): PoseLandmark[] => {
+  const generateAccuratePose = (region: PlayerRegion, videoTime: number): PoseLandmark[] => {
     const { centerX, centerY, width, height, keyPoints } = region;
-    
+
     // Use detected key points to build accurate skeleton
-    const headPoint = keyPoints.find((p: any) => p.type === 'head');
-    const leftShoulderPoint = keyPoints.find((p: any) => p.type === 'left_shoulder');
-    const rightShoulderPoint = keyPoints.find((p: any) => p.type === 'right_shoulder');
+    const headPoint = keyPoints.find((p: KeyPoint) => p.type === 'head');
+    const leftShoulderPoint = keyPoints.find((p: KeyPoint) => p.type === 'left_shoulder');
+    const rightShoulderPoint = keyPoints.find((p: KeyPoint) => p.type === 'right_shoulder');
     
     // Calculate realistic body proportions based on detected regions
     const headY = headPoint ? headPoint.y : centerY - height * 0.4;

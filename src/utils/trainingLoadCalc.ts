@@ -143,7 +143,7 @@ export function getActivityDistribution(sessions: TrainingSession[]): ActivityDi
   });
 
   return Array.from(map.entries()).map(([type, data]) => ({
-    type: type as any,
+    type: type as ActivityType,
     label: ACTIVITY_TYPES.find((a) => a.value === type)?.label || type,
     ...data,
   }));

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Sparkles, Save, X, Zap } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
+import { UniversalScoreInput } from "@/components/scoring/UniversalScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
 import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
@@ -16,22 +17,25 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { SetScore } from "@/types/match";
 import { useSport } from "@/context/SportContext";
+import type { ScoreFormat } from "@/types/sport";
+
+export interface MatchFormData {
+  date: Date;
+  opponent: string;
+  courtType: string;
+  sets: SetScore[];
+  isWin: boolean;
+  notes: string;
+  finalSetTiebreak: boolean;
+  isBestOfFive?: boolean;
+  reflectionPromptUsed?: string | null;
+  reflectionPromptLevel?: string | null;
+}
 
 interface MatchFormProps {
-  onSubmit: (formData: any) => Promise<void>;
+  onSubmit: (formData: MatchFormData) => Promise<void>;
   isSubmitting?: boolean;
-  initialData?: {
-    date: Date;
-    opponent: string;
-    courtType: string;
-    sets: SetScore[];
-    isWin: boolean;
-    notes: string;
-    finalSetTiebreak: boolean;
-    isBestOfFive?: boolean;
-    reflectionPromptUsed?: string | null;
-    reflectionPromptLevel?: string | null;
-  };
+  initialData?: MatchFormData;
 }
 
 const venueGradientMap: Record<string, string> = {
@@ -49,12 +53,13 @@ const venueGradientMap: Record<string, string> = {
 
 export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: MatchFormProps) => {
   const { sport } = useSport();
-  const isSetBasedSport = sport.defaultScoreFormat.type === "sets";
+  const scoreFormat = sport.defaultScoreFormat;
+  const isSetBasedSport = scoreFormat.type === "sets" || scoreFormat.type === "rally" || scoreFormat.type === "games";
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
   const [opponent, setOpponent] = useState(initialData?.opponent || "");
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
   const [isBestOfFive, setIsBestOfFive] = useState(
-    initialData?.isBestOfFive || (sport.defaultScoreFormat.type === "sets" && sport.defaultScoreFormat.maxSets === 5)
+    initialData?.isBestOfFive || (scoreFormat.type === "sets" && scoreFormat.maxSets === 5)
   );
   const [finalSetTiebreak, setFinalSetTiebreak] = useState(initialData?.finalSetTiebreak || false);
   const [isWin, setIsWin] = useState(initialData?.isWin || false);
@@ -63,19 +68,27 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const [reflectionPromptLevel, setReflectionPromptLevel] = useState<string | null>(initialData?.reflectionPromptLevel || null);
   const hasVenueOptions = Boolean(sport.venueOptions?.length);
 
+  // Universal score state for time/distance/numeric/rounds sports
+  const [universalPlayerScore, setUniversalPlayerScore] = useState(
+    initialData?.sets?.[0]?.playerScore || ""
+  );
+  const [universalOpponentScore, setUniversalOpponentScore] = useState(
+    initialData?.sets?.[0]?.opponentScore || ""
+  );
+
   const determineSeriesLength = () => {
-    const format = sport.defaultScoreFormat;
-    if (format.type === "sets") {
+    const fmt = sport.defaultScoreFormat;
+    if (fmt.type === "sets") {
       return isBestOfFive ? 5 : 3;
     }
-    if (format.type === "rally") {
-      return format.bestOf ?? 3;
+    if (fmt.type === "rally") {
+      return fmt.bestOf ?? 3;
     }
-    if (format.type === "games") {
-      return format.gamesPerMatch ?? 1;
+    if (fmt.type === "games") {
+      return fmt.gamesPerMatch ?? 1;
     }
-    if (format.type === "rounds") {
-      return format.totalRounds ?? 1;
+    if (fmt.type === "rounds") {
+      return fmt.totalRounds ?? 1;
     }
     return 1;
   };
@@ -117,16 +130,22 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('[FORM-TRACE] handleSubmit - sets state:', JSON.stringify(sets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
-    
-    // Validate that at least one set is entered
-    const validSets = sets.filter(set => 
-      set.playerScore !== "" && set.opponentScore !== ""
-    );
-    
+
+    // Validate that at least one score is entered
+    let validSets: SetScore[];
+    if (isSetBasedSport) {
+      validSets = sets.filter(set =>
+        set.playerScore !== "" && set.opponentScore !== ""
+      );
+    } else {
+      // For time/distance/numeric/rounds, player score alone is enough
+      validSets = sets.filter(set => set.playerScore !== "");
+    }
+
     console.log('[FORM-TRACE] validSets after filter:', JSON.stringify(validSets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
-    
+
     if (validSets.length === 0) {
       return; // Let the backend handle the error message
     }
@@ -256,15 +275,54 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
           <h3 className="text-xl font-bold gradient-text">{matchLabel} Score</h3>
         </div>
         
-        <ScoreInput
-          sets={sets}
-          onSetsChange={setSets}
-          isBestOfFive={isBestOfFive}
-          onBestOfFiveChange={setIsBestOfFive}
-          onIsWinChange={setIsWin}
-          onFinalSetTiebreakChange={setFinalSetTiebreak}
-          sport={sport}
-        />
+        {isSetBasedSport ? (
+          <ScoreInput
+            sets={sets}
+            onSetsChange={setSets}
+            isBestOfFive={isBestOfFive}
+            onBestOfFiveChange={setIsBestOfFive}
+            onIsWinChange={setIsWin}
+            onFinalSetTiebreakChange={setFinalSetTiebreak}
+            sport={sport}
+          />
+        ) : (
+          <div className="space-y-6">
+            <UniversalScoreInput
+              format={scoreFormat}
+              value={universalPlayerScore}
+              onChange={(val) => {
+                setUniversalPlayerScore(val);
+                // Auto-update sets for backend compatibility
+                setSets([{ playerScore: val, opponentScore: universalOpponentScore, playerTiebreak: "", opponentTiebreak: "" }]);
+              }}
+              label={`Your ${scoreFormat.type === "time" ? "Time" : scoreFormat.type === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
+            />
+            {scoreFormat.type !== "time" && scoreFormat.type !== "distance" && scoreFormat.type !== "numeric" && (
+              <UniversalScoreInput
+                format={scoreFormat}
+                value={universalOpponentScore}
+                onChange={(val) => {
+                  setUniversalOpponentScore(val);
+                  setSets([{ playerScore: universalPlayerScore, opponentScore: val, playerTiebreak: "", opponentTiebreak: "" }]);
+                }}
+                label={`Opponent ${scoreFormat.type === "time" ? "Time" : scoreFormat.type === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
+              />
+            )}
+            {scoreFormat.type === "time" || scoreFormat.type === "distance" || scoreFormat.type === "numeric" ? (
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="is-win"
+                  checked={isWin}
+                  onCheckedChange={setIsWin}
+                  className="data-[state=checked]:bg-purple-500"
+                />
+                <Label htmlFor="is-win" className="font-semibold text-gray-700">
+                  {isWin ? "Won / Personal Best" : "Did you win or achieve a PB?"}
+                </Label>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {isSetBasedSport && (
           <div className="mt-6 rounded-2xl border-2 border-purple-200/60 bg-gradient-to-r from-purple-50 to-indigo-50 p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-sm">

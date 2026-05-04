@@ -1,8 +1,16 @@
 
 import { useState, useEffect } from 'react';
 
+interface RacketBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
 export const useYoloWasm = (videoRef: React.RefObject<HTMLVideoElement>) => {
-  const [racketBox, setRacketBox] = useState<any>(null);
+  const [racketBox, setRacketBox] = useState<RacketBox | null>(null);
 
   useEffect(() => {
     // Mock racket detection for now - in real implementation would use YOLOv8-WASM

@@ -32,12 +32,13 @@ const tennisMatchTiebreak: ScoreFormat = {
   label: "Best of 3 with Match Tiebreak",
 };
 
-const racketSetFormat: ScoreFormat = {
+const padelSetFormat: ScoreFormat = {
   type: "sets",
   maxSets: 3,
   pointsPerGame: 4,
   tiebreaks: true,
-  label: "Best of 3 Sets",
+  matchTiebreak: true, // Padel third set is a 10-point match tiebreak at 1-1
+  label: "Best of 3 Sets (Match Tiebreak)",
 };
 
 const rallyTo11: ScoreFormat = {
@@ -379,8 +380,8 @@ export const SPORTS: Record<string, SportMetadata> = {
     isIndividual: false,
     isPublished: true,
     popularity: 85,
-    defaultScoreFormat: racketSetFormat,
-    supportedScoreFormats: [racketSetFormat],
+    defaultScoreFormat: padelSetFormat,
+    supportedScoreFormats: [padelSetFormat],
     primaryColour: "#0a2239",
     accentColour: "#f6c90e",
     icon: "🏸",

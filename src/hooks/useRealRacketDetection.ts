@@ -1,14 +1,14 @@
 
 import { useRacketDetectionCore } from './racket/useRacketDetectionCore';
 
-interface RacketDetection {
-  x: number;
-  y: number;
+interface PlayerRegion {
+  centerX: number;
+  centerY: number;
   width: number;
   height: number;
   confidence: number;
 }
 
-export const useRealRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>, playerRegion?: any) => {
+export const useRealRacketDetection = (videoRef: React.RefObject<HTMLVideoElement>, playerRegion?: PlayerRegion) => {
   return useRacketDetectionCore(videoRef, playerRegion);
 };

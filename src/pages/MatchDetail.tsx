@@ -25,7 +25,7 @@ const MatchDetail = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          navigate("/login");
+          navigate('/');
           return;
         }
 

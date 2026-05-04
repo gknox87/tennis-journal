@@ -112,11 +112,12 @@ export function useWellness() {
         if (error) throw error;
 
         await fetchEntries();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error submitting wellness entry:", error);
+        const message = error instanceof Error ? error.message : "Failed to save wellness check-in";
         toast({
           title: "Error",
-          description: error.message || "Failed to save wellness check-in",
+          description: message,
           variant: "destructive",
         });
       }
@@ -134,7 +135,8 @@ export function useWellness() {
         if (error) throw error;
         toast({ title: "Entry deleted" });
         await fetchEntries();
-      } catch (error: any) {
+      } catch (error: unknown) {
+        console.error("Error deleting wellness entry:", error);
         toast({
           title: "Error",
           description: "Failed to delete entry",

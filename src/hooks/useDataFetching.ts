@@ -31,7 +31,7 @@ export const useDataFetching = () => {
       if (error) throw error;
 
       return data as ScheduledEvent[] || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching scheduled events:', error);
       toast({
         title: "Error",
@@ -57,9 +57,9 @@ export const useDataFetching = () => {
         console.error('Error fetching player notes:', error);
         throw error;
       }
-      
+
       return data || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching player notes:', error);
       toast({
         title: "Error",
@@ -119,7 +119,7 @@ export const useDataFetching = () => {
       })) || [];
 
       return processedMatches;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching matches:", error);
       toast({
         title: "Error",

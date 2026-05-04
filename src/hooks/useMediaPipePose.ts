@@ -17,7 +17,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
   const [pose, setPose] = useState<PoseResults | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const poseRef = useRef<any>(null);
+  const poseRef = useRef<unknown>(null);
   const processingRef = useRef<boolean>(false);
   const lastProcessTimeRef = useRef<number>(0);
 

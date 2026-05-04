@@ -10,10 +10,27 @@ interface RacketDetection {
   confidence: number;
 }
 
+interface PlayerBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface PoseLandmark {
+  x: number;
+  y: number;
+  visibility?: number;
+}
+
+interface PoseData {
+  landmarks: PoseLandmark[];
+}
+
 export const useRacketDetection = (
-  videoRef: React.RefObject<HTMLVideoElement>, 
-  playerBounds?: any, 
-  pose?: any
+  videoRef: React.RefObject<HTMLVideoElement>,
+  playerBounds?: PlayerBounds,
+  pose?: PoseData
 ) => {
   const [racketBox, setRacketBox] = useState<RacketDetection | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +49,7 @@ export const useRacketDetection = (
   const { racketBox: pixelRacketBox, isLoading: pixelLoading } = useRacketDetectionCore(videoRef, playerBounds);
 
   // Pose-based racket estimation (fallback when YOLO fails)
-  const estimateRacketFromPose = (pose: any): RacketDetection | null => {
+  const estimateRacketFromPose = (pose: PoseData): RacketDetection | null => {
     if (!pose || !pose.landmarks || pose.landmarks.length < 17) return null;
 
     // Try right hand first (most common for tennis)

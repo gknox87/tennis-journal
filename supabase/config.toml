@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.team-management]
 verify_jwt = false
+
+[functions.heartbeat]
+verify_jwt = false

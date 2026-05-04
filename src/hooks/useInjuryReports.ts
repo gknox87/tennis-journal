@@ -110,11 +110,12 @@ export function useInjuryReports() {
           description: `${input.body_part} — Pain level ${input.pain_level}/10`,
         });
         await fetchReports();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error creating injury report:", error);
+        const message = error instanceof Error ? error.message : "Failed to save injury report";
         toast({
           title: "Error",
-          description: error.message || "Failed to save injury report",
+          description: message,
           variant: "destructive",
         });
       }
@@ -133,7 +134,8 @@ export function useInjuryReports() {
         if (error) throw error;
         toast({ title: "Injury updated" });
         await fetchReports();
-      } catch (error: any) {
+      } catch (error: unknown) {
+        console.error("Error updating injury report:", error);
         toast({
           title: "Error",
           description: "Failed to update injury report",
@@ -155,7 +157,8 @@ export function useInjuryReports() {
         if (error) throw error;
         toast({ title: "Injury report deleted" });
         await fetchReports();
-      } catch (error: any) {
+      } catch (error: unknown) {
+        console.error("Error deleting injury report:", error);
         toast({
           title: "Error",
           description: "Failed to delete injury report",

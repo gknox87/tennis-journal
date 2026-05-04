@@ -128,7 +128,7 @@ export const InjuryInsights = ({ reports, frequentRegions }: InjuryInsightsProps
                 tick={{ fontSize: 11 }}
               />
               <Tooltip
-                formatter={(value: number, name: string, props: any) => [
+                formatter={(value: number, _name: string, props: { payload: { fullName: string } }) => [
                   `${value} report(s)`,
                   props.payload.fullName,
                 ]}

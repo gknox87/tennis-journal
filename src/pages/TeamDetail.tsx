@@ -30,8 +30,9 @@ const TeamDetail = () => {
       const details = await getTeamDetails(id);
       setTeam(details.team);
       setMembers(details.members);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load team details";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +51,9 @@ const TeamDetail = () => {
       await removeMember(id, userId);
       toast({ title: "Member removed" });
       fetchDetails();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to remove member";
+      toast({ title: "Error", description: message, variant: "destructive" });
     }
   };
 
@@ -61,8 +63,9 @@ const TeamDetail = () => {
       await leaveTeam(id);
       toast({ title: "You left the team" });
       navigate("/coach");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to leave team";
+      toast({ title: "Error", description: message, variant: "destructive" });
     }
   };
 

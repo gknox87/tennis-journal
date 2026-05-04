@@ -62,7 +62,7 @@ function calculateCurrentStreak(journaledDates: Set<string>): number {
   }
 
   let streak = 0;
-  let currentDate = new Date();
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   // Start from today if journaled today, otherwise start from yesterday

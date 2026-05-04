@@ -1,15 +1,17 @@
 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { MatchForm } from "@/components/match/MatchForm";
-import { useEffect, useState } from "react";
+import type { MatchFormData } from "@/components/match/MatchForm";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { SetScore } from "@/types/match";
 
 const AddMatch = () => {
   const { sport } = useSport();
@@ -20,18 +22,9 @@ const AddMatch = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: MatchFormData) => {
     if (!canLogMatch()) {
       toast({
         title: "Match limit reached",
@@ -44,30 +37,20 @@ const AddMatch = () => {
     setIsSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         toast({
           title: "Authentication required",
           description: "Please log in to save matches.",
           variant: "destructive",
         });
-        navigate("/login");
         return;
       }
 
-      if (!session.user.email_confirmed_at) {
-        toast({
-          title: "Email not confirmed",
-          description: "Please check your email and confirm your account before saving matches.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('[SAVE-TRACE] formData.sets at save time:', JSON.stringify(formData.sets.map((s: any) => ({p: s.playerScore, pType: typeof s.playerScore, o: s.opponentScore, oType: typeof s.opponentScore}))));
+      console.log('[SAVE-TRACE] formData.sets at save time:', JSON.stringify(formData.sets.map((s: SetScore) => ({p: s.playerScore, pType: typeof s.playerScore, o: s.opponentScore, oType: typeof s.opponentScore}))));
       const score = formData.sets
-        .filter((set: any) => set.playerScore !== "" || set.opponentScore !== "")
-        .map((set: any) => {
+        .filter((set: SetScore) => set.playerScore !== "" || set.opponentScore !== "")
+        .map((set: SetScore) => {
           console.log(`[SAVE-TRACE] building score: player="${set.playerScore}" opponent="${set.opponentScore}" → "${set.playerScore}-${set.opponentScore}"`);
           let setScore = `${set.playerScore}-${set.opponentScore}`;
           if (set.playerTiebreak && set.opponentTiebreak) {
@@ -138,13 +121,13 @@ const AddMatch = () => {
       });
 
       navigate(`/match/${matchData.id}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving match:', error);
-      const message = error?.message || "Failed to save match. Please try again.";
+      const message = error instanceof Error ? error.message : "Failed to save match. Please try again.";
       const isPermissionError = message.toLowerCase().includes('policy') ||
         message.toLowerCase().includes('permission') ||
         message.toLowerCase().includes('rls') ||
-        error?.code === '42501';
+        (error as { code?: string })?.code === '42501';
       toast({
         title: isPermissionError ? "Permission denied" : "Error saving match",
         description: isPermissionError

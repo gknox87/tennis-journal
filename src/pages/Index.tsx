@@ -1,6 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
@@ -9,22 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 
 const Index = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   const { sport } = useSport();
-  
-  // Check auth state and fetch user profile
+
+  // Fetch user profile (auth is already guaranteed by ProtectedRoute)
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchProfile = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          navigate("/login");
+          setIsLoading(false);
           return;
         }
 
-        // Fetch user profile
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
@@ -37,23 +34,14 @@ const Index = () => {
           setUserProfile(profile);
         }
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Profile fetch error:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/login");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    fetchProfile();
+  }, []);
 
   const {
     matches,

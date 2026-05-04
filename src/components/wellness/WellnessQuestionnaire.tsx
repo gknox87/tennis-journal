@@ -164,7 +164,7 @@ export const WellnessQuestionnaire = ({
     }
   };
 
-  const previewScore = allCoreAnswered ? calculateHooperIndex(answers as any) : null;
+  const previewScore = allCoreAnswered ? calculateHooperIndex(answers as Record<WellnessFieldKey, number>) : null;
   const previewZone = previewScore !== null ? getWellnessZone(previewScore) : null;
 
   return (

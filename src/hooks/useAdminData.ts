@@ -45,7 +45,7 @@ export interface UserDetail {
     created_at: string;
     last_sign_in_at: string | null;
     email_confirmed_at: string | null;
-    user_metadata: Record<string, any>;
+    user_metadata: Record<string, unknown>;
   };
   profile: {
     full_name: string | null;
@@ -80,7 +80,7 @@ export interface TeamDetail {
   }>;
 }
 
-async function invokeAdmin(action: string, params: Record<string, any> = {}) {
+async function invokeAdmin(action: string, params: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke("admin-management", {
     body: { action, ...params },
   });
@@ -100,9 +100,9 @@ export function useAdminDashboard() {
       setError(null);
       const data = await invokeAdmin("get_dashboard_stats");
       setStats(data as DashboardStats);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching admin stats:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
@@ -122,9 +122,9 @@ export function useAdminUsers() {
       setError(null);
       const data = await invokeAdmin("list_users", { roleFilter, searchQuery });
       setUsers(data.users || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching admin users:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
@@ -158,9 +158,9 @@ export function useAdminTeams() {
       setError(null);
       const data = await invokeAdmin("list_all_teams");
       setTeams(data.teams || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching admin teams:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }

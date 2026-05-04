@@ -11,14 +11,15 @@ import { addMonths, addYears, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useSport } from "@/context/SportContext";
 import { Header } from "@/components/Header";
+import { Match } from "@/types/match";
 
 type SortOption = "newest" | "alphabetical" | "lastMonth" | "lastYear";
 
 const ViewAllMatches = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [matches, setMatches] = useState<any[]>([]);
-  const [filteredMatches, setFilteredMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const { sport } = useSport();
@@ -54,12 +55,13 @@ const ViewAllMatches = () => {
         throw matchesError;
       }
 
-      const processedMatches = matchesData?.map((match: any) => ({
+      const processedMatches = matchesData?.map((match) => ({
         ...match,
-        opponent_name: match.opponents?.name || "Unknown Opponent",
-        sport_name: match.sports?.name,
-        sport_slug: match.sports?.slug
+        opponent_name: (match as Match & { opponents?: { name: string } | null }).opponents?.name || "Unknown Opponent",
+        sport_name: (match as Match & { sports?: { name: string } | null }).sports?.name,
+        sport_slug: (match as Match & { sports?: { slug: string } | null }).sports?.slug
       })) || [];
+
 
       setMatches(processedMatches);
       setFilteredMatches(processedMatches);

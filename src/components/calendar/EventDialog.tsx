@@ -199,10 +199,11 @@ export const EventDialog = ({
       });
       onSave();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to save event";
       toast({
         title: "Error",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
       console.error('Error saving event:', error);
@@ -229,10 +230,11 @@ export const EventDialog = ({
       });
       onSave();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to delete event";
       toast({
         title: "Error",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
       console.error('Error deleting event:', error);

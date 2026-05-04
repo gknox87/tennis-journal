@@ -42,9 +42,9 @@ export function useTeams() {
       });
       if (fnErr) throw fnErr;
       setTeams(data?.teams || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching teams:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to fetch teams");
     } finally {
       setIsLoading(false);
     }

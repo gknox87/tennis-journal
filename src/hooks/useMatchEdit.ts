@@ -5,6 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Match, SetScore } from "@/types/match";
 
+interface MatchFormData {
+  date: Date;
+  sets: SetScore[];
+  isWin: boolean;
+  notes?: string;
+  finalSetTiebreak?: boolean;
+  courtType?: string;
+  opponent?: string;
+}
+
 export const useMatchEdit = (id: string) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -79,10 +89,10 @@ export const useMatchEdit = (id: string) => {
         ...matchData,
         opponent_name: matchData.opponents?.name || "Unknown Opponent",
         sets: parsedSets,
-        reflection_prompt_used: (matchData as any).reflection_prompt_used || undefined,
-        reflection_prompt_level: (matchData as any).reflection_prompt_level || undefined,
+        reflection_prompt_used: matchData.reflection_prompt_used || undefined,
+        reflection_prompt_level: matchData.reflection_prompt_level || undefined,
       } as Match);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error in fetchMatch:", error);
       toast({
         title: "Error",
@@ -95,7 +105,7 @@ export const useMatchEdit = (id: string) => {
     }
   }, [id, navigate, toast]);
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: MatchFormData) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -108,7 +118,7 @@ export const useMatchEdit = (id: string) => {
         return;
       }
 
-      const validSets = formData.sets.filter((set: SetScore) => 
+      const validSets = formData.sets.filter((set: SetScore) =>
         set.playerScore !== "" && set.opponentScore !== ""
       );
       
@@ -163,11 +173,12 @@ export const useMatchEdit = (id: string) => {
         description: "Match updated successfully.",
       });
       navigate(`/match/${id}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating match:", error);
+      const message = error instanceof Error ? error.message : "Failed to update match. Please try again.";
       toast({
         title: "Error",
-        description: error.message || "Failed to update match. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }

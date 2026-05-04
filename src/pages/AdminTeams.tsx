@@ -43,8 +43,9 @@ const AdminTeams = () => {
       setDetailOpen(true);
       const detail = await getTeamDetail(teamId);
       setSelectedTeam(detail);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load team details";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setDetailLoading(false);
     }
@@ -182,7 +183,7 @@ const AdminTeams = () => {
                 <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    Created by {(selectedTeam.team as any).created_by_name || "Unknown"}
+                    Created by {selectedTeam.team.created_by_name || "Unknown"}
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />

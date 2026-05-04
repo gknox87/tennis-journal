@@ -125,13 +125,14 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
         isLoading: false,
         error: null,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error refreshing streak:', error);
       if (!abortControllerRef.current?.signal.aborted) {
+        const message = error instanceof Error ? error.message : 'Failed to load streak data';
         setStreakData(prev => ({
           ...prev,
           isLoading: false,
-          error: error?.message || 'Failed to load streak data',
+          error: message,
         }));
       }
     } finally {

@@ -164,10 +164,10 @@ const Register = () => {
       });
 
       navigate("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Signup error:', error);
-      let message = error.message;
-      if (error.message?.includes('already registered')) {
+      let message = error instanceof Error ? error.message : "An unknown error occurred";
+      if (message.includes('already registered')) {
         message = "This email is already registered. Please sign in instead.";
       }
       toast({

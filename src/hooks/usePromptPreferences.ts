@@ -44,7 +44,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
         }
       }
 
-      const preferences = ((profile as any)?.journaling_preferences as JournalingPreferences) || {};
+      const preferences = (profile?.journaling_preferences as JournalingPreferences | undefined) || {};
       const level = preferences.prompt_level || 'standard';
       
       // Validate the level
@@ -79,7 +79,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
         .eq('id', session.user.id)
         .single();
 
-      const currentPreferences = ((profile as any)?.journaling_preferences as JournalingPreferences) || {};
+      const currentPreferences = (profile?.journaling_preferences as JournalingPreferences | undefined) || {};
       const updatedPreferences: JournalingPreferences = {
         ...currentPreferences,
         prompt_level: level,
@@ -90,7 +90,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
         .from('profiles')
         .update({
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq('id', session.user.id);
 
       if (error) {

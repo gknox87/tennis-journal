@@ -10,11 +10,19 @@ interface RacketDetection {
   confidence: number;
 }
 
+interface PlayerRegion {
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
 export const detectRacketFromPixels = (
-  data: Uint8ClampedArray, 
-  width: number, 
+  data: Uint8ClampedArray,
+  width: number,
   height: number,
-  playerRegion?: any
+  playerRegion?: PlayerRegion
 ): RacketDetection | null => {
   const racketRegions: Array<{x: number, y: number, score: number}> = [];
   

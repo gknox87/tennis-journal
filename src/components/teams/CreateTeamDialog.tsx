@@ -28,8 +28,9 @@ export const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) 
       setName("");
       setDescription("");
       onOpenChange(false);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create team";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

@@ -9,9 +9,17 @@ interface RacketDetection {
   confidence: number;
 }
 
+interface PlayerRegion {
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
 export const useRacketDetectionCore = (
-  videoRef: React.RefObject<HTMLVideoElement>, 
-  playerRegion?: any
+  videoRef: React.RefObject<HTMLVideoElement>,
+  playerRegion?: PlayerRegion
 ) => {
   const [racketBox, setRacketBox] = useState<RacketDetection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
