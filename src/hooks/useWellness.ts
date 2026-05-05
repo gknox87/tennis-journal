@@ -7,6 +7,7 @@ import { WellnessEntry } from "@/types/wellness";
 import {
   calculateHooperIndex,
   getWellnessZone,
+  getWellnessZoneLabel,
   checkWellnessAlerts,
   calculateWellnessTrend,
   calculateWellnessAverage,
@@ -88,7 +89,7 @@ export function useWellness() {
         const totalScore = calculateHooperIndex(input);
         const entryDate = input.entry_date || format(new Date(), "yyyy-MM-dd");
 
-        const { error } = await supabase.from("wellness_entries").upsert(
+        const { error, status, statusText } = await supabase.from("wellness_entries").upsert(
           {
             user_id: user.id,
             sport_id: sport.id,
@@ -109,7 +110,15 @@ export function useWellness() {
           { onConflict: "user_id,entry_date" }
         );
 
-        if (error) throw error;
+        if (error) {
+          console.error("Wellness upsert error:", { error, status, statusText, input, totalScore, userId: user.id });
+          throw error;
+        }
+
+        toast({
+          title: "Wellness saved",
+          description: `Score: ${totalScore}/25 — ${getWellnessZoneLabel(getWellnessZone(totalScore))}`,
+        });
 
         await fetchEntries();
       } catch (error: unknown) {

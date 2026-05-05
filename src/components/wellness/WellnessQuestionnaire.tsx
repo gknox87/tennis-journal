@@ -46,6 +46,7 @@ export const WellnessQuestionnaire = ({
   const [menstrualDay, setMenstrualDay] = useState<string>("");
   const [showMenstrual, setShowMenstrual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Check profile for menstrual tracking setting
   useEffect(() => {
@@ -100,16 +101,6 @@ export const WellnessQuestionnaire = ({
   const handleAnswer = (value: number) => {
     if (!question) return;
     setAnswers((prev) => ({ ...prev, [question.key]: value }));
-    // Auto-advance after a brief delay, but NOT on first question (sleep question)
-    if (currentQuestion !== 0) {
-      setTimeout(() => {
-        if (currentQuestion < totalSteps - 1) {
-          setCurrentQuestion((prev) => prev + 1);
-        } else {
-          setStep("extras");
-        }
-      }, 300);
-    }
   };
 
   const handleBack = () => {
@@ -142,14 +133,22 @@ export const WellnessQuestionnaire = ({
   const handleSubmit = async () => {
     if (!allCoreAnswered) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
+      // Defensive: ensure all core values exist before submitting
+      const sq = answers.sleep_quality ?? 3;
+      const fg = answers.fatigue ?? 3;
+      const ms = answers.muscle_soreness ?? 3;
+      const sl = answers.stress_level ?? 3;
+      const md = answers.mood ?? 3;
+
       await onSubmit({
-        sleep_quality: answers.sleep_quality!,
+        sleep_quality: sq,
         sleep_duration_hours: sleepHours ? parseFloat(sleepHours) : null,
-        fatigue: answers.fatigue!,
-        muscle_soreness: answers.muscle_soreness!,
-        stress_level: answers.stress_level!,
-        mood: answers.mood!,
+        fatigue: fg,
+        muscle_soreness: ms,
+        stress_level: sl,
+        mood: md,
         motivation,
         energy,
         appetite,
@@ -157,8 +156,9 @@ export const WellnessQuestionnaire = ({
         menstrual_cycle_day: menstrualDay ? parseInt(menstrualDay) : null,
       });
       onOpenChange(false);
-    } catch {
-      // Error already handled by the useWellness hook's toast
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to save check-in";
+      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -409,11 +409,17 @@ export const WellnessQuestionnaire = ({
             </Button>
 
             {step === "summary" ? (
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting || !allCoreAnswered}
-                className="gap-1 shadow-lg"
-              >
+              <div className="space-y-2 w-full">
+                {submitError && (
+                  <p className="text-xs text-red-500 text-center bg-red-50 p-2 rounded-lg">
+                    {submitError}
+                  </p>
+                )}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !allCoreAnswered}
+                  className="gap-1 shadow-lg w-full"
+                >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                 ) : (
@@ -421,6 +427,7 @@ export const WellnessQuestionnaire = ({
                 )}
                 Save Check-in
               </Button>
+              </div>
             ) : step === "extras" || step === "notes" ? (
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={handleNext} className="gap-1">
