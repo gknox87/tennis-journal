@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/toaster";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
@@ -84,8 +85,9 @@ function App() {
     <SportProvider>
       <Router>
         <div className="min-h-screen bg-background">
-          <React.Suspense fallback={<PageLoader />}>
-            <Routes>
+          <ErrorBoundary>
+            <React.Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* Public routes - redirect to dashboard if authenticated */}
               <Route
                 path="/"
@@ -276,13 +278,18 @@ function App() {
                 }
               />
 
+              {/* Route aliases — redirect legacy paths */}
+              <Route path="/notes" element={<Navigate to="/training-notes" replace />} />
+              <Route path="/improvement-tips" element={<Navigate to="/improvement-notes" replace />} />
+
               {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
               <Route
                 path="*"
                 element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />}
               />
-            </Routes>
-          </React.Suspense>
+              </Routes>
+            </React.Suspense>
+          </ErrorBoundary>
           <BottomNavigationWrapper />
           <Toaster />
         </div>

@@ -9,8 +9,6 @@ import type { MatchFormData } from "@/components/match/MatchForm";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { SetScore } from "@/types/match";
 
 const AddMatch = () => {
@@ -18,22 +16,12 @@ const AddMatch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { canLogMatch, matchesThisMonth, matchLimit, isFreePlan, isLoading: subLoading } = useSubscription();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const handleSubmit = async (formData: MatchFormData) => {
-    if (!canLogMatch()) {
-      toast({
-        title: "Match limit reached",
-        description: `Free plan allows ${matchLimit} matches per month. Upgrade for unlimited.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -165,20 +153,7 @@ const AddMatch = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
-        {/* Match usage indicator for free users */}
-        {isFreePlan && !subLoading && (
-          <div className="mb-4 text-sm text-gray-600 text-center">
-            {matchesThisMonth} of {matchLimit} free matches used this month
-          </div>
-        )}
-
-        {!canLogMatch() && !subLoading ? (
-          <UpgradePrompt
-            message={`You've reached your free plan limit of ${matchLimit} matches this month. Upgrade to Pro for unlimited match logging.`}
-          />
-        ) : (
-          <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-        )}
+        <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
       </div>
     </div>
   );

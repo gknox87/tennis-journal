@@ -38,7 +38,7 @@ interface LiveStats {
 const Profile = () => {
   const { sport } = useSport();
   const { roles, isCoach, isAdmin } = useUserRoles();
-  const { plan, isFreePlan, matchesThisMonth, matchLimit, keyOpponentCount, keyOpponentLimit } = useSubscription();
+  const { plan, isFreePlan, isTrial, trialDaysLeft, aiUsageThisMonth, aiLimit, keyOpponentCount, keyOpponentLimit } = useSubscription();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
@@ -509,12 +509,14 @@ const Profile = () => {
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="p-2 bg-white rounded-lg">
-                  <p className="text-gray-500">Matches this month</p>
-                  <p className="font-bold text-gray-800">{matchesThisMonth} / {matchLimit}</p>
+                  <p className="text-gray-500">AI analyses this month</p>
+                  <p className="font-bold text-gray-800">
+                    {isFreePlan ? `${aiUsageThisMonth} / ${aiLimit}` : "Unlimited"}
+                  </p>
                 </div>
                 <div className="p-2 bg-white rounded-lg">
                   <p className="text-gray-500">Key opponents</p>
-                  <p className="font-bold text-gray-800">{keyOpponentCount} / {keyOpponentLimit}</p>
+                  <p className="font-bold text-gray-800">{isFreePlan ? `${keyOpponentCount} / ${keyOpponentLimit}` : keyOpponentCount}</p>
                 </div>
               </div>
             </Card>

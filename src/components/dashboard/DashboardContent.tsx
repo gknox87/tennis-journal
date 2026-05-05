@@ -15,7 +15,7 @@ import { WellnessWidget } from "@/components/dashboard/WellnessWidget";
 import { InjuryWidget } from "@/components/dashboard/InjuryWidget";
 import { PeriodGoalsSection } from "@/components/goals/PeriodGoalsSection";
 import { BadgeWidget } from "@/components/badges/BadgeWidget";
-import { Heart } from "lucide-react";
+import { Heart, Rocket, Trophy, Target, BarChart3 } from "lucide-react";
 import { useState, memo, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,6 +129,53 @@ export const DashboardContent = ({
       }>
         <JournalingStreak />
       </Suspense>
+
+      {/* ─── 1.5. WELCOME CARD (new athletes) ─── */}
+      {matches.length === 0 && playerNotes.length === 0 && (
+        <section>
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <Rocket className="w-6 h-6" />
+              <h2 className="text-lg font-bold">Welcome to Sports Journal!</h2>
+            </div>
+            <p className="text-sm text-white/80 mb-5">
+              You're ready to track your athletic journey. Start with one of these:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                onClick={() => navigate("/add-match")}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/15 hover:bg-white/25 transition-colors text-left"
+              >
+                <Trophy className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Log a match</p>
+                  <p className="text-xs text-white/70">Record your first result</p>
+                </div>
+              </button>
+              <button
+                onClick={() => navigate("/training-notes")}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/15 hover:bg-white/25 transition-colors text-left"
+              >
+                <BarChart3 className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Training session</p>
+                  <p className="text-xs text-white/70">Log a practice or workout</p>
+                </div>
+              </button>
+              <button
+                onClick={() => navigate("/goals")}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/15 hover:bg-white/25 transition-colors text-left"
+              >
+                <Target className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Set a goal</p>
+                  <p className="text-xs text-white/70">Define your first target</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── 2. PERFORMANCE SNAPSHOT ─── */}
       <section>

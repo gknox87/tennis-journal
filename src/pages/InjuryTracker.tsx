@@ -33,9 +33,7 @@ const InjuryTracker = () => {
   };
 
   const handleReportInjury = () => {
-    if (selectedRegion) {
-      setShowDialog(true);
-    }
+    setShowDialog(true);
   };
 
   if (isLoading) {
@@ -67,16 +65,10 @@ const InjuryTracker = () => {
               onClick={handleReportInjury}
               size="lg"
               className="shadow-lg"
-              disabled={!selectedRegion}
             >
               <Plus className="mr-2 h-5 w-5" /> Report Injury
             </Button>
           </div>
-          {!selectedRegion && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Select a body area on the map below to report an injury
-            </p>
-          )}
         </div>
 
         {reports.length === 0 && !selectedRegion ? (

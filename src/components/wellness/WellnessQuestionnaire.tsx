@@ -158,7 +158,7 @@ export const WellnessQuestionnaire = ({
       });
       onOpenChange(false);
     } catch {
-      // Error handled by hook
+      // Error already handled by the useWellness hook's toast
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +175,7 @@ export const WellnessQuestionnaire = ({
           <Progress value={progressPercent} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1 text-center">
             {step === "questions"
-              ? `Question ${currentQuestion + 1} of ${totalSteps}`
+              ? `Question ${Math.min(currentQuestion + 1, totalSteps)} of ${totalSteps}`
               : step === "extras"
               ? "Optional extras"
               : step === "notes"

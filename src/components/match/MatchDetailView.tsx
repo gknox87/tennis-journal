@@ -157,7 +157,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base">
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base text-left max-w-prose">
                 {match.notes}
               </p>
             </div>
