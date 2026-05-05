@@ -55,8 +55,8 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
 
     return () => {
       console.log('Cleaning up realtime subscriptions...');
-      matchesChannel.unsubscribe();
-      notesChannel.unsubscribe();
+      supabase.removeChannel(matchesChannel);
+      supabase.removeChannel(notesChannel);
     };
     // Empty deps: subscribe once on mount, cleanup on unmount.
   }, []);

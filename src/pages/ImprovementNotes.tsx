@@ -89,7 +89,7 @@ const ImprovementNotes = () => {
   useEffect(() => {
     fetchImprovementPoints();
 
-    const subscription = supabase
+    const channel = supabase
       .channel("improvement_points_channel")
       .on(
         "postgres_changes",
@@ -105,7 +105,7 @@ const ImprovementNotes = () => {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
