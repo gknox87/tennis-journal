@@ -148,56 +148,60 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
 
   // Set up realtime subscriptions to update streak when data changes
   useEffect(() => {
-    const channels = [
-      supabase
-        .channel('streak_matches')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'matches',
-          },
-          () => {
-            // Debounce updates
-            setTimeout(() => refreshStreak(), 500);
-          }
-        )
-        .subscribe(),
-      supabase
-        .channel('streak_training_notes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'training_notes',
-          },
-          () => {
-            setTimeout(() => refreshStreak(), 500);
-          }
-        )
-        .subscribe(),
-      supabase
-        .channel('streak_player_notes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_notes',
-          },
-          () => {
-            setTimeout(() => refreshStreak(), 500);
-          }
-        )
-        .subscribe(),
-    ];
+    let isSubscribed = true;
+
+    const matchesChannel = supabase
+      .channel('streak_matches')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+        },
+        () => {
+          if (isSubscribed) setTimeout(() => refreshStreak(), 500);
+        }
+      )
+      .subscribe();
+
+    const trainingChannel = supabase
+      .channel('streak_training_notes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'training_notes',
+        },
+        () => {
+          if (isSubscribed) setTimeout(() => refreshStreak(), 500);
+        }
+      )
+      .subscribe();
+
+    const notesChannel = supabase
+      .channel('streak_player_notes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_notes',
+        },
+        () => {
+          if (isSubscribed) setTimeout(() => refreshStreak(), 500);
+        }
+      )
+      .subscribe();
 
     return () => {
-      channels.forEach(channel => channel.unsubscribe());
+      isSubscribed = false;
+      supabase.removeChannel(matchesChannel);
+      supabase.removeChannel(trainingChannel);
+      supabase.removeChannel(notesChannel);
     };
-  }, [refreshStreak]);
+  }, []); // Empty deps — subscribe once, cleanup on unmount
 
   return {
     streakData,

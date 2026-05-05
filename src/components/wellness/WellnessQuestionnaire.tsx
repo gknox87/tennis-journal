@@ -338,25 +338,35 @@ export const WellnessQuestionnaire = ({
           )}
 
           {/* Summary */}
-          {step === "summary" && previewScore !== null && previewZone !== null && (
+          {step === "summary" && (
             <div className="space-y-5">
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-bold text-foreground">Your Wellness Summary</h3>
-                <div
-                  className="mx-auto w-24 h-24 rounded-full flex items-center justify-center text-white shadow-lg"
-                  style={{ backgroundColor: getWellnessZoneColor(previewZone) }}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl font-black">{previewScore}</span>
-                    <span className="text-xs block opacity-90">/25</span>
+                {previewScore !== null && previewZone !== null ? (
+                  <>
+                    <div
+                      className="mx-auto w-24 h-24 rounded-full flex items-center justify-center text-white shadow-lg"
+                      style={{ backgroundColor: getWellnessZoneColor(previewZone) }}
+                    >
+                      <div className="text-center">
+                        <span className="text-3xl font-black">{previewScore}</span>
+                        <span className="text-xs block opacity-90">/25</span>
+                      </div>
+                    </div>
+                    <p
+                      className="text-sm font-semibold"
+                      style={{ color: getWellnessZoneColor(previewZone) }}
+                    >
+                      {getWellnessZoneLabel(previewZone)}
+                    </p>
+                  </>
+                ) : (
+                  <div className="py-4">
+                    <p className="text-sm text-amber-600 font-medium">
+                      Complete all 5 core questions to see your wellness score.
+                    </p>
                   </div>
-                </div>
-                <p
-                  className="text-sm font-semibold"
-                  style={{ color: getWellnessZoneColor(previewZone) }}
-                >
-                  {getWellnessZoneLabel(previewZone)}
-                </p>
+                )}
               </div>
 
               <div className="grid grid-cols-5 gap-2 text-center">
@@ -366,7 +376,7 @@ export const WellnessQuestionnaire = ({
                   return (
                     <div key={q.key} className="space-y-1">
                       <StepIcon className="h-4 w-4 mx-auto text-muted-foreground" />
-                      <div className="text-lg font-bold">{val}</div>
+                      <div className="text-lg font-bold">{val ?? "—"}</div>
                       <div className="text-[10px] text-muted-foreground leading-tight">
                         {q.title}
                       </div>
@@ -380,6 +390,9 @@ export const WellnessQuestionnaire = ({
                   Sleep duration: {sleepHours} hours
                 </p>
               )}
+              {motivation && <p className="text-sm text-center text-muted-foreground">Motivation: {motivation}/5</p>}
+              {energy && <p className="text-sm text-center text-muted-foreground">Energy: {energy}/5</p>}
+              {appetite && <p className="text-sm text-center text-muted-foreground">Appetite: {appetite}/5</p>}
             </div>
           )}
 
