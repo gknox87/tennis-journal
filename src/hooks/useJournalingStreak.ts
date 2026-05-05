@@ -32,6 +32,8 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
 
   const isFetchingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const refreshStreakRef = useRef<() => Promise<void>>(async () => undefined);
+  const channelNameRef = useRef(`streak_changes_${crypto.randomUUID()}`);
 
   const fetchJournalingDates = useCallback(async (): Promise<Date[]> => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -141,6 +143,8 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
     }
   }, [fetchJournalingDates]);
 
+  refreshStreakRef.current = refreshStreak;
+
   // Initial fetch
   useEffect(() => {
     refreshStreak();
@@ -148,37 +152,33 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
 
   // Set up realtime subscriptions to update streak when data changes
   useEffect(() => {
-    const matchesChannel = supabase
-      .channel('streak_matches')
+    const refreshSoon = () => {
+      window.setTimeout(() => {
+        void refreshStreakRef.current();
+      }, 500);
+    };
+
+    const channel = supabase
+      .channel(channelNameRef.current)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches' },
-        () => { setTimeout(() => refreshStreak(), 500); }
+        refreshSoon
       )
-      .subscribe();
-
-    const trainingChannel = supabase
-      .channel('streak_training_notes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'training_notes' },
-        () => { setTimeout(() => refreshStreak(), 500); }
+        refreshSoon
       )
-      .subscribe();
-
-    const notesChannel = supabase
-      .channel('streak_player_notes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'player_notes' },
-        () => { setTimeout(() => refreshStreak(), 500); }
+        refreshSoon
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(matchesChannel);
-      supabase.removeChannel(trainingChannel);
-      supabase.removeChannel(notesChannel);
+      supabase.removeChannel(channel);
     };
   }, []);
 
