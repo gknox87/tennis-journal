@@ -59,21 +59,15 @@ export const useNotesData = () => {
       .channel('notes_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'player_notes'
-        },
-        (payload) => {
-          refreshNotes();
-        }
+        { event: '*', schema: 'public', table: 'player_notes' },
+        () => { refreshNotes(); }
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [refreshNotes]);
+  }, []);
 
   const handleDeleteNote = useCallback(async (noteId: string) => {
     try {

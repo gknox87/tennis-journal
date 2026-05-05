@@ -53,21 +53,15 @@ export const useMatchesData = () => {
       .channel('matches_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'matches'
-        },
-        (payload) => {
-          refreshMatches(lastSportIdRef.current);
-        }
+        { event: '*', schema: 'public', table: 'matches' },
+        () => { refreshMatches(lastSportIdRef.current); }
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [refreshMatches]);
+  }, []);
 
   return {
     matches,
