@@ -376,6 +376,78 @@ export type Database = {
           },
         ]
       }
+      period_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_value: number
+          description: string | null
+          goal_type: string
+          id: string
+          is_completed: boolean
+          period_end: string
+          period_start: string
+          sport_id: string | null
+          status: string
+          target_value: number
+          title: string
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          description?: string | null
+          goal_type: string
+          id?: string
+          is_completed?: boolean
+          period_end: string
+          period_start: string
+          sport_id?: string | null
+          status?: string
+          target_value: number
+          title: string
+          unit: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          description?: string | null
+          goal_type?: string
+          id?: string
+          is_completed?: boolean
+          period_end?: string
+          period_start?: string
+          sport_id?: string | null
+          status?: string
+          target_value?: number
+          title?: string
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "period_goals_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "period_goals_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports_catalogue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_notes: {
         Row: {
           content: string
