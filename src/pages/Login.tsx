@@ -67,14 +67,12 @@ const Login = () => {
     
     setLoading(true);
     try {
-      console.log('Attempting login with email:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
       });
 
       if (error) {
-        console.error('Login error:', error);
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please try again.');
         }
@@ -82,7 +80,6 @@ const Login = () => {
       }
 
       if (data.user) {
-        console.log('Login successful:', data.user.id);
         navigate("/dashboard");
       }
     } catch (error: unknown) {
