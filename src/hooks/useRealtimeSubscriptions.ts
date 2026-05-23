@@ -13,8 +13,6 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
   callbacksRef.current = callbacks;
 
   useEffect(() => {
-    console.log('Setting up realtime subscriptions...');
-
     // Matches channel
     const matchesChannel = supabase
       .channel('matches_changes')
@@ -26,13 +24,10 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
           table: 'matches',
         },
         (payload) => {
-          console.log('Matches change detected:', payload);
           callbacksRef.current.onMatchesUpdate();
         }
       )
-      .subscribe((status) => {
-        console.log('Matches subscription status:', status);
-      });
+      .subscribe();
 
     // Notes channel
     const notesChannel = supabase
@@ -45,16 +40,12 @@ export const useRealtimeSubscriptions = (callbacks: RealtimeCallbacks) => {
           table: 'player_notes',
         },
         (payload) => {
-          console.log('Notes change detected:', payload);
           callbacksRef.current.onNotesUpdate();
         }
       )
-      .subscribe((status) => {
-        console.log('Notes subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(matchesChannel);
       supabase.removeChannel(notesChannel);
     };
