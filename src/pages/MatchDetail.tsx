@@ -49,8 +49,8 @@ const MatchDetail = () => {
 
         if (data) {
           const matchWithOpponent: Match = {
-            ...data,
-            opponent_name: data.opponents?.name || "Unknown Opponent"
+            ...(data as any),
+            opponent_name: (data as any).opponents?.name || "Unknown Opponent"
           };
           setMatch(matchWithOpponent);
         }
@@ -75,7 +75,7 @@ const MatchDetail = () => {
       const { error: matchError } = await supabase
         .from('matches')
         .delete()
-        .eq('id', id)
+        .eq('id', id!)
         .eq('user_id', session.user.id);
 
       if (matchError) throw matchError;

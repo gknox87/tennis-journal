@@ -160,6 +160,8 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       finalSetTiebreak,
       isBestOfFive,
       sportId: sport.id,
+    } as any);
+    return;
       reflectionPromptUsed,
       reflectionPromptLevel,
     });
@@ -305,7 +307,7 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
                   setUniversalOpponentScore(val);
                   setSets([{ playerScore: universalPlayerScore, opponentScore: val, playerTiebreak: "", opponentTiebreak: "" }]);
                 }}
-                label={`Opponent ${scoreFormat.type === "time" ? "Time" : scoreFormat.type === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
+                label={`Opponent ${(scoreFormat.type as string) === "time" ? "Time" : (scoreFormat.type as string) === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
               />
             )}
             {scoreFormat.type === "time" || scoreFormat.type === "distance" || scoreFormat.type === "numeric" ? (

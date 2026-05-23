@@ -45,7 +45,7 @@ export const ImprovementChecklist = () => {
         point: point.point.replace(/\*\*(.*?)\*\*/g, '$1')
       })).filter(point => !point.is_completed) || [];
       
-      setPoints(processedPoints);
+      setPoints(processedPoints as ImprovementPoint[]);
     } catch (error) {
       console.error('Error fetching improvement points:', error);
       toast({

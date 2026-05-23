@@ -59,7 +59,7 @@ export const OpponentInput = ({
           const validOpponents = data.filter(opponent => 
             opponent && opponent.name && opponent.name.trim() !== ''
           );
-          setSuggestions(validOpponents);
+          setSuggestions(validOpponents as Opponent[]);
         } else {
           setSuggestions([]);
         }

@@ -39,7 +39,7 @@ export const useNotesData = () => {
       abortControllerRef.current = new AbortController();
       
       const notesData = await fetchPlayerNotes();
-      setPlayerNotes(notesData);
+      setPlayerNotes(notesData as any);
     } catch (error) {
       console.error('Error refreshing notes:', error);
       toast({
