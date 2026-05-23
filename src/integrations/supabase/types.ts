@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      _heartbeat: {
+        Row: {
+          id: number
+          last_beat: string
+        }
+        Insert: {
+          id: number
+          last_beat?: string
+        }
+        Update: {
+          id?: number
+          last_beat?: string
+        }
+        Relationships: []
+      }
       coach_player_links: {
         Row: {
           approved_at: string | null
