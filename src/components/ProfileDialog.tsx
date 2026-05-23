@@ -145,11 +145,9 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         });
 
       if (error) {
-        console.error("Error updating profile:", error);
         return;
       }
 
-      console.log("Profile updated successfully");
       onOpenChange(false);
     } catch (err) {
       console.error("Error in handleSave:", err);
