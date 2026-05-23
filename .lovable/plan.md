@@ -1,162 +1,69 @@
+## Goal
 
+Serve the marketing landing page at `https://sportsjournal.app/` and the authenticated app at `https://hub.sportsjournal.app/`, while keeping a single codebase that Capacitor can wrap for iOS/Android.
 
-# Business Model & Subscription System
+## Architecture options
 
-## Overview
+**Option A — Single codebase, host-aware routing (recommended)**
+Keep one Lovable project. The router checks `window.location.hostname` and renders either the marketing routes or the app routes. Both subdomains point to the same Lovable deployment.
 
-Build a complete subscription tier system (Free, Pro, Team) with usage limits enforced in the database and surfaced in the UI. This replaces the current static pricing page with a functional system that gates features based on the user's plan.
+Pros: one deploy, shared design system / Supabase client, Capacitor build just bundles the app shell with no domain logic needed (native app forces "app mode").
+Cons: marketing bundle ships with app bundle (mitigated by lazy-loading app routes).
 
-## Plan Tiers & Limits
+**Option B — Two separate Lovable projects**
+One project for marketing (`sportsjournal.app`), one for the app (`hub.sportsjournal.app`).
 
-| Feature | Free | Pro ($9/mo) | Team ($29/mo) |
-|---|---|---|---|
-| Match logging | 10 per month | Unlimited | Unlimited |
-| Key opponents | 3 | Unlimited | Unlimited |
-| Training load | View only | Full access | Full access |
-| Wellness tracking | Basic | Full access | Full access |
-| Coach sharing | No | Yes | Yes |
-| Team management | No | No | Unlimited players & coaches |
-| Video analytics | Removed from all tiers | -- | -- |
-| AI match analysis | No | Yes | Yes |
-| Export data | No | Yes | Yes |
+Pros: clean separation, smaller marketing bundle, marketing team can iterate without touching app.
+Cons: duplicate design tokens / auth setup, two deploys, harder to share components.
 
-## Implementation Steps
+I recommend **Option A** because your current project already mixes both and Capacitor needs the app code anyway.
 
-### 1. Database: Create `subscriptions` table and helper function
+## Plan (Option A)
 
-Create a new `subscriptions` table to track each user's current plan:
+### 1. Domain setup in Lovable
+- Keep `sportsjournal.app` connected to this project (already done).
+- Add `hub.sportsjournal.app` as a second custom domain on the same project (Project Settings → Domains → Connect Domain → type `hub.sportsjournal.app`).
+- DNS: add an `A` record for `hub` → `185.158.133.1` at your registrar, plus the `_lovable` TXT record Lovable shows you.
+- Set `sportsjournal.app` as Primary.
 
-- `id` (uuid, PK)
-- `user_id` (uuid, FK to auth.users, unique)
-- `plan` (text: 'free', 'pro', 'team')
-- `status` (text: 'active', 'cancelled', 'past_due')
-- `current_period_start` (timestamptz)
-- `current_period_end` (timestamptz)
-- `created_at`, `updated_at`
+### 2. Host-aware routing in `src/App.tsx`
+Introduce a small helper:
 
-Enable RLS so users can only read their own subscription. Default all existing users to 'free'.
-
-Create a `SECURITY DEFINER` function `get_user_plan(uuid)` that returns the plan string (defaulting to 'free' if no row exists). This avoids RLS recursion if plan checks are needed in policies later.
-
-### 2. Create a `useSubscription` hook
-
-A new React hook (`src/hooks/useSubscription.ts`) that:
-
-- Fetches the current user's subscription from the `subscriptions` table
-- Exposes: `plan` ('free' | 'pro' | 'team'), `isFreePlan`, `isProPlan`, `isTeamPlan`, `isLoading`
-- Provides helper functions: `canLogMatch()` (checks monthly count against limit), `canAddKeyOpponent()` (checks count against limit), `canShareWithCoach()`, `canUseAI()`
-- Counts current month's matches via a query to determine if the free cap (10) is reached
-- Counts key opponents to check the free cap (3)
-
-### 3. Create a reusable `UpgradePrompt` component
-
-A small component (`src/components/UpgradePrompt.tsx`) shown when a user hits a limit:
-
-- Displays a friendly message like "You've reached your free plan limit of 10 matches this month"
-- Shows a button linking to the upgrade/pricing page
-- Used inline wherever limits are enforced
-
-### 4. Enforce limits in the UI
-
-**Match logging (AddMatch page):**
-- Before allowing submission, check `canLogMatch()` from the hook
-- If at limit, show the `UpgradePrompt` instead of submitting
-- Show remaining count in the UI (e.g., "7 of 10 matches used this month")
-
-**Key opponents (KeyOpponents page):**
-- Before allowing "Add Opponent" as key, check `canAddKeyOpponent()`
-- If at limit (3 for free), show `UpgradePrompt`
-- Display count indicator
-
-**Coach sharing (MatchShareButtons):**
-- Hide or disable sharing options for free users
-- Show `UpgradePrompt` when they try
-
-**AI analysis:**
-- Gate the "Analyze" button behind pro/team check
-
-### 5. Remove video analytics references
-
-- Remove any video analytics menu items, buttons, or page links from the sidebar, dashboard, and navigation
-- Keep the underlying hooks/code for now but remove all UI entry points
-
-### 6. Update the Pricing page
-
-- Update the static feature lists to match the actual enforced limits (10 matches/mo, 3 key opponents for free)
-- Remove "Video Analysis" from all tiers
-- Add "Coach Sharing" to Pro and Team
-- Update Team description: "Unlimited players and coaches"
-- Wire the "Start Pro Trial" / upgrade buttons to navigate to a plan selection flow (initially just a profile-based upgrade indicator until Stripe is connected)
-
-### 7. Add subscription display to Profile page
-
-- Show the current plan as a badge on the profile page
-- Add an "Upgrade" button for free users
-- Show usage stats (matches this month, key opponents count) relative to limits
-
-### 8. Admin: View user subscriptions
-
-- Add a subscription column to the admin users table so admins can see/manage plans
-
-## Technical Details
-
-### Migration SQL (summary)
-
-```sql
--- subscriptions table
-CREATE TABLE public.subscriptions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
-  plan text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'team')),
-  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'past_due')),
-  current_period_start timestamptz DEFAULT now(),
-  current_period_end timestamptz,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own subscription
-CREATE POLICY "Users can read own subscription"
-  ON public.subscriptions FOR SELECT
-  TO authenticated
-  USING (user_id = auth.uid());
-
--- Admins can manage all subscriptions
-CREATE POLICY "Admins can manage subscriptions"
-  ON public.subscriptions FOR ALL
-  TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
-
--- Helper function
-CREATE OR REPLACE FUNCTION public.get_user_plan(_user_id uuid)
-RETURNS text
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COALESCE(
-    (SELECT plan FROM public.subscriptions
-     WHERE user_id = _user_id AND status = 'active'),
-    'free'
-  )
-$$;
+```text
+isAppHost = hostname === 'hub.sportsjournal.app'
+         || hostname.endsWith('.lovableproject.com')   // preview
+         || hostname === 'localhost'
+         || isCapacitorNative()                         // Capacitor app
 ```
 
-### Files to create
-- `src/hooks/useSubscription.ts` - subscription hook with limit checks
-- `src/components/UpgradePrompt.tsx` - reusable upgrade CTA component
+- If `isAppHost` → mount app routes (`/dashboard`, `/matches`, `/login`, `/register`, …). Root `/` redirects to `/dashboard` (or `/login`).
+- Else (marketing host) → mount only marketing routes (`/`, `/pricing`, `/features`, `/contact`, `/privacy`, `/demo`). Any unknown path redirects to `hub.sportsjournal.app` equivalent.
+- Cross-domain links: "Sign In" / "Get Started" on the landing page link to `https://hub.sportsjournal.app/login` and `/register`.
 
-### Files to modify
-- `src/pages/AddMatch.tsx` - enforce 10 match/month limit for free users
-- `src/pages/KeyOpponents.tsx` - enforce 3 key opponent limit for free users
-- `src/components/match/MatchShareButtons.tsx` - gate behind pro/team
-- `src/pages/Pricing.tsx` - update features to match real limits
-- `src/pages/Profile.tsx` - show plan badge and usage stats
-- `src/components/SideMenu.tsx` - remove video analytics entry if any
-- `src/components/dashboard/DashboardContent.tsx` - add plan-aware messaging
-- `src/integrations/supabase/types.ts` - add subscriptions table type
+### 3. Auth redirect URLs
+Update Supabase Auth → URL Configuration:
+- Site URL: `https://hub.sportsjournal.app`
+- Additional redirect URLs: `https://hub.sportsjournal.app/**`, `https://sportsjournal.app/**`, Capacitor scheme (e.g. `app.lovable.f2286dad...://**`), preview URL.
 
-### Stripe integration (future-ready)
-The `subscriptions` table is designed to be updated by Stripe webhooks later. When Stripe is enabled, a webhook edge function will update the `plan`, `status`, and `current_period_end` fields. For now, plan changes can be managed manually by admins via the admin panel.
+### 4. SEO split
+- Marketing host: keep current title/description, sitemap with marketing routes only.
+- App host: `<meta name="robots" content="noindex">` injected when `isAppHost`, no sitemap entries.
 
+### 5. Capacitor build
+- App identifier: `app.lovable.f2286dad18c6499399cda86418e4d866`, app name `Sports Journal`.
+- In `capacitor.config.ts`, **do not** point `server.url` at `hub.sportsjournal.app` for production — bundle the web assets locally so the app works offline and passes store review. Use `server.url` only for dev hot-reload against the Lovable sandbox.
+- Native app always behaves as "app host" via `Capacitor.isNativePlatform()` check, regardless of domain.
+- Deep links: configure `app.sportsjournal.app` Universal Links / Android App Links later (separate task) so emails open the native app.
+
+### 6. Verification
+- Visit `https://sportsjournal.app/` → landing only, `/dashboard` should redirect away.
+- Visit `https://hub.sportsjournal.app/` → app (login or dashboard).
+- Auth sign-in/sign-up works on hub, email confirmation redirects back to hub.
+- Capacitor `npx cap run ios` shows app shell, can log in.
+
+## What I need from you before building
+
+1. Confirm Option A (single project) vs Option B (split projects).
+2. Confirm you can add the `hub` DNS record at your registrar.
+3. Should `sportsjournal.app/login` keep working, or hard-redirect to `hub.sportsjournal.app/login`? (Recommend redirect.)
+4. Capacitor setup — do it now in this same plan, or as a follow-up task after the domain split is live?
