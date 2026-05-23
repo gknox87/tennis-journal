@@ -65,7 +65,7 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
         return goal as PeriodGoal;
       });
 
-      setGoals(updatedGoals);
+      setGoals(updatedGoals as PeriodGoal[]);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load goals";
       setError(message);
@@ -206,7 +206,7 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
         const dates = new Set<string>();
         matches?.forEach((m) => dates.add(m.date));
         trainingNotes?.forEach((t) => dates.add(t.training_date));
-        playerNotes?.forEach((p) => dates.add(p.created_at.split("T")[0]));
+        playerNotes?.forEach((p) => p.created_at && dates.add(p.created_at.split("T")[0]));
 
         if (dates.size === 0) return 0;
 

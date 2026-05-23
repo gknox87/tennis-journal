@@ -50,7 +50,7 @@ const ImprovementNotes = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setImprovementPoints(data || []);
+      setImprovementPoints((data || []) as unknown as ImprovementPoint[]);
     } catch (error) {
       console.error('Error fetching improvement points:', error);
       toast({

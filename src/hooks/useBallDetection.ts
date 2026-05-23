@@ -14,7 +14,7 @@ export const useBallDetection = (videoRef: React.RefObject<HTMLVideoElement>) =>
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const detectionHistoryRef = useRef<BallDetection[]>([]);
-  const colorDetectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const colorDetectionIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastDetectionTimeRef = useRef<number>(0);
   const motionTrailRef = useRef<{ x: number; y: number; timestamp: number }[]>([]);
 

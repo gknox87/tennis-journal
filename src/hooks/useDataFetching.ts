@@ -101,7 +101,7 @@ export const useDataFetching = () => {
         throw matchesError;
       }
 
-      const processedMatches: Match[] = matchesData?.map(match => ({
+      const processedMatches: Match[] = (matchesData as any)?.map((match: any) => ({
         id: match.id,
         date: match.date,
         score: match.score,

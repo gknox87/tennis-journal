@@ -120,7 +120,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
       processingRef.current = true;
 
       try {
-        await poseInstance.send({ image: video });
+        await (poseInstance as any).send({ image: video });
       } catch (err) {
         console.error('Pose processing error:', err);
       } finally {
@@ -141,7 +141,7 @@ export const useMediaPipePose = (videoRef: React.RefObject<HTMLVideoElement>) =>
       mounted = false;
       if (poseRef.current) {
         try {
-          poseRef.current.close();
+          (poseRef.current as any).close();
         } catch (e) {
           console.log('Error closing pose instance:', e);
         }

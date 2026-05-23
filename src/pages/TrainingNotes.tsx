@@ -41,7 +41,7 @@ const TrainingNotes = () => {
         .order('training_date', { ascending: false });
 
       if (error) throw error;
-      setTrainingNotes(data || []);
+      setTrainingNotes((data || []) as any);
     } catch (error) {
       console.error('Error fetching training notes:', error);
       toast({

@@ -101,7 +101,7 @@ const OpponentDetail = () => {
             court_type
           )
         `)
-        .eq("id", id)
+        .eq("id", id!)
         .eq("user_id", sessionData.session.user.id)
         .single();
 
@@ -111,8 +111,8 @@ const OpponentDetail = () => {
         return;
       }
 
-      setOpponent(data as OpponentData);
-      setStats(calculateStats(data.matches || []));
+      setOpponent(data as unknown as OpponentData);
+      setStats(calculateStats(((data as any).matches || [])));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load opponent";
       setError(message);

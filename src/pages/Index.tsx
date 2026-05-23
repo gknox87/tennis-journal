@@ -9,7 +9,7 @@ import { useSport } from "@/context/SportContext";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { sport } = useSport();
 
   // Fetch user profile (auth is already guaranteed by ProtectedRoute)

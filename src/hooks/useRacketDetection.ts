@@ -46,7 +46,7 @@ export const useRacketDetection = (
   } = useYoloRacketDetection(videoRef);
 
   // Pixel-based fallback
-  const { racketBox: pixelRacketBox, isLoading: pixelLoading } = useRacketDetectionCore(videoRef, playerBounds);
+  const { racketBox: pixelRacketBox, isLoading: pixelLoading } = useRacketDetectionCore(videoRef, playerBounds as any);
 
   // Pose-based racket estimation (fallback when YOLO fails)
   const estimateRacketFromPose = (pose: PoseData): RacketDetection | null => {
@@ -56,7 +56,7 @@ export const useRacketDetection = (
     const rightWrist = pose.landmarks[16]; // Right wrist
     const rightElbow = pose.landmarks[14]; // Right elbow
     
-    if (rightWrist && rightElbow && rightWrist.visibility > 0.5) {
+    if (rightWrist && rightElbow && (rightWrist.visibility ?? 0) > 0.5) {
       // Calculate direction from elbow to wrist
       const direction = {
         x: rightWrist.x - rightElbow.x,
@@ -70,13 +70,13 @@ export const useRacketDetection = (
         y: Math.max(0, Math.min(0.85, racketY - 0.08)),
         width: 0.12,
         height: 0.16,
-        confidence: Math.min(0.7, rightWrist.visibility + 0.1) // Lower confidence for pose estimation
+        confidence: Math.min(0.7, (rightWrist.visibility ?? 0) + 0.1) // Lower confidence for pose estimation
       };
     } else {
       // Fallback to left hand
       const leftWrist = pose.landmarks[15]; // Left wrist
       const leftElbow = pose.landmarks[13]; // Left elbow
-      if (leftWrist && leftElbow && leftWrist.visibility > 0.5) {
+      if (leftWrist && leftElbow && (leftWrist.visibility ?? 0) > 0.5) {
         const direction = {
           x: leftWrist.x - leftElbow.x,
           y: leftWrist.y - leftElbow.y
@@ -88,7 +88,7 @@ export const useRacketDetection = (
           y: Math.max(0, Math.min(0.85, racketY - 0.08)),
           width: 0.12,
           height: 0.16,
-          confidence: Math.min(0.65, leftWrist.visibility + 0.05) // Even lower for left hand
+          confidence: Math.min(0.65, (leftWrist.visibility ?? 0) + 0.05) // Even lower for left hand
         };
       }
     }

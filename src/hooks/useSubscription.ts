@@ -94,8 +94,9 @@ export const useSubscription = (): SubscriptionData => {
           .eq("is_key_opponent", true),
       ]);
 
-      const dbPlan = (subResult.data?.plan as PlanType) || "free";
-      const dbTrialEnd = subResult.data?.trial_end || null;
+      const subData = subResult.data as any;
+      const dbPlan = (subData?.plan as PlanType) || "free";
+      const dbTrialEnd = subData?.trial_end || null;
 
       // Check if trial expired
       if (dbPlan === "trial" && dbTrialEnd) {
@@ -162,7 +163,7 @@ export const useSubscription = (): SubscriptionData => {
         plan: "trial",
         trial_end: trialEndStr,
         status: "active",
-      });
+      } as any);
 
     setPlan("trial");
     setTrialEnd(trialEndStr);

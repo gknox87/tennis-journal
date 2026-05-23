@@ -158,7 +158,7 @@ export const OpponentCard = ({ opponent, onDelete }: OpponentCardProps) => {
               .single();
 
             if (!error && data) {
-              handleUpdate(data);
+              handleUpdate(data as any);
             }
           };
           fetchUpdatedOpponent();
