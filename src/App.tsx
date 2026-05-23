@@ -82,17 +82,41 @@ function App() {
     );
   }
 
+  const marketing = isMarketingHost();
+
+  // Catch-all for the marketing host: redirect unknown paths to the same path on the app host.
+  const RedirectToApp = () => {
+    if (typeof window !== "undefined") {
+      window.location.replace(appUrl(window.location.pathname + window.location.search));
+    }
+    return null;
+  };
+
   return (
     <SportProvider>
       <Router>
         <div className="min-h-screen bg-background">
           <ErrorBoundary>
             <React.Suspense fallback={<PageLoader />}>
-              <Routes>
+              {marketing ? (
+                <Routes>
+                  {/* Marketing site (sportsjournal.app) — public pages only */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/features" element={<Features />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/demo" element={<Demo />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  {/* Auth + app routes live on hub subdomain */}
+                  <Route path="*" element={<RedirectToApp />} />
+                </Routes>
+              ) : (
+                <Routes>
               {/* Public routes - redirect to dashboard if authenticated */}
               <Route
                 path="/"
-                element={session ? <Navigate to="/dashboard" replace /> : <Landing />}
+                element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
               />
               <Route
                 path="/login"
@@ -283,15 +307,16 @@ function App() {
               <Route path="/notes" element={<Navigate to="/training-notes" replace />} />
               <Route path="/improvement-tips" element={<Navigate to="/improvement-notes" replace />} />
 
-              {/* Catch all - redirect to dashboard if authenticated, otherwise to landing */}
+              {/* Catch all - redirect to dashboard if authenticated, otherwise to login */}
               <Route
                 path="*"
-                element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />}
+                element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
               />
-              </Routes>
+                </Routes>
+              )}
             </React.Suspense>
           </ErrorBoundary>
-          <BottomNavigationWrapper />
+          {!marketing && <BottomNavigationWrapper />}
           <Toaster />
         </div>
       </Router>
