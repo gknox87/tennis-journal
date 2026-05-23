@@ -131,8 +131,6 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('[FORM-TRACE] handleSubmit - sets state:', JSON.stringify(sets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
-
     // Validate that at least one score is entered
     let validSets: SetScore[];
     if (isSetBasedSport) {
@@ -143,8 +141,6 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       // For time/distance/numeric/rounds, player score alone is enough
       validSets = sets.filter(set => set.playerScore !== "");
     }
-
-    console.log('[FORM-TRACE] validSets after filter:', JSON.stringify(validSets.map(s => ({p: s.playerScore, o: s.opponentScore}))));
 
     if (validSets.length === 0) {
       return; // Let the backend handle the error message
