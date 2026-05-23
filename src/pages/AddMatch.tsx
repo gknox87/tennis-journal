@@ -35,11 +35,9 @@ const AddMatch = () => {
         return;
       }
 
-      console.log('[SAVE-TRACE] formData.sets at save time:', JSON.stringify(formData.sets.map((s: SetScore) => ({p: s.playerScore, pType: typeof s.playerScore, o: s.opponentScore, oType: typeof s.opponentScore}))));
       const score = formData.sets
         .filter((set: SetScore) => set.playerScore !== "" || set.opponentScore !== "")
         .map((set: SetScore) => {
-          console.log(`[SAVE-TRACE] building score: player="${set.playerScore}" opponent="${set.opponentScore}" → "${set.playerScore}-${set.opponentScore}"`);
           let setScore = `${set.playerScore}-${set.opponentScore}`;
           if (set.playerTiebreak && set.opponentTiebreak) {
             setScore += ` (${set.playerTiebreak}-${set.opponentTiebreak})`;
@@ -47,7 +45,6 @@ const AddMatch = () => {
           return setScore;
         })
         .join(", ");
-      console.log('[SAVE-TRACE] final score string:', JSON.stringify(score));
 
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
