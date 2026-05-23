@@ -55,16 +55,16 @@ const ViewAllMatches = () => {
         throw matchesError;
       }
 
-      const processedMatches = matchesData?.map((match) => ({
+      const processedMatches = (matchesData as any)?.map((match: any) => ({
         ...match,
-        opponent_name: (match as Match & { opponents?: { name: string } | null }).opponents?.name || "Unknown Opponent",
-        sport_name: (match as Match & { sports?: { name: string } | null }).sports?.name,
-        sport_slug: (match as Match & { sports?: { slug: string } | null }).sports?.slug
+        opponent_name: match.opponents?.name || "Unknown Opponent",
+        sport_name: match.sports?.name,
+        sport_slug: match.sports?.slug
       })) || [];
 
 
-      setMatches(processedMatches);
-      setFilteredMatches(processedMatches);
+      setMatches(processedMatches as any);
+      setFilteredMatches(processedMatches as any);
     } catch (error) {
       console.error("Error fetching matches:", error);
       toast({
