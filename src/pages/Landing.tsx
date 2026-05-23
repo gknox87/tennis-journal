@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { appUrl, isMarketingHost } from "@/lib/hostMode";
+import heroAthlete from "@/assets/landing/hero-athlete.jpg";
+import sportsCollage from "@/assets/landing/sports-collage.jpg";
+import featureJournal from "@/assets/landing/feature-journal.jpg";
+import featureInsights from "@/assets/landing/feature-insights.jpg";
+import featureCoach from "@/assets/landing/feature-coach.jpg";
+import ctaCelebration from "@/assets/landing/cta-celebration.jpg";
 
 /**
  * Public marketing landing page for sportsjournal.app.
