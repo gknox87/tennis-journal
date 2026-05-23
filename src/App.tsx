@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
 import { SportProvider } from "@/context/SportContext";
 import { BottomNavigationWrapper } from "@/components/BottomNavigationWrapper";
+import { isMarketingHost, appUrl } from "@/lib/hostMode";
 import React from "react";
 
 // Eagerly load landing/auth pages for instant first paint
