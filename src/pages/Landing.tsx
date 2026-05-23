@@ -373,6 +373,61 @@ const Landing = () => {
             </p>
           </div>
 
+          {/* Hero feature row with images — zigzag */}
+          <div className="space-y-12 mb-16">
+            {[
+              {
+                img: featureJournal,
+                alt: "Athlete's journal and phone on a clay tennis court at sunset",
+                eyebrow: "Match Journal",
+                title: "Capture it while it's still fresh.",
+                body: "Right after you walk off court, answer 4–5 focused prompts. Score, key moments, what worked, what didn't. No blank page — just a structured 3-minute debrief.",
+                reverse: false,
+              },
+              {
+                img: featureInsights,
+                alt: "Glowing tennis court heatmap of shot patterns with AI data nodes",
+                eyebrow: "AI Insights",
+                title: "Patterns your memory can't hold.",
+                body: "After a handful of entries, Sports Journal surfaces the trends — where you crumble, where you dominate, which opponents trip you up. Real intelligence on your real game.",
+                reverse: true,
+              },
+              {
+                img: featureCoach,
+                alt: "Coach showing tablet to a junior player on court at golden hour",
+                eyebrow: "Coach Mode",
+                title: "Your coach in the loop, without the chase.",
+                body: "Share sessions and goals with your coach. They see the patterns, leave notes, and shape your training plan around what's actually happening — not what you half-remember.",
+                reverse: false,
+              },
+            ].map(({ img, alt, eyebrow, title, body, reverse }) => (
+              <div
+                key={title}
+                className={`grid lg:grid-cols-2 gap-8 lg:gap-12 items-center ${reverse ? "lg:[&>div:first-child]:order-2" : ""}`}
+              >
+                <div className="relative rounded-3xl overflow-hidden shadow-xl border border-gray-200 aspect-[4/3]">
+                  <img
+                    src={img}
+                    alt={alt}
+                    width={1280}
+                    height={896}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-violet-600 font-bold uppercase tracking-wider text-xs mb-3">{eyebrow}</p>
+                  <h3 className="font-extrabold text-3xl sm:text-4xl tracking-tight text-gray-900 mb-4 leading-tight">{title}</h3>
+                  <p className="text-gray-500 text-lg leading-relaxed">{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h3 className="text-center font-extrabold text-2xl sm:text-3xl text-gray-900 mb-8">
+            Plus everything else a serious athlete needs.
+          </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               { icon: BookOpen, title: "Match Journal", body: "Log every match with guided prompts — opponent notes, key moments, tactical insights. Your competitive memory, always captured." },
