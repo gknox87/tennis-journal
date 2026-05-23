@@ -20,7 +20,6 @@ if (localStorage.getItem(OLD_STORAGE_KEY) && !localStorage.getItem(NEW_STORAGE_K
   const oldAuthData = localStorage.getItem(OLD_STORAGE_KEY);
   if (oldAuthData) {
     localStorage.setItem(NEW_STORAGE_KEY, oldAuthData);
-    console.log('[Auth Migration] Migrated from tennis-match-chronicle-auth to sports-journal-auth');
   }
 }
 
