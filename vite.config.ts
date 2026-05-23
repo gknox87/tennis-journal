@@ -57,11 +57,7 @@ export default defineConfig(({ mode }) => ({
             '@fullcalendar/react',
             '@fullcalendar/timegrid',
           ],
-          // Computer vision / ML (very heavy)
-          'vendor-ml': [
-            'onnxruntime-web',
-            '@mediapipe/pose',
-          ],
+          // Charts & calendars
           // Data & forms
           'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
           'vendor-supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react', '@supabase/auth-ui-react', '@supabase/auth-ui-shared'],
