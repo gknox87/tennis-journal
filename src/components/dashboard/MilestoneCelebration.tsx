@@ -81,7 +81,6 @@ export function MilestoneCelebration({ streak, open, onOpenChange }: MilestoneCe
         });
       } catch (error) {
         // User cancelled or error occurred
-        console.log('Share cancelled');
       }
     } else {
       // Fallback: copy to clipboard
@@ -164,4 +163,3 @@ export function MilestoneCelebration({ streak, open, onOpenChange }: MilestoneCe
     </>
   );
 }
-
