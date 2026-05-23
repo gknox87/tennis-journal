@@ -182,7 +182,7 @@ const Landing = () => {
           </div>
           <div className="flex items-center justify-center gap-2">
             <Target className="w-4 h-4 text-violet-600" />
-            Six racket sports — tennis, padel, table tennis & more
+            13 sports — tennis, padel, boxing & more
           </div>
           <div className="flex items-center justify-center gap-2">
             <Lock className="w-4 h-4 text-violet-600" />
@@ -195,7 +195,7 @@ const Landing = () => {
       <section className="relative bg-gray-900 overflow-hidden">
         <img
           src={sportsCollage}
-          alt="Six racket sports in action: tennis, table tennis, padel, pickleball, badminton, squash"
+          alt="13 sports in action: tennis, padel, table tennis, squash, badminton, pickleball, boxing, MMA, judo, cycling, swimming, athletics, gymnastics"
           width={1920}
           height={1080}
           loading="lazy"
@@ -208,7 +208,7 @@ const Landing = () => {
               One journal
             </p>
             <h2 className="font-black text-white text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none">
-              Six racket sports.
+              13 sports.
               <br />
               <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
                 Zero excuses.

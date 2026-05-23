@@ -40,7 +40,7 @@ const HelpCenter = () => {
         },
         {
           question: "What sports are supported?",
-          answer: "We currently support six racket sports: tennis, table tennis, padel, pickleball, badminton, and squash. Each sport has its own tailored scoring system, analytics dashboards, and performance metrics designed specifically for that discipline. You can track matches across multiple sports from a single account and switch between them seamlessly from your dashboard — all your data stays organized and separate per sport."
+          answer: "We currently support 13 competitive sports: tennis, padel, table tennis, squash, badminton, pickleball, boxing, MMA, judo, cycling, swimming, athletics (track & field), and gymnastics. Each sport has its own tailored scoring system, analytics dashboards, and performance metrics designed specifically for that discipline. You can track matches across multiple sports from a single account and switch between them seamlessly from your dashboard — all your data stays organized and separate per sport."
         },
         {
           question: "How do I log my first match?",
