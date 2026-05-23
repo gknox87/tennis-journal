@@ -650,9 +650,9 @@ const Landing = () => {
             © 2026 Sports Journal App. Built for athletes who compete seriously.
           </p>
           <div className="flex items-center gap-4 text-gray-400">
-            <Link to="/privacy" className="hover:text-gray-700">Privacy</Link>
+            <a href="/legal/privacy-policy.html" className="hover:text-gray-700">Privacy</a>
             <span>·</span>
-            <Link to="/privacy" className="hover:text-gray-700">Terms</Link>
+            <a href="/legal/terms-of-service.html" className="hover:text-gray-700">Terms</a>
             <span>·</span>
             <Link to="/contact" className="hover:text-gray-700">Contact</Link>
           </div>
