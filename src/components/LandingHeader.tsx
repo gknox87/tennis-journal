@@ -25,6 +25,12 @@ export const LandingHeader = () => {
   };
 
   const handleNavClick = (path: string) => {
+    // When on the marketing host, auth/app paths live on the hub subdomain.
+    if (isMarketingHost() && (path === "/login" || path === "/register" || path.startsWith("/dashboard"))) {
+      window.location.href = appUrl(path);
+      setIsMobileMenuOpen(false);
+      return;
+    }
     navigate(path);
     setIsMobileMenuOpen(false);
   };
