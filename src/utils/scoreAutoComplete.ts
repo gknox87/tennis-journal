@@ -37,8 +37,10 @@ export function autoCompleteTennisScore(
     // Player won 6-4 (most common)
     return 4;
   } else if (playerScore === 7) {
-    // Player won 7-5 or 7-6 (prefer 7-5)
-    return 5;
+    // Player won 7-6 (tiebreak) — opponent score must be 6.
+    // Do NOT auto-fill: 7-5 is also valid (set without tiebreak at 6-6).
+    // Let the user enter the opponent score so we can correctly trigger tiebreak UI.
+    return null;
   }
 
   return null;
@@ -106,12 +108,6 @@ export function autoCompleteBadmintonScore(
   } else if (playerScore === 20) {
     // Player lost 20-22 (deuce loss)
     return 22;
-  } else if (playerScore >= 21 && playerScore <= 28) {
-    // These could be winning scores, don't auto-complete
-    return null;
-  } else if (playerScore === 29) {
-    // This could be a winning score (29-30), don't auto-complete
-    return null;
   }
 
   return null;

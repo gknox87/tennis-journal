@@ -18,6 +18,7 @@ import {
   Hash,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { formatScore } from "@/utils/scoreDisplay";
 
 interface MatchData {
   id: string;
@@ -527,7 +528,7 @@ const OpponentDetail = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-bold text-gray-800">
-                      {match.score || "-"}
+                      {match.score ? formatScore(match.score, match.sport_id) : "-"}
                     </span>
                     <Badge
                       className={

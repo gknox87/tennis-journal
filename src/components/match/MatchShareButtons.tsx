@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Match } from "@/types/match";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { formatScore } from "@/utils/scoreDisplay";
 
 interface MatchShareButtonsProps {
   match: Match;
@@ -41,7 +42,7 @@ export const MatchShareButtons = ({ match, onEmailShare }: MatchShareButtonsProp
 Opponent: ${match.opponent_name}\n
 Date: ${new Date(match.date).toLocaleDateString()}\n
 Result: ${match.is_win ? 'Win' : 'Loss'}\n
-Score: ${match.score}\n
+Score: ${formatScore(match.score, match.sport_id)}\n
 ${match.notes ? `\nNotes:\n${match.notes}` : ''}`;
 
     const encodedText = encodeURIComponent(text);

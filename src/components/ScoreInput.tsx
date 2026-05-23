@@ -264,10 +264,13 @@ export const ScoreInput = ({
       const playerScore = parseInt(lastPlayedSet.playerScore);
       const opponentScore = parseInt(lastPlayedSet.opponentScore);
       
-      // Check if it's a tiebreak situation
-      const isTiebreak = !isNaN(playerScore) && !isNaN(opponentScore) && 
+      // Check if it's a tiebreak situation:
+      // 1. Both players at 6-6 AND tiebreak scores exist (set-level tiebreak)
+      // 2. BOTH scores > 7 (extended tiebreak format, e.g. padel match tiebreak at 1-1)
+      // Score like 10-5 or 8-3 is NOT a tiebreak — invalid in any format
+      const isTiebreak = !isNaN(playerScore) && !isNaN(opponentScore) &&
         ((playerScore === 6 && opponentScore === 6 && (lastPlayedSet.playerTiebreak || lastPlayedSet.opponentTiebreak)) ||
-         (playerScore > 7 || opponentScore > 7));
+         (playerScore > 7 && opponentScore > 7));
       
       // Ensure we pass a boolean value
       onFinalSetTiebreakChange(Boolean(isTiebreak));

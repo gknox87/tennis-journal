@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Trophy, Target, FileText, Clock } from "lucide-react";
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
+import { formatScore } from "@/utils/scoreDisplay";
 
 interface MatchDetailViewProps {
   match: Match;
@@ -137,7 +138,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
                 <p className="text-xs sm:text-sm text-gray-600 font-medium mb-2">Final Score</p>
                 <p className={`text-3xl sm:text-4xl font-bold break-all ${
                   match.is_win ? 'text-green-600' : 'text-red-600'
-                }`}>{match.score}</p>
+                }`}>{formatScore(match.score, match.sport_id)}</p>
               </div>
             </div>
           </CardContent>

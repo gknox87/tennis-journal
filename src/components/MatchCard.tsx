@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Trophy, Calendar, Target, TrendingUp, TrendingDown } from "lucide-react";
-
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
+import { formatScore } from "@/utils/scoreDisplay";
 
 interface MatchCardProps {
   id: string;
@@ -98,7 +98,7 @@ export const MatchCard = ({
               <span>{formatDate(date)}</span>
             </div>
             <span className="text-base font-bold text-gray-800 text-right">
-              {score}
+              {formatScore(score, sportId)}
             </span>
           </div>
         </div>
