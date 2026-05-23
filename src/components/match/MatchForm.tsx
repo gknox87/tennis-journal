@@ -160,11 +160,9 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       finalSetTiebreak,
       isBestOfFive,
       sportId: sport.id,
-    } as any);
-    return;
       reflectionPromptUsed,
       reflectionPromptLevel,
-    });
+    } as any);
   };
 
   const opponentLabel = `${sport.terminology.opponentLabel}`;
