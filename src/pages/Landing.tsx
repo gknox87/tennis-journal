@@ -105,59 +105,119 @@ const Landing = () => {
         )}
       </nav>
 
-      {/* ============ SECTION 2 — HERO ============ */}
-      <section id="top" className="bg-white px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <div className="max-w-[800px] mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-violet-700 text-white px-4 py-1.5 rounded-full text-xs font-bold mb-8">
-            <Zap className="w-3.5 h-3.5" />
-            Free to start — no credit card needed
+      {/* ============ SECTION 2 — HERO (split, image right) ============ */}
+      <section id="top" className="bg-white px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Copy */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-violet-700 text-white px-4 py-1.5 rounded-full text-xs font-bold mb-8">
+              <Zap className="w-3.5 h-3.5" />
+              Free to start — no credit card needed
+            </div>
+
+            <h1 className="font-black tracking-tight text-5xl sm:text-6xl lg:text-7xl leading-[1.05] mb-8">
+              Stop losing the
+              <br />
+              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                same matches
+              </span>{" "}
+              twice.
+            </h1>
+
+            <p className="text-gray-500 text-lg leading-relaxed max-w-[520px] mx-auto lg:mx-0 mb-10">
+              Most athletes train hard. Few know why they keep making the same mistakes. Sports Journal captures your matches, spots your patterns, and tells you exactly what to fix — in under 3 minutes.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-4">
+              <SignupLink className="inline-flex items-center justify-center px-7 py-4 bg-violet-700 text-white rounded-xl font-bold text-base hover:bg-violet-800 transition">
+                Start journaling free →
+              </SignupLink>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center px-7 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base hover:bg-gray-50 transition"
+              >
+                See how it works
+              </a>
+            </div>
+
+            <p className="text-gray-400 text-sm">
+              Free forever · Works for any sport · No writing experience needed
+            </p>
           </div>
 
-          <h1 className="font-black tracking-tight text-5xl sm:text-6xl lg:text-7xl leading-[1.05] mb-8">
-            Stop losing the
-            <br />
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              same matches
-            </span>{" "}
-            twice.
-          </h1>
-
-          <p className="text-gray-500 text-lg leading-relaxed max-w-[520px] mx-auto mb-10">
-            Most athletes train hard. Few know why they keep making the same mistakes. Sports Journal captures your matches, spots your patterns, and tells you exactly what to fix — in under 3 minutes.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
-            <SignupLink className="inline-flex items-center justify-center px-7 py-4 bg-violet-700 text-white rounded-xl font-bold text-base hover:bg-violet-800 transition">
-              Start journaling free →
-            </SignupLink>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center justify-center px-7 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base hover:bg-gray-50 transition"
-            >
-              See how it works
-            </a>
-          </div>
-
-          <p className="text-gray-400 text-sm mb-12">
-            Free forever · Works for any sport · No writing experience needed
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center text-sm text-gray-500">
-            <div className="flex items-center justify-center gap-2">
-              <Zap className="w-4 h-4 text-violet-600" />
-              Instant setup — be logging in 60 seconds
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Target className="w-4 h-4 text-violet-600" />
-              Any sport — tennis, football, table tennis & more
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-violet-600" />
-              Private by default — your data, your insights
+          {/* Image */}
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-violet-600/30 via-orange-400/20 to-red-500/30 rounded-[2rem] blur-2xl" aria-hidden />
+            <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-violet-900/20 aspect-square">
+              <img
+                src={heroAthlete}
+                alt="Padel player mid-smash in dramatic purple and orange light"
+                width={1280}
+                height={1280}
+                className="w-full h-full object-cover"
+              />
+              {/* Floating stat card */}
+              <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Streak</div>
+                  <div className="text-lg font-black text-gray-900 leading-none">9 days 🔥</div>
+                </div>
+              </div>
+              <div className="absolute top-5 right-5 bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white px-4 py-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Win rate</div>
+                <div className="text-2xl font-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent leading-none">67%</div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Trust strip */}
+        <div className="max-w-5xl mx-auto mt-14 flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-2">
+            <Zap className="w-4 h-4 text-violet-600" />
+            Instant setup — be logging in 60 seconds
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Target className="w-4 h-4 text-violet-600" />
+            Six racket sports — tennis, padel, table tennis & more
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Lock className="w-4 h-4 text-violet-600" />
+            Private by default — your data, your insights
+          </div>
+        </div>
       </section>
+
+      {/* ============ SECTION 2b — SPORTS COLLAGE STRIP ============ */}
+      <section className="relative bg-gray-900 overflow-hidden">
+        <img
+          src={sportsCollage}
+          alt="Six racket sports in action: tennis, table tennis, padel, pickleball, badminton, squash"
+          width={1920}
+          height={1080}
+          loading="lazy"
+          className="w-full h-[280px] sm:h-[360px] object-cover opacity-90"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/30 to-gray-900/80" />
+        <div className="absolute inset-0 flex items-center justify-center text-center px-4">
+          <div>
+            <p className="text-orange-400 font-bold uppercase tracking-[0.3em] text-xs sm:text-sm mb-3">
+              One journal
+            </p>
+            <h2 className="font-black text-white text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none">
+              Six racket sports.
+              <br />
+              <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                Zero excuses.
+              </span>
+            </h2>
+          </div>
+        </div>
+      </section>
+
 
       {/* ============ SECTION 3 — APP MOCKUP ============ */}
       <section className="bg-slate-50 px-4 sm:px-6 py-16 sm:py-20">
