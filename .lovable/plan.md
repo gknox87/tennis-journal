@@ -1,69 +1,50 @@
-## Goal
+# Landing Page Visual Refresh
 
-Serve the marketing landing page at `https://sportsjournal.app/` and the authenticated app at `https://hub.sportsjournal.app/`, while keeping a single codebase that Capacitor can wrap for iOS/Android.
+The copy on `src/pages/Landing.tsx` is strong, but it's a wall of cards and icons. Let's inject **bold, athletic, editorial imagery** that makes Sports Journal feel like a premium product worth paying for — think Nike x Linear x Strava year-in-review.
 
-## Architecture options
+## Art direction
 
-**Option A — Single codebase, host-aware routing (recommended)**
-Keep one Lovable project. The router checks `window.location.hostname` and renders either the marketing routes or the app routes. Both subdomains point to the same Lovable deployment.
+- **Mood:** dynamic, sweaty, focused — real athletes in motion across all 6 racket sports
+- **Treatment:** high-contrast photography with a purple→orange→red duotone/gradient overlay (matches brand)
+- **Composition:** asymmetric, lots of negative space, motion blur on action shots
+- **Avoid:** stock-photo cheese, generic "diverse team high-fiving", emoji-laden collages
 
-Pros: one deploy, shared design system / Supabase client, Capacitor build just bundles the app shell with no domain logic needed (native app forces "app mode").
-Cons: marketing bundle ships with app bundle (mitigated by lazy-loading app routes).
+## Images to generate (8 total)
 
-**Option B — Two separate Lovable projects**
-One project for marketing (`sportsjournal.app`), one for the app (`hub.sportsjournal.app`).
+| # | Slot | Concept | Format |
+|---|------|---------|--------|
+| 1 | **Hero background/side** | Padel player mid-smash, low angle, court lines glowing, purple→orange duotone, motion streaks | 1600×1200 |
+| 2 | **Hero device mockup overlay** | Phone screenshot composite floating over image #1, slight tilt, glow shadow | overlay PNG |
+| 3 | **Sports collage strip** (new section under hero) | 6 tight square crops — one per sport (tennis serve, TT topspin, padel volley, pickleball dink, badminton smash, squash lunge), unified duotone | 6× 512×512 |
+| 4 | **"Track every match" feature** | Notebook + phone on clay court, journaling aesthetic, warm sunset light | 1200×800 |
+| 5 | **"AI insights" feature** | Abstract data viz — heatmap of a tennis court with shot patterns, glowing nodes, dark bg | 1200×800 |
+| 6 | **"Coach mode" feature** | Coach pointing at tablet with player, over-the-shoulder shot, golden hour | 1200×800 |
+| 7 | **Testimonial section bg** | Wide stadium-empty-seats shot, heavily blurred, purple tint — used at 20% opacity behind quotes | 1920×600 |
+| 8 | **Pricing/CTA section** | Single hero athlete celebrating point won, fist pump silhouette against gradient sky | 1600×900 |
 
-Pros: clean separation, smaller marketing bundle, marketing team can iterate without touching app.
-Cons: duplicate design tokens / auth setup, two deploys, harder to share components.
+All generated via `imagegen--generate_image` (standard tier; premium for #1 and #8), saved to `src/assets/landing/`, imported as ES6 modules.
 
-I recommend **Option A** because your current project already mixes both and Capacitor needs the app code anyway.
+## Layout changes in `src/pages/Landing.tsx`
 
-## Plan (Option A)
+1. **Hero** → split-screen: copy left, image #1 with floating phone mockup #2 right. Add subtle parallax on scroll.
+2. **New section after hero**: full-bleed 6-sport collage strip (#3) with sport names overlaid in display font — "ONE JOURNAL. SIX SPORTS."
+3. **Features section** → alternate zigzag rows, each feature card paired with image #4/#5/#6 (instead of just an icon).
+4. **Testimonials** → layer image #7 as background at low opacity with gradient mask.
+5. **Final CTA** → full-bleed image #8 with gradient overlay, white copy on top, large orange→red CTA button.
 
-### 1. Domain setup in Lovable
-- Keep `sportsjournal.app` connected to this project (already done).
-- Add `hub.sportsjournal.app` as a second custom domain on the same project (Project Settings → Domains → Connect Domain → type `hub.sportsjournal.app`).
-- DNS: add an `A` record for `hub` → `185.158.133.1` at your registrar, plus the `_lovable` TXT record Lovable shows you.
-- Set `sportsjournal.app` as Primary.
+## Technical notes
 
-### 2. Host-aware routing in `src/App.tsx`
-Introduce a small helper:
+- Lazy-load all images below the fold (`loading="lazy"`)
+- Add `<img>` `alt` text describing the sport/action for SEO
+- Keep total added weight under ~600KB (use `.jpg` not `.png`, target 80% quality)
+- No changes to app routes, auth, or any code outside `src/pages/Landing.tsx` and `src/assets/landing/`
 
-```text
-isAppHost = hostname === 'hub.sportsjournal.app'
-         || hostname.endsWith('.lovableproject.com')   // preview
-         || hostname === 'localhost'
-         || isCapacitorNative()                         // Capacitor app
-```
+## Out of scope
 
-- If `isAppHost` → mount app routes (`/dashboard`, `/matches`, `/login`, `/register`, …). Root `/` redirects to `/dashboard` (or `/login`).
-- Else (marketing host) → mount only marketing routes (`/`, `/pricing`, `/features`, `/contact`, `/privacy`, `/demo`). Any unknown path redirects to `hub.sportsjournal.app` equivalent.
-- Cross-domain links: "Sign In" / "Get Started" on the landing page link to `https://hub.sportsjournal.app/login` and `/register`.
+- Hub app UI, dashboard, or any logged-in views
+- Copy rewrites (you said content is good)
+- Video / Lottie animations (can be a follow-up)
 
-### 3. Auth redirect URLs
-Update Supabase Auth → URL Configuration:
-- Site URL: `https://hub.sportsjournal.app`
-- Additional redirect URLs: `https://hub.sportsjournal.app/**`, `https://sportsjournal.app/**`, Capacitor scheme (e.g. `app.lovable.f2286dad...://**`), preview URL.
+---
 
-### 4. SEO split
-- Marketing host: keep current title/description, sitemap with marketing routes only.
-- App host: `<meta name="robots" content="noindex">` injected when `isAppHost`, no sitemap entries.
-
-### 5. Capacitor build
-- App identifier: `app.lovable.f2286dad18c6499399cda86418e4d866`, app name `Sports Journal`.
-- In `capacitor.config.ts`, **do not** point `server.url` at `hub.sportsjournal.app` for production — bundle the web assets locally so the app works offline and passes store review. Use `server.url` only for dev hot-reload against the Lovable sandbox.
-- Native app always behaves as "app host" via `Capacitor.isNativePlatform()` check, regardless of domain.
-- Deep links: configure `app.sportsjournal.app` Universal Links / Android App Links later (separate task) so emails open the native app.
-
-### 6. Verification
-- Visit `https://sportsjournal.app/` → landing only, `/dashboard` should redirect away.
-- Visit `https://hub.sportsjournal.app/` → app (login or dashboard).
-- Auth sign-in/sign-up works on hub, email confirmation redirects back to hub.
-- Capacitor `npx cap run ios` shows app shell, can log in.
-
-## What I need from you before building
-
-1. Confirm Option A (single project) vs Option B (split projects).
-2. Confirm you can add the `hub` DNS record at your registrar.
-3. Should `sportsjournal.app/login` keep working, or hard-redirect to `hub.sportsjournal.app/login`? (Recommend redirect.)
-4. Capacitor setup — do it now in this same plan, or as a follow-up task after the domain split is live?
+Approve and I'll generate all 8 images and wire them into the landing page in one pass.

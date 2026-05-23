@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { appUrl, isMarketingHost } from "@/lib/hostMode";
+import heroAthlete from "@/assets/landing/hero-athlete.jpg";
+import sportsCollage from "@/assets/landing/sports-collage.jpg";
+import featureJournal from "@/assets/landing/feature-journal.jpg";
+import featureInsights from "@/assets/landing/feature-insights.jpg";
+import featureCoach from "@/assets/landing/feature-coach.jpg";
+import ctaCelebration from "@/assets/landing/cta-celebration.jpg";
 
 /**
  * Public marketing landing page for sportsjournal.app.
@@ -99,59 +105,119 @@ const Landing = () => {
         )}
       </nav>
 
-      {/* ============ SECTION 2 — HERO ============ */}
-      <section id="top" className="bg-white px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <div className="max-w-[800px] mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-violet-700 text-white px-4 py-1.5 rounded-full text-xs font-bold mb-8">
-            <Zap className="w-3.5 h-3.5" />
-            Free to start — no credit card needed
+      {/* ============ SECTION 2 — HERO (split, image right) ============ */}
+      <section id="top" className="bg-white px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Copy */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-violet-700 text-white px-4 py-1.5 rounded-full text-xs font-bold mb-8">
+              <Zap className="w-3.5 h-3.5" />
+              Free to start — no credit card needed
+            </div>
+
+            <h1 className="font-black tracking-tight text-5xl sm:text-6xl lg:text-7xl leading-[1.05] mb-8">
+              Stop losing the
+              <br />
+              <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                same matches
+              </span>{" "}
+              twice.
+            </h1>
+
+            <p className="text-gray-500 text-lg leading-relaxed max-w-[520px] mx-auto lg:mx-0 mb-10">
+              Most athletes train hard. Few know why they keep making the same mistakes. Sports Journal captures your matches, spots your patterns, and tells you exactly what to fix — in under 3 minutes.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-4">
+              <SignupLink className="inline-flex items-center justify-center px-7 py-4 bg-violet-700 text-white rounded-xl font-bold text-base hover:bg-violet-800 transition">
+                Start journaling free →
+              </SignupLink>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center px-7 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base hover:bg-gray-50 transition"
+              >
+                See how it works
+              </a>
+            </div>
+
+            <p className="text-gray-400 text-sm">
+              Free forever · Works for any sport · No writing experience needed
+            </p>
           </div>
 
-          <h1 className="font-black tracking-tight text-5xl sm:text-6xl lg:text-7xl leading-[1.05] mb-8">
-            Stop losing the
-            <br />
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              same matches
-            </span>{" "}
-            twice.
-          </h1>
-
-          <p className="text-gray-500 text-lg leading-relaxed max-w-[520px] mx-auto mb-10">
-            Most athletes train hard. Few know why they keep making the same mistakes. Sports Journal captures your matches, spots your patterns, and tells you exactly what to fix — in under 3 minutes.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
-            <SignupLink className="inline-flex items-center justify-center px-7 py-4 bg-violet-700 text-white rounded-xl font-bold text-base hover:bg-violet-800 transition">
-              Start journaling free →
-            </SignupLink>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center justify-center px-7 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base hover:bg-gray-50 transition"
-            >
-              See how it works
-            </a>
-          </div>
-
-          <p className="text-gray-400 text-sm mb-12">
-            Free forever · Works for any sport · No writing experience needed
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center text-sm text-gray-500">
-            <div className="flex items-center justify-center gap-2">
-              <Zap className="w-4 h-4 text-violet-600" />
-              Instant setup — be logging in 60 seconds
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Target className="w-4 h-4 text-violet-600" />
-              Any sport — tennis, football, table tennis & more
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-violet-600" />
-              Private by default — your data, your insights
+          {/* Image */}
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-violet-600/30 via-orange-400/20 to-red-500/30 rounded-[2rem] blur-2xl" aria-hidden />
+            <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-violet-900/20 aspect-square">
+              <img
+                src={heroAthlete}
+                alt="Padel player mid-smash in dramatic purple and orange light"
+                width={1280}
+                height={1280}
+                className="w-full h-full object-cover"
+              />
+              {/* Floating stat card */}
+              <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Streak</div>
+                  <div className="text-lg font-black text-gray-900 leading-none">9 days 🔥</div>
+                </div>
+              </div>
+              <div className="absolute top-5 right-5 bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white px-4 py-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Win rate</div>
+                <div className="text-2xl font-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent leading-none">67%</div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Trust strip */}
+        <div className="max-w-5xl mx-auto mt-14 flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-2">
+            <Zap className="w-4 h-4 text-violet-600" />
+            Instant setup — be logging in 60 seconds
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Target className="w-4 h-4 text-violet-600" />
+            Six racket sports — tennis, padel, table tennis & more
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Lock className="w-4 h-4 text-violet-600" />
+            Private by default — your data, your insights
+          </div>
+        </div>
       </section>
+
+      {/* ============ SECTION 2b — SPORTS COLLAGE STRIP ============ */}
+      <section className="relative bg-gray-900 overflow-hidden">
+        <img
+          src={sportsCollage}
+          alt="Six racket sports in action: tennis, table tennis, padel, pickleball, badminton, squash"
+          width={1920}
+          height={1080}
+          loading="lazy"
+          className="w-full h-[280px] sm:h-[360px] object-cover opacity-90"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-gray-900/30 to-gray-900/80" />
+        <div className="absolute inset-0 flex items-center justify-center text-center px-4">
+          <div>
+            <p className="text-orange-400 font-bold uppercase tracking-[0.3em] text-xs sm:text-sm mb-3">
+              One journal
+            </p>
+            <h2 className="font-black text-white text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-none">
+              Six racket sports.
+              <br />
+              <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                Zero excuses.
+              </span>
+            </h2>
+          </div>
+        </div>
+      </section>
+
 
       {/* ============ SECTION 3 — APP MOCKUP ============ */}
       <section className="bg-slate-50 px-4 sm:px-6 py-16 sm:py-20">
@@ -306,6 +372,61 @@ const Landing = () => {
               Built for serious athletes who want to compete smarter — not spend hours writing about their feelings.
             </p>
           </div>
+
+          {/* Hero feature row with images — zigzag */}
+          <div className="space-y-12 mb-16">
+            {[
+              {
+                img: featureJournal,
+                alt: "Athlete's journal and phone on a clay tennis court at sunset",
+                eyebrow: "Match Journal",
+                title: "Capture it while it's still fresh.",
+                body: "Right after you walk off court, answer 4–5 focused prompts. Score, key moments, what worked, what didn't. No blank page — just a structured 3-minute debrief.",
+                reverse: false,
+              },
+              {
+                img: featureInsights,
+                alt: "Glowing tennis court heatmap of shot patterns with AI data nodes",
+                eyebrow: "AI Insights",
+                title: "Patterns your memory can't hold.",
+                body: "After a handful of entries, Sports Journal surfaces the trends — where you crumble, where you dominate, which opponents trip you up. Real intelligence on your real game.",
+                reverse: true,
+              },
+              {
+                img: featureCoach,
+                alt: "Coach showing tablet to a junior player on court at golden hour",
+                eyebrow: "Coach Mode",
+                title: "Your coach in the loop, without the chase.",
+                body: "Share sessions and goals with your coach. They see the patterns, leave notes, and shape your training plan around what's actually happening — not what you half-remember.",
+                reverse: false,
+              },
+            ].map(({ img, alt, eyebrow, title, body, reverse }) => (
+              <div
+                key={title}
+                className={`grid lg:grid-cols-2 gap-8 lg:gap-12 items-center ${reverse ? "lg:[&>div:first-child]:order-2" : ""}`}
+              >
+                <div className="relative rounded-3xl overflow-hidden shadow-xl border border-gray-200 aspect-[4/3]">
+                  <img
+                    src={img}
+                    alt={alt}
+                    width={1280}
+                    height={896}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-violet-600 font-bold uppercase tracking-wider text-xs mb-3">{eyebrow}</p>
+                  <h3 className="font-extrabold text-3xl sm:text-4xl tracking-tight text-gray-900 mb-4 leading-tight">{title}</h3>
+                  <p className="text-gray-500 text-lg leading-relaxed">{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h3 className="text-center font-extrabold text-2xl sm:text-3xl text-gray-900 mb-8">
+            Plus everything else a serious athlete needs.
+          </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
@@ -489,24 +610,34 @@ const Landing = () => {
       </section>
 
       {/* ============ SECTION 10 — FINAL CTA ============ */}
-      <section className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 sm:px-6 py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mb-6">
+      <section className="relative text-white px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
+        <img
+          src={ctaCelebration}
+          alt="Silhouette of athlete celebrating victory at sunset"
+          width={1920}
+          height={1088}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/85 via-red-600/75 to-violet-900/85" />
+        <div className="relative max-w-3xl mx-auto text-center">
+          <h2 className="font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mb-6 drop-shadow-lg">
             Your next match starts
             <br />
             after this one ends.
           </h2>
-          <p className="text-white/85 text-lg leading-relaxed mb-10 max-w-[600px] mx-auto">
+          <p className="text-white/95 text-lg leading-relaxed mb-10 max-w-[600px] mx-auto drop-shadow">
             The athletes who improve fastest aren't just the ones who train hardest. They're the ones who learn from every single session. Start today — it takes 60 seconds.
           </p>
-          <SignupLink className="inline-flex items-center justify-center px-8 py-4 bg-white text-violet-700 rounded-xl font-bold text-lg hover:bg-violet-50 transition shadow-lg">
+          <SignupLink className="inline-flex items-center justify-center px-8 py-4 bg-white text-violet-700 rounded-xl font-bold text-lg hover:bg-violet-50 transition shadow-2xl">
             Start your free journal →
           </SignupLink>
-          <p className="text-white/70 text-sm mt-5">
+          <p className="text-white/85 text-sm mt-5 drop-shadow">
             Free forever · No card needed · Works on any device
           </p>
         </div>
       </section>
+
 
       {/* ============ SECTION 11 — FOOTER ============ */}
       <footer className="bg-white border-t border-gray-100 px-4 sm:px-6 py-10">
