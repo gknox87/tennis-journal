@@ -610,24 +610,34 @@ const Landing = () => {
       </section>
 
       {/* ============ SECTION 10 — FINAL CTA ============ */}
-      <section className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 sm:px-6 py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mb-6">
+      <section className="relative text-white px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
+        <img
+          src={ctaCelebration}
+          alt="Silhouette of athlete celebrating victory at sunset"
+          width={1920}
+          height={1088}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/85 via-red-600/75 to-violet-900/85" />
+        <div className="relative max-w-3xl mx-auto text-center">
+          <h2 className="font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mb-6 drop-shadow-lg">
             Your next match starts
             <br />
             after this one ends.
           </h2>
-          <p className="text-white/85 text-lg leading-relaxed mb-10 max-w-[600px] mx-auto">
+          <p className="text-white/95 text-lg leading-relaxed mb-10 max-w-[600px] mx-auto drop-shadow">
             The athletes who improve fastest aren't just the ones who train hardest. They're the ones who learn from every single session. Start today — it takes 60 seconds.
           </p>
-          <SignupLink className="inline-flex items-center justify-center px-8 py-4 bg-white text-violet-700 rounded-xl font-bold text-lg hover:bg-violet-50 transition shadow-lg">
+          <SignupLink className="inline-flex items-center justify-center px-8 py-4 bg-white text-violet-700 rounded-xl font-bold text-lg hover:bg-violet-50 transition shadow-2xl">
             Start your free journal →
           </SignupLink>
-          <p className="text-white/70 text-sm mt-5">
+          <p className="text-white/85 text-sm mt-5 drop-shadow">
             Free forever · No card needed · Works on any device
           </p>
         </div>
       </section>
+
 
       {/* ============ SECTION 11 — FOOTER ============ */}
       <footer className="bg-white border-t border-gray-100 px-4 sm:px-6 py-10">
