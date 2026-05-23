@@ -9,7 +9,7 @@ import { RefreshCw } from "lucide-react";
 interface ImprovementPoint {
   id: string;
   point: string;
-  is_completed: boolean;
+  is_completed: boolean | null;
 }
 
 export const ImprovementChecklist = () => {
