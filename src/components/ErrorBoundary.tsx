@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -12,8 +13,11 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+class ErrorBoundaryContent extends React.Component<
+  ErrorBoundaryProps & { navigate: ReturnType<typeof useNavigate> },
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps & { navigate: ReturnType<typeof useNavigate> }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -28,6 +32,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   handleRetry = () => {
     this.setState({ hasError: false, error: null });
+  };
+
+  handleGoToDashboard = () => {
+    this.props.navigate("/dashboard");
   };
 
   render() {
@@ -49,7 +57,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <div className="flex gap-3 justify-center">
               <Button
                 variant="outline"
-                onClick={() => window.location.href = "/dashboard"}
+                onClick={this.handleGoToDashboard}
                 className="rounded-xl"
               >
                 Go to Dashboard
@@ -66,4 +74,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
     return this.props.children;
   }
+}
+
+function ErrorBoundaryWithNavigate(props: ErrorBoundaryProps) {
+  const navigate = useNavigate();
+  return <ErrorBoundaryContent {...props} navigate={navigate} />;
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ErrorBoundaryWithNavigate {...props} />;
 }

@@ -47,6 +47,11 @@ export const useMatchesData = () => {
     }
   }, [fetchMatches]);
 
+  const refreshMatchesRef = useRef<typeof refreshMatches>(
+    () => { /* noop until initialized */ }
+  );
+  refreshMatchesRef.current = refreshMatches;
+
   // Set up realtime subscription
   useEffect(() => {
     const channel = supabase
@@ -54,7 +59,7 @@ export const useMatchesData = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches' },
-        () => { refreshMatches(lastSportIdRef.current); }
+        () => { refreshMatchesRef.current(lastSportIdRef.current); }
       )
       .subscribe();
 

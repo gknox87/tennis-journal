@@ -97,6 +97,8 @@ const AddMatch = () => {
                 }))
               );
           }
+        }).catch((err) => {
+          console.error('AI analysis failed:', err);
         });
       }
 

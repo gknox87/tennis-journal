@@ -15,12 +15,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 const OLD_STORAGE_KEY = 'tennis-match-chronicle-auth';
 const NEW_STORAGE_KEY = 'sports-journal-auth';
 
-// Check for old auth data and migrate it
-if (localStorage.getItem(OLD_STORAGE_KEY) && !localStorage.getItem(NEW_STORAGE_KEY)) {
-  const oldAuthData = localStorage.getItem(OLD_STORAGE_KEY);
-  if (oldAuthData) {
-    localStorage.setItem(NEW_STORAGE_KEY, oldAuthData);
-  }
+// Migrate auth data from old key to new key
+// If both keys exist, prefer the new key (already migrated case)
+// If only old key exists, migrate it
+const oldAuthData = localStorage.getItem(OLD_STORAGE_KEY);
+const newAuthData = localStorage.getItem(NEW_STORAGE_KEY);
+if (oldAuthData && !newAuthData) {
+  // Only old key present — migrate to new key
+  localStorage.setItem(NEW_STORAGE_KEY, oldAuthData);
+  localStorage.removeItem(OLD_STORAGE_KEY);
+} else if (oldAuthData && newAuthData) {
+  // Both keys present — old key is stale, remove it
+  localStorage.removeItem(OLD_STORAGE_KEY);
 }
 
 export const supabase = createClient<Database>(
@@ -42,12 +48,18 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Initialize auth state
-supabase.auth.getSession().then(({ data: { session }}) => {
-  if (session) {
-    supabase.realtime.setAuth(session.access_token);
+// Initialize auth state with proper error handling
+// Wrap in an immediately-invoked async function to handle rejection
+(async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      supabase.realtime.setAuth(session.access_token);
+    }
+  } catch (err) {
+    console.error('Failed to initialize realtime auth:', err);
   }
-});
+})();
 
 // Listen for auth changes
 supabase.auth.onAuthStateChange((event, session) => {

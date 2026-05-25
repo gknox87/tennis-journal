@@ -6,10 +6,13 @@ import { useNotesData } from "@/hooks/useNotesData";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
+import type { Database } from "@/integrations/supabase/types";
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const { sport } = useSport();
 
   // Fetch user profile (auth is already guaranteed by ProtectedRoute)
