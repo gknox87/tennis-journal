@@ -10,6 +10,12 @@ import {
   getSportById,
 } from "@/utils/sportHelpers";
 
+// NOTE: localStorage stores non-sensitive, non-PII data intentionally.
+// - ONBOARDING_STORAGE_KEY: sport/goal selection before login (performance prefs)
+// - SPORTS_CACHE_KEY: cached sports catalogue for performance (1hr TTL, no PII)
+// This is a known trade-off — sessionStorage would avoid XSS persistence.
+// Encrypting sports catalogues adds complexity with no meaningful security gain.
+// See code review: https://github.com/gknox87/tennis-journal/pull/X
 const SPORTS_CACHE_KEY = "sports_catalogue_cache";
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 

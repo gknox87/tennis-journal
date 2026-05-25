@@ -89,7 +89,7 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
           }
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching journaling dates:', error);
       throw error;
     }

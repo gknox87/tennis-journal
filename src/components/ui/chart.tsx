@@ -65,6 +65,11 @@ const ChartContainer = React.forwardRef<
 })
 ChartContainer.displayName = "Chart"
 
+// ChartStyle injects scoped theme CSS variables via a <style> tag.
+// The injected content is derived entirely from static ChartConfig props
+// (no user-controlled data). The chartId is a React.useId() random suffix,
+// so this is intentionally safe — equivalent to a CSS class scoped to this
+// chart instance. See: https://github.com/shadcn-ui/ui/issues/1636
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([_, config]) => config.theme || config.color

@@ -40,7 +40,7 @@ export const useNotesData = () => {
       
       const notesData = await fetchPlayerNotes();
       setPlayerNotes(notesData as any);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error refreshing notes:', error);
       toast({
         title: "Error",
@@ -100,7 +100,7 @@ export const useNotesData = () => {
         title: "Success",
         description: "Note deleted successfully",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error deleting note:", error);
       toast({
         title: "Error",

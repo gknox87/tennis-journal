@@ -23,14 +23,18 @@ const Calendar = () => {
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
   const [isNewEvent, setIsNewEvent] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
 
   const fetchEvents = async () => {
+    setIsLoading(true);
     try {
       const eventsData = await fetchScheduledEvents();
       setEvents(eventsData);
     } catch (error) {
       console.error("Error fetching events:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

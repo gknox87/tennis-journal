@@ -64,7 +64,7 @@ export function useInjuryReports() {
 
       if (error) throw error;
       setReports((data as unknown as InjuryReport[]) || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching injury reports:", error);
     } finally {
       setIsLoading(false);

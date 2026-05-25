@@ -39,7 +39,7 @@ export const useMatchesData = () => {
       
       setMatches(matchesData);
       setFilteredMatches(matchesData);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error refreshing matches:', error);
     } finally {
       isFetchingRef.current = false;

@@ -53,7 +53,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
       } else {
         setPromptLevelState('standard');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error in fetchPreferences:', error);
       setPromptLevelState('standard');
     } finally {
@@ -104,7 +104,7 @@ export function usePromptPreferences(): UsePromptPreferencesReturn {
         // Revert local state on error
         setPromptLevelState(currentPreferences.prompt_level || 'standard');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error in setPromptLevel:', error);
     }
   }, []);

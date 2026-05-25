@@ -29,7 +29,7 @@ export const useNoteActions = ({ onOpenChange, editingNote }: UseNoteActionsProp
         .getPublicUrl(fileName);
 
       return publicUrl;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
       throw error;
     }
@@ -61,7 +61,7 @@ export const useNoteActions = ({ onOpenChange, editingNote }: UseNoteActionsProp
       });
       
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error deleting note:", error);
       toast({
         title: "Error",
@@ -126,7 +126,7 @@ export const useNoteActions = ({ onOpenChange, editingNote }: UseNoteActionsProp
       setImageFile(null);
       setImagePreview(null);
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error saving note:", error);
       toast({
         title: "Error",

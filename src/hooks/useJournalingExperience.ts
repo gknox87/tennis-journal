@@ -74,7 +74,7 @@ export function useJournalingExperience(): JournalingExperience {
         totalEntries,
         isLoading: false,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error calculating journaling experience:', error);
       setExperience({
         experienceLevel: 'beginner',

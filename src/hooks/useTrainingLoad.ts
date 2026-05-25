@@ -42,7 +42,7 @@ export function useTrainingLoad() {
 
       if (error) throw error;
       setSessions((data as TrainingSession[]) || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching training sessions:", error);
     } finally {
       setIsLoading(false);

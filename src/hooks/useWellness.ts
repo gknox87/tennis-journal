@@ -68,7 +68,7 @@ export function useWellness() {
 
       if (error) throw error;
       setEntries((data as WellnessEntry[]) || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching wellness entries:", error);
     } finally {
       setIsLoading(false);
