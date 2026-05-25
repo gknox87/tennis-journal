@@ -34,8 +34,8 @@ export const useMatchesData = () => {
       if (sportId !== undefined) {
         lastSportIdRef.current = sportId;
       }
-      
-      const matchesData = await fetchMatches(lastSportIdRef.current);
+
+      const matchesData = await fetchMatches(lastSportIdRef.current, abortControllerRef.current.signal);
       
       setMatches(matchesData);
       setFilteredMatches(matchesData);

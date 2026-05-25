@@ -70,7 +70,7 @@ export const useDataFetching = () => {
     }
   }, [checkAuth, toast]);
 
-  const fetchMatches = useCallback(async (sportId?: string) => {
+  const fetchMatches = useCallback(async (sportId?: string, signal?: AbortSignal) => {
     setIsLoading(true);
     try {
       const session = await checkAuth();
@@ -94,7 +94,9 @@ export const useDataFetching = () => {
         query = query.eq("sport_id", sportId);
       }
 
-      const { data: matchesData, error: matchesError } = await query;
+      const { data: matchesData, error: matchesError } = signal
+        ? await query.abortSignal(signal)
+        : await query;
 
       if (matchesError) {
         console.error('Error fetching matches:', matchesError);
