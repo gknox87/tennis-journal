@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /hub/
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard
+Disallow: /api/
+Sitemap: https://sportsjournal.app/sitemap.xml

@@ -45,6 +45,8 @@ const AdminDashboard = React.lazy(() => import("@/pages/AdminDashboard"));
 const AdminUsers = React.lazy(() => import("@/pages/AdminUsers"));
 const AdminTeams = React.lazy(() => import("@/pages/AdminTeams"));
 const Goals = React.lazy(() => import("@/pages/Goals"));
+const BlogIndex = React.lazy(() => import("@/pages/BlogIndex"));
+const BlogPost = React.lazy(() => import("@/pages/BlogPost"));
 
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -109,6 +111,8 @@ function App() {
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/blog" element={<BlogIndex />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
                   {/* Auth + app routes live on hub subdomain */}
                   <Route path="*" element={<RedirectToApp />} />
                 </Routes>
@@ -133,6 +137,8 @@ function App() {
               <Route path="/help" element={<HelpCenter />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
 
               {/* Protected routes - redirect to login if not authenticated */}
               <Route

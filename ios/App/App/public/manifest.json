@@ -1,0 +1,47 @@
+{
+  "name": "Sports Journal",
+  "short_name": "Sports Journal",
+  "description": "Your intelligent performance companion for ambitious athletes. Track matches, master your mindset, and dominate your sport.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#6366F1",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["sports", "healthcare", "fitness"],
+  "icons": [
+    {
+      "src": "icons/Icon-1024@2x.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/Icon-60@2x.png",
+      "sizes": "120x120",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-60@3x.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-76@2x.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-83.5@2x.png",
+      "sizes": "167x167",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

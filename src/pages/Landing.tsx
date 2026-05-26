@@ -77,6 +77,7 @@ const Landing = () => {
             <a href="#features" className="hover:text-white/80">Features</a>
             <a href="#sports" className="hover:text-white/80">Sports</a>
             <a href="#pricing" className="hover:text-white/80">Pricing</a>
+            <a href="/blog" className="hover:text-white/80">Blog</a>
           </div>
 
           <div className="flex items-center gap-3">
@@ -101,6 +102,7 @@ const Landing = () => {
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#sports" onClick={() => setMenuOpen(false)}>Sports</a>
             <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
+            <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
           </div>
         )}
       </nav>
@@ -650,11 +652,13 @@ const Landing = () => {
             © 2026 Sports Journal App. Built for athletes who compete seriously.
           </p>
           <div className="flex items-center gap-4 text-gray-400">
-            <a href="/legal/privacy-policy.html" className="hover:text-gray-700">Privacy</a>
+            <a href="/blog" className="hover:text-gray-700">Blog</a>
             <span>·</span>
-            <a href="/legal/terms-of-service.html" className="hover:text-gray-700">Terms</a>
+            <a href="/privacy" className="hover:text-gray-700">Privacy</a>
             <span>·</span>
-            <Link to="/contact" className="hover:text-gray-700">Contact</Link>
+            <a href="/contact" className="hover:text-gray-700">Contact</a>
+            <span>·</span>
+            <Link to="/help" className="hover:text-gray-700">Help</Link>
           </div>
         </div>
       </footer>

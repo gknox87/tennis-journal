@@ -1,0 +1,20 @@
+{
+	"appId": "com.sportsjournal.app",
+	"appName": "Sports Journal",
+	"webDir": "dist",
+	"backgroundColor": "#FFFFFF",
+	"loggingBehavior": "debug",
+	"ios": {
+		"contentInset": "automatic",
+		"backgroundColor": "#FFFFFF",
+		"allowsLinkPreview": false,
+		"scrollEnabled": false
+	},
+	"android": {
+		"backgroundColor": "#FFFFFF",
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false
+	},
+	"packageClassList": []
+}
