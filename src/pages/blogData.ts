@@ -145,13 +145,13 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "ping-pong-journal",
-    title: "How to Keep a Ping Pong Journal: Table Tennis Performance Logging",
+    title: "How to Keep a Table Tennis Journal: Performance Logging Guide",
     description: "A practical guide to logging your table tennis matches and training sessions. Includes specific reflection questions for spin, service, and mental game.",
     sport: "Table Tennis",
     sportIcon: "🏓",
     readTime: 6,
     date: "27 May 2026",
-    keywords: ["ping pong journal", "table tennis journal", "table tennis log", "ping pong performance", "ping pong reflection"],
+    keywords: ["table tennis journal", "table tennis performance", "table tennis log", "table tennis reflection", "ping pong journal"],
     content: `
 <h2>Table Tennis is a Game of Repetition and Adjustment</h2>
 <p>Table tennis rewards athletes who can adapt quickly. In a sport where matches last twenty minutes and points last seconds, the difference between a good player and an elite player is not physical — it is informational. Great table tennis players read their opponent, adjust, and execute within the space of a single point.</p>

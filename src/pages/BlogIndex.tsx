@@ -6,7 +6,7 @@ import { useEffect } from "react";
 const SPORT_IMAGES: Record<string, string> = {
   PADEL: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
   TENNIS: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-  TABLETENNIS: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+  TABLETENNIS: "https://images.unsplash.com/photo-1591238372338-22d30c883a86?w=800&q=80",
   BADMINTON: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
   WEIGHTLIFTING: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
   CYCLING: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
@@ -45,8 +45,8 @@ function BlogIndex() {
         </div>
       </div>
 
-      {/* Hero */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
+      {/* Hero — centered layout */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-[#3b82f6]/10 px-4 py-1.5 rounded-full text-sm font-semibold text-[#3b82f6] mb-6">
           <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse" />
           Performance & Improvement
@@ -55,7 +55,7 @@ function BlogIndex() {
           The Sports Journal
           <span className="block text-[#3b82f6]">Blog</span>
         </h1>
-        <p className="text-[#111827]/60 text-lg sm:text-xl max-w-2xl">
+        <p className="text-[#111827]/60 text-lg sm:text-xl max-w-2xl mx-auto text-left sm:text-center">
           Structured reflection guides, sport-specific training logs, and performance insights for ambitious athletes.
         </p>
       </div>
@@ -65,10 +65,10 @@ function BlogIndex() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
           <Link
             to={`/blog/${featured.slug}`}
-            className="group relative flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden bg-white border border-[#e5e7eb] hover:border-[#3b82f6]/40 hover:shadow-xl transition-all duration-300"
+            className="group relative flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden bg-white border-2 border-[#e5e7eb] hover:border-[#3b82f6] hover:shadow-xl transition-all duration-300"
           >
             {/* Image */}
-            <div className="sm:w-72 h-48 sm:h-auto flex-shrink-0 overflow-hidden">
+            <div className="sm:w-80 h-52 sm:h-auto flex-shrink-0 overflow-hidden">
               <img
                 src={getSportImage(featured.sport)}
                 alt={featured.title}
@@ -83,13 +83,13 @@ function BlogIndex() {
                   Featured — {featured.sport}
                 </span>
               </div>
-              <h2 className="font-black text-xl sm:text-2xl tracking-tight mb-3 leading-snug group-hover:text-[#3b82f6] transition">
+              <h2 className="font-black text-xl sm:text-2xl tracking-tight mb-3 leading-snug group-hover:text-[#3b82f6] transition text-left">
                 {featured.title}
               </h2>
-              <p className="text-[#111827]/55 text-sm leading-relaxed mb-4 line-clamp-2">
+              <p className="text-[#111827]/55 text-sm leading-relaxed mb-4 line-clamp-2 text-left">
                 {featured.description}
               </p>
-              <div className="flex items-center gap-4 text-xs text-[#111827]/40 font-medium">
+              <div className="flex items-center gap-4 text-xs text-[#111827]/40 font-medium text-left">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   {featured.date}
@@ -99,7 +99,7 @@ function BlogIndex() {
                   {featured.readTime} min read
                 </span>
               </div>
-              <div className="mt-5 flex items-center gap-1.5 text-sm font-bold text-[#3b82f6] group-hover:gap-2.5 transition-all">
+              <div className="mt-5 flex items-center gap-1.5 text-sm font-bold text-[#3b82f6] group-hover:gap-2.5 transition-all text-left">
                 Read article
                 <ArrowUpRight className="w-4 h-4" />
               </div>
@@ -119,10 +119,10 @@ function BlogIndex() {
             <Link
               key={post.slug}
               to={`/blog/${post.slug}`}
-              className="group flex flex-col rounded-xl overflow-hidden bg-white border border-[#e5e7eb] hover:border-[#3b82f6]/40 hover:shadow-lg transition-all duration-300"
+              className="group flex flex-col rounded-xl overflow-hidden bg-white border-2 border-[#e5e7eb] hover:border-[#3b82f6] hover:shadow-lg transition-all duration-300"
             >
               {/* Image */}
-              <div className="h-40 overflow-hidden">
+              <div className="h-44 overflow-hidden">
                 <img
                   src={getSportImage(post.sport)}
                   alt={post.title}
@@ -137,10 +137,13 @@ function BlogIndex() {
                     {post.sport}
                   </span>
                 </div>
-                <h3 className="font-bold text-[#111827] leading-snug mb-2 group-hover:text-[#3b82f6] transition line-clamp-2 text-sm">
+                <h3 className="font-bold text-[#111827] leading-snug mb-2 group-hover:text-[#3b82f6] transition line-clamp-2 text-base text-left">
                   {post.title}
                 </h3>
-                <div className="mt-auto pt-3 flex items-center gap-3 text-xs text-[#111827]/40 font-medium">
+                <p className="text-[#111827]/45 text-sm leading-relaxed mb-4 line-clamp-2 text-left">
+                  {post.description}
+                </p>
+                <div className="mt-auto pt-3 flex items-center gap-3 text-xs text-[#111827]/40 font-medium text-left">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {post.date}
@@ -157,17 +160,17 @@ function BlogIndex() {
       </div>
 
       {/* CTA */}
-      <div className="bg-white border-t border-[#e5e7eb]">
+      <div className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 text-center">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-3 text-[#111827]">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-3 text-white">
             Start your performance journal free →
           </h2>
-          <p className="text-[#111827]/50 text-base mb-6">
+          <p className="text-white/70 text-base mb-6">
             Join athletes who track, reflect, and improve with Sports Journal.
           </p>
           <a
             href="https://hub.sportsjournal.app/register"
-            className="inline-flex items-center px-6 py-3 bg-[#3b82f6] text-white rounded-xl font-bold hover:bg-[#2563eb] transition shadow-lg shadow-[#3b82f6]/20"
+            className="inline-flex items-center px-6 py-3 bg-white text-[#3b82f6] rounded-xl font-bold hover:bg-[#f8fafc] transition shadow-lg"
           >
             Get started free — no card needed
           </a>
