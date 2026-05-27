@@ -6,7 +6,7 @@ import { useEffect } from "react";
 const SPORT_IMAGES: Record<string, string> = {
   PADEL: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
   TENNIS: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-  TABLETENNIS: "https://images.unsplash.com/photo-1591238372338-22d30c883a86?w=800&q=80",
+  TABLETENNIS: "https://images.unsplash.com/photo-1708268418738-4863baa9cf72?w=800&q=80",
   BADMINTON: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
   WEIGHTLIFTING: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
   CYCLING: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
