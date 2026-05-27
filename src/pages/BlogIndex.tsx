@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Clock, Calendar, ArrowRight, BookOpen, TrendingUp } from "lucide-react";
+import { Clock, Calendar, ArrowRight, BookOpen, TrendingUp, ArrowUpRight } from "lucide-react";
 import { blogPosts } from "./blogData";
 import { useEffect } from "react";
 
@@ -30,15 +30,15 @@ function BlogIndex() {
   const remaining = blogPosts.slice(1);
 
   return (
-    <div className="min-h-screen bg-[#0b1d12] text-white font-sans antialiased">
-      {/* Header / Nav */}
-      <div className="border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-white/80 hover:text-white transition text-sm">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-[#111827] font-sans antialiased">
+      {/* Minimal nav */}
+      <div className="border-b border-[#e5e7eb] bg-white/80 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 text-[#111827]/60 hover:text-[#3b82f6] transition text-sm font-medium">
             <ArrowRight className="w-4 h-4 rotate-180" />
             Back to Sports Journal
           </Link>
-          <div className="flex items-center gap-2 text-white/60 text-sm">
+          <div className="flex items-center gap-2 text-[#111827]/40 text-sm">
             <BookOpen className="w-4 h-4" />
             Blog
           </div>
@@ -47,134 +47,127 @@ function BlogIndex() {
 
       {/* Hero */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
-        <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-sm font-semibold text-white/80 mb-6">
-          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+        <div className="inline-flex items-center gap-2 bg-[#3b82f6]/10 px-4 py-1.5 rounded-full text-sm font-semibold text-[#3b82f6] mb-6">
+          <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse" />
           Performance & Improvement
         </div>
         <h1 className="font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
           The Sports Journal
-          <span className="block text-orange-400">Blog</span>
+          <span className="block text-[#3b82f6]">Blog</span>
         </h1>
-        <p className="text-white/60 text-lg sm:text-xl max-w-2xl">
+        <p className="text-[#111827]/60 text-lg sm:text-xl max-w-2xl">
           Structured reflection guides, sport-specific training logs, and performance insights for ambitious athletes.
         </p>
       </div>
 
       {/* Featured Post */}
       {featured && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
           <Link
             to={`/blog/${featured.slug}`}
-            className="group relative flex flex-col md:flex-row gap-0 rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-orange-400/50 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-900/20"
+            className="group relative flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden bg-white border border-[#e5e7eb] hover:border-[#3b82f6]/40 hover:shadow-xl transition-all duration-300"
           >
             {/* Image */}
-            <div className="relative md:w-1/2 aspect-[16/9] md:aspect-auto overflow-hidden">
+            <div className="sm:w-72 h-48 sm:h-auto flex-shrink-0 overflow-hidden">
               <img
                 src={getSportImage(featured.sport)}
                 alt={featured.title}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0b1d12]/80" />
             </div>
-
             {/* Content */}
-            <div className="relative md:w-1/2 p-8 sm:p-10 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-3xl">{featured.sportIcon}</span>
-                  <span className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs font-bold uppercase tracking-wider">
-                    Featured
-                  </span>
-                  <span className="text-xs text-white/40 uppercase tracking-wider">{featured.sport}</span>
-                </div>
-                <h2 className="font-black text-2xl sm:text-3xl leading-tight mb-3 group-hover:text-orange-400 transition-colors">
-                  {featured.title}
-                </h2>
-                <p className="text-white/60 leading-relaxed line-clamp-3">
-                  {featured.description}
-                </p>
-              </div>
-
-              <div className="mt-6 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-white/40">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" />
-                    {featured.date}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {featured.readTime} min read
-                  </span>
-                </div>
-                <span className="flex items-center gap-2 text-orange-400 font-semibold text-sm group-hover:gap-3 transition-all">
-                  Read article
-                  <ArrowRight className="w-4 h-4" />
+            <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">{featured.sportIcon}</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#16a34a] bg-[#16a34a]/10 px-2.5 py-1 rounded-full">
+                  Featured — {featured.sport}
                 </span>
+              </div>
+              <h2 className="font-black text-xl sm:text-2xl tracking-tight mb-3 leading-snug group-hover:text-[#3b82f6] transition">
+                {featured.title}
+              </h2>
+              <p className="text-[#111827]/55 text-sm leading-relaxed mb-4 line-clamp-2">
+                {featured.description}
+              </p>
+              <div className="flex items-center gap-4 text-xs text-[#111827]/40 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {featured.date}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {featured.readTime} min read
+                </span>
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 text-sm font-bold text-[#3b82f6] group-hover:gap-2.5 transition-all">
+                Read article
+                <ArrowUpRight className="w-4 h-4" />
               </div>
             </div>
           </Link>
         </div>
       )}
 
-      {/* Post Grid */}
+      {/* All Articles */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
-        <div className="flex items-center gap-2 mb-8">
-          <TrendingUp className="w-5 h-5 text-orange-400" />
-          <h2 className="font-bold text-lg text-white/80">All Articles</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <TrendingUp className="w-5 h-5 text-[#3b82f6]" />
+          <h2 className="text-xl font-black tracking-tight">All Articles</h2>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {remaining.map((post) => (
             <Link
               key={post.slug}
               to={`/blog/${post.slug}`}
-              className="group flex gap-4 p-5 rounded-xl bg-white/5 border border-white/10 hover:border-orange-400/40 hover:bg-white/10 transition duration-200"
+              className="group flex flex-col rounded-xl overflow-hidden bg-white border border-[#e5e7eb] hover:border-[#3b82f6]/40 hover:shadow-lg transition-all duration-300"
             >
-              {/* Thumbnail */}
-              <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden">
+              {/* Image */}
+              <div className="h-40 overflow-hidden">
                 <img
                   src={getSportImage(post.sport)}
                   alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-
-              {/* Text */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{post.sportIcon}</span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-white/40">
-                      {post.sport}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-white leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors text-sm">
-                    {post.title}
-                  </h3>
+              {/* Content */}
+              <div className="p-5 flex flex-col flex-1">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="text-lg">{post.sportIcon}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#111827]/50">
+                    {post.sport}
+                  </span>
                 </div>
-                <div className="flex items-center gap-3 mt-2 text-xs text-white/40">
+                <h3 className="font-bold text-[#111827] leading-snug mb-2 group-hover:text-[#3b82f6] transition line-clamp-2 text-sm">
+                  {post.title}
+                </h3>
+                <div className="mt-auto pt-3 flex items-center gap-3 text-xs text-[#111827]/40 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {post.date}
+                  </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {post.readTime} min
                   </span>
-                  <span>{post.date}</span>
                 </div>
               </div>
             </Link>
           ))}
         </div>
+      </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-14 bg-gradient-to-r from-[#1a2e1f] to-[#0b1d12] rounded-2xl p-8 sm:p-10 text-center border border-white/10">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-3">
+      {/* CTA */}
+      <div className="bg-white border-t border-[#e5e7eb]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 text-center">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-3 text-[#111827]">
             Start your performance journal free →
           </h2>
-          <p className="text-white/50 text-base mb-6">
+          <p className="text-[#111827]/50 text-base mb-6">
             Join athletes who track, reflect, and improve with Sports Journal.
           </p>
           <a
             href="https://hub.sportsjournal.app/register"
-            className="inline-flex items-center px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-400 transition"
+            className="inline-flex items-center px-6 py-3 bg-[#3b82f6] text-white rounded-xl font-bold hover:bg-[#2563eb] transition shadow-lg shadow-[#3b82f6]/20"
           >
             Get started free — no card needed
           </a>
