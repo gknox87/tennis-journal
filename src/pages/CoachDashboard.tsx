@@ -56,9 +56,14 @@ const CoachDashboard = () => {
             <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-1">No teams yet</h3>
             <p className="text-muted-foreground mb-4">Create your first team to start managing players.</p>
-            <Button onClick={() => setShowCreate(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Create Team
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => setShowCreate(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Create Team
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/coach-feed")}>
+                View Athlete Feed
+              </Button>
+            </div>
           </Card>
         ) : (
           <div className="space-y-3">

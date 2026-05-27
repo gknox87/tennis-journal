@@ -2,14 +2,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { MatchForm } from "@/components/match/MatchForm";
 import type { MatchFormData } from "@/components/match/MatchForm";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Mic, PenTool } from "lucide-react";
 import { SetScore } from "@/types/match";
+import { VoiceMatchEntry } from "@/components/voice/VoiceMatchEntry";
 
 const AddMatch = () => {
   const { sport } = useSport();
@@ -46,6 +49,18 @@ const AddMatch = () => {
         })
         .join(", ");
 
+      // Handle partner_id for doubles matches
+      let partnerId: string | null = null;
+      if (formData.matchType === 'doubles' && formData.partner) {
+        const { data: partnerData } = await supabase
+          .rpc('get_or_create_partner', {
+            p_name: formData.partner,
+            p_user_id: session.user.id,
+            p_sport_id: sport.id
+          });
+        partnerId = partnerData;
+      }
+
       const { data: matchData, error: matchError } = await supabase
         .from('matches')
         .insert({
@@ -60,6 +75,8 @@ const AddMatch = () => {
           sport_id: sport.id,
           reflection_prompt_used: formData.reflectionPromptUsed || null,
           reflection_prompt_level: formData.reflectionPromptLevel || null,
+          match_type: formData.matchType || 'singles',
+          partner_id: partnerId,
         })
         .select()
         .single();
@@ -152,7 +169,34 @@ const AddMatch = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
-        <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        <Tabs defaultValue="manual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/50 backdrop-blur-sm p-1 mb-6 shadow-lg">
+            <TabsTrigger 
+              value="manual" 
+              className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
+            >
+              <PenTool className="w-4 h-4 mr-2" />
+              Manual Entry
+            </TabsTrigger>
+            <TabsTrigger 
+              value="voice" 
+              className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
+            >
+              <Mic className="w-4 h-4 mr-2" />
+              Voice Entry
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="manual">
+            <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          </TabsContent>
+          
+          <TabsContent value="voice">
+            <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-purple-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
+              <VoiceMatchEntry />
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

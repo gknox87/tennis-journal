@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schemas.supabase.com/edge-runtime.json",
+  "functions": {
+    "process-location-sessions": {
+      "path": "./index.ts"
+    }
+  },
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}

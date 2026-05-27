@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -6,7 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles, Save, X, Zap } from "lucide-react";
+import { CalendarIcon, Sparkles, Save, X, Zap, Users } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { UniversalScoreInput } from "@/components/scoring/UniversalScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
@@ -18,10 +17,12 @@ import { Switch } from "@/components/ui/switch";
 import { SetScore } from "@/types/match";
 import { useSport } from "@/context/SportContext";
 import type { ScoreFormat } from "@/types/sport";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface MatchFormData {
   date: Date;
   opponent: string;
+  partner?: string;
   courtType: string;
   sets: SetScore[];
   isWin: boolean;
@@ -30,6 +31,8 @@ export interface MatchFormData {
   isBestOfFive?: boolean;
   reflectionPromptUsed?: string | null;
   reflectionPromptLevel?: string | null;
+  matchType?: 'singles' | 'doubles';
+  sportId?: string;
 }
 
 interface MatchFormProps {
@@ -55,8 +58,14 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const { sport } = useSport();
   const scoreFormat = sport.defaultScoreFormat;
   const isSetBasedSport = scoreFormat.type === "sets" || scoreFormat.type === "rally" || scoreFormat.type === "games";
+  
+  // Check if sport supports doubles (has partnerLabel)
+  const supportsDoubles = Boolean(sport.terminology.partnerLabel);
+  
   const [date, setDate] = useState<Date>(initialData?.date || new Date());
   const [opponent, setOpponent] = useState(initialData?.opponent || "");
+  const [partner, setPartner] = useState(initialData?.partner || "");
+  const [matchType, setMatchType] = useState<'singles' | 'doubles'>(initialData?.matchType || 'singles');
   const [courtType, setCourtType] = useState<string>(initialData?.courtType || "");
   const [isBestOfFive, setIsBestOfFive] = useState(
     initialData?.isBestOfFive || (scoreFormat.type === "sets" && scoreFormat.maxSets === 5)
@@ -67,6 +76,9 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const [reflectionPromptUsed, setReflectionPromptUsed] = useState<string | null>(initialData?.reflectionPromptUsed || null);
   const [reflectionPromptLevel, setReflectionPromptLevel] = useState<string | null>(initialData?.reflectionPromptLevel || null);
   const hasVenueOptions = Boolean(sport.venueOptions?.length);
+  
+  // Partner suggestions state
+  const [partnerSuggestions, setPartnerSuggestions] = useState<string[]>([]);
 
   // Universal score state for time/distance/numeric/rounds sports
   const [universalPlayerScore, setUniversalPlayerScore] = useState(
@@ -75,6 +87,34 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const [universalOpponentScore, setUniversalOpponentScore] = useState(
     initialData?.sets?.[0]?.opponentScore || ""
   );
+
+  // Load partner suggestions for padel/doubles sports
+  useEffect(() => {
+    if (supportsDoubles) {
+      loadPartnerSuggestions();
+    }
+  }, [supportsDoubles]);
+
+  const loadPartnerSuggestions = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: partners } = await supabase
+        .from("partners")
+        .select("name")
+        .eq("user_id", session.user.id)
+        .eq("sport_id", sport.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (partners) {
+        setPartnerSuggestions(partners.map(p => p.name));
+      }
+    } catch (error) {
+      console.error("Error loading partner suggestions:", error);
+    }
+  };
 
   const determineSeriesLength = () => {
     const fmt = sport.defaultScoreFormat;
@@ -149,6 +189,7 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
     await onSubmit({
       date,
       opponent,
+      partner: matchType === 'doubles' ? partner : undefined,
       courtType,
       sets,
       isWin,
@@ -158,6 +199,7 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       sportId: sport.id,
       reflectionPromptUsed,
       reflectionPromptLevel,
+      matchType,
     } as any);
   };
 
@@ -232,6 +274,57 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
             />
           </div>
         </div>
+
+        {/* Doubles Toggle for sports that support it */}
+        {supportsDoubles && (
+          <div className="mt-6">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200/50">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-full transition-colors duration-300 ${matchType === 'doubles' ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md" : "bg-white text-amber-600 border border-amber-200"}`}>
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">Doubles Match</p>
+                  <p className="text-sm text-gray-600">
+                    Toggle on to log with a partner
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="match-type"
+                checked={matchType === 'doubles'}
+                onCheckedChange={(checked) => setMatchType(checked ? 'doubles' : 'singles')}
+                className="data-[state=checked]:bg-amber-500 ml-auto"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Partner Input - shown when doubles is selected */}
+        {supportsDoubles && matchType === 'doubles' && (
+          <div className="mt-4 space-y-3">
+            <Label className="text-base font-semibold text-gray-700">
+              {sport.terminology.partnerLabel || "Partner"}
+            </Label>
+            <Input
+              value={partner}
+              onChange={(e) => setPartner(e.target.value)}
+              placeholder={`Enter ${sport.terminology.partnerLabel?.toLowerCase() || "partner"} name`}
+              list="partner-suggestions"
+              className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-amber-200/50 hover:border-amber-400 transition-all duration-300"
+            />
+            {partnerSuggestions.length > 0 && (
+              <datalist id="partner-suggestions">
+                {partnerSuggestions.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            )}
+            <p className="text-xs text-gray-500">
+              Start typing to see suggestions from your previous partners
+            </p>
+          </div>
+        )}
 
         <div className="mt-6 space-y-3">
           <Label className="text-base font-semibold text-gray-700">{locationLabel}</Label>

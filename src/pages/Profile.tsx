@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useSubscription } from "@/hooks/useSubscription";
-import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown } from "lucide-react";
+import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
@@ -325,6 +325,23 @@ const Profile = () => {
               </div>
             </Card>
           )}
+
+          {/* Export Data Link */}
+          <Card
+            className="p-4 cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-blue-200/50 hover:border-blue-400/60"
+            onClick={() => navigate("/data-export")}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100">
+                <Download className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Export Data & Privacy</h3>
+                <p className="text-sm text-muted-foreground">Download your data, generate PDF reports, manage GDPR rights</p>
+              </div>
+              <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+            </div>
+          </Card>
 
           {/* Profile Details */}
           <Card className="p-6 sm:p-8 bg-white border-2 border-gray-200/50 shadow-xl">

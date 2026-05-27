@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
   User,
-  Menu
+  Menu,
+  Bell
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SideMenu } from "@/components/SideMenu";
@@ -28,6 +29,7 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
   const [profileData, setProfileData] = useState<Profile | null>(userProfile || null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   // Pages only accessible from the hamburger side menu (not in bottom nav)
   const SIDE_MENU_ONLY_PATHS = [
@@ -91,6 +93,28 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { count } = await supabase
+          .from("notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", session.user.id)
+          .eq("read", false);
+
+        setUnreadNotifications(count || 0);
+      } catch (error) {
+        console.error("Error fetching notification count:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
   const displayName = profileData?.full_name || profileData?.username || 'Player';
   const initials = displayName
     .split(' ')
@@ -133,6 +157,20 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
 
           {/* Right Section - Profile & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Notification Bell */}
+            <button
+              onClick={() => navigate("/notifications")}
+              className="relative flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-purple-600 transition-all duration-200 hover:scale-105 active:scale-95"
+              aria-label="View notifications"
+            >
+              <Bell className="h-6 w-6 text-white" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1 animate-pulse">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
+            </button>
+
             {/* Profile Link */}
             <button
               onClick={() => navigate("/profile")}

@@ -32,6 +32,9 @@ const TrainingLoad = React.lazy(() => import("@/pages/TrainingLoad"));
 const Wellness = React.lazy(() => import("@/pages/Wellness"));
 const Profile = React.lazy(() => import("@/pages/Profile"));
 const CoachDashboard = React.lazy(() => import("@/pages/CoachDashboard"));
+const CoachFeed = React.lazy(() => import("@/pages/CoachFeed"));
+const Notifications = React.lazy(() => import("@/pages/Notifications"));
+const NotificationSettings = React.lazy(() => import("@/pages/NotificationSettings"));
 const OpponentDetail = React.lazy(() => import("@/pages/OpponentDetail"));
 const TeamDetail = React.lazy(() => import("@/pages/TeamDetail"));
 const Features = React.lazy(() => import("@/pages/Features"));
@@ -47,6 +50,11 @@ const AdminTeams = React.lazy(() => import("@/pages/AdminTeams"));
 const Goals = React.lazy(() => import("@/pages/Goals"));
 const BlogIndex = React.lazy(() => import("@/pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("@/pages/BlogPost"));
+const PadelStats = React.lazy(() => import("@/pages/PadelStats"));
+const PerformanceDashboard = React.lazy(() => import("@/pages/PerformanceDashboard"));
+const Challenges = React.lazy(() => import("@/pages/Challenges"));
+const DataExport = React.lazy(() => import("@/pages/DataExport"));
+const GDPRPrivacy = React.lazy(() => import("@/pages/GDPRPrivacy"));
 
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -246,6 +254,22 @@ function App() {
                 }
               />
               <Route
+                path="/data-export"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <DataExport />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/privacy-gdpr"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <GDPRPrivacy />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/goals"
                 element={
                   <ProtectedRoute session={session} isLoading={loading}>
@@ -254,10 +278,58 @@ function App() {
                 }
               />
               <Route
+                path="/challenges"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <Challenges />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/padel-stats"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <PadelStats />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/performance-dashboard"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <PerformanceDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/coach"
                 element={
                   <ProtectedRoute session={session} isLoading={loading}>
                     <CoachDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/coach-feed"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <CoachFeed />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notification-settings"
+                element={
+                  <ProtectedRoute session={session} isLoading={loading}>
+                    <NotificationSettings />
                   </ProtectedRoute>
                 }
               />

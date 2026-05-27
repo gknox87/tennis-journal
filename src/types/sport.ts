@@ -63,6 +63,14 @@ export interface StatDescriptor {
   category: "universal" | "sport_specific";  // universal stats apply to all sports
 }
 
+export interface ScoringRules {
+  noAdScoring?: boolean;      // No-ad scoring (e.g., games to 4, win by 2)
+  fast4Enabled?: boolean;     // Fast4-style format enabled
+  matchTiebreakAt?: string;   // When match tiebreak occurs (e.g., "1-1" for 1-1 in sets)
+  tiebreakPoints?: number;     // Points to win a tiebreak
+  matchTiebreakPoints?: number; // Points to win match tiebreak
+}
+
 export interface SportMetadata {
   id: string;
   name: string;
@@ -81,6 +89,7 @@ export interface SportMetadata {
   terminology: {
     matchLabel: string;
     opponentLabel: string;
+    partnerLabel?: string;   // For sports like padel with doubles
     trainingLabel: string;
     highlightLabel: string;
   };
@@ -89,6 +98,7 @@ export interface SportMetadata {
     focusAreas: string[];
   };
   venueOptions?: string[];       // Sport-specific venue types (e.g., ["Hard Court", "Clay Court"])
+  scoring?: ScoringRules;         // Sport-specific scoring rules (e.g., no-ad for padel)
   stats?: {
     primary: StatDescriptor[];   // Primary stats always shown in dashboard
     secondary?: StatDescriptor[]; // Optional/advanced stats for detailed views

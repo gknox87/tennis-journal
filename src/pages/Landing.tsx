@@ -470,22 +470,24 @@ const Landing = () => {
           <div className="flex flex-wrap justify-center gap-3 mb-6">
             {[
               { label: "🎾 Tennis", active: true },
+              { label: "🏸 Padel", highlight: true },
               { label: "🏓 Table Tennis" },
+              { label: "🏸 Badminton" },
               { label: "⚽ Football" },
               { label: "🏐 Volleyball" },
-              { label: "🏸 Badminton" },
               { label: "🥊 Boxing" },
               { label: "🏊 Swimming" },
               { label: "🚴 Cycling" },
               { label: "🏋️ Weightlifting" },
               { label: "🏃 Athletics" },
-              { label: "🏒 Hockey" },
               { label: "+ More sports coming" },
-            ].map(({ label, active }) => (
+            ].map(({ label, active, highlight }) => (
               <span
                 key={label}
                 className={`px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm border ${
-                  active
+                  highlight
+                    ? "bg-amber-100 text-amber-800 border-amber-300 ring-2 ring-amber-400"
+                    : active
                     ? "bg-violet-100 text-violet-700 border-violet-200"
                     : "bg-white text-gray-700 border-gray-200"
                 }`}

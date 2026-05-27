@@ -26,6 +26,8 @@ const playerNavItems: NavItem[] = [
       { label: "Injury Tracker", path: "/injury-tracker", icon: Calendar },
       { label: "Opponents", path: "/key-opponents", icon: Calendar },
       { label: "Goals", path: "/goals", icon: Calendar },
+      { label: "Challenges", path: "/challenges", icon: Trophy },
+      { label: "Reminders", path: "/notification-settings", icon: Bell },
     ],
   },
 ];
@@ -33,7 +35,7 @@ const playerNavItems: NavItem[] = [
 const coachNavItems: NavItem[] = [
   { label: "Home", path: "/dashboard", icon: Home },
   { label: "Matches", path: "/matches", icon: Trophy },
-  { label: "Notes", path: "/training-notes", icon: BookOpen },
+  { label: "Athlete Feed", path: "/coach-feed", icon: BookOpen },
   { label: "Planner", path: "/calendar", icon: Calendar },
   {
     label: "More",
@@ -45,6 +47,8 @@ const coachNavItems: NavItem[] = [
       { label: "Injury Tracker", path: "/injury-tracker", icon: Calendar },
       { label: "Key Opponents", path: "/key-opponents", icon: Calendar },
       { label: "Goals", path: "/goals", icon: Calendar },
+      { label: "Coach Dashboard", path: "/coach", icon: Calendar },
+      { label: "Reminders", path: "/notification-settings", icon: Bell },
     ],
   },
 ];

@@ -388,6 +388,7 @@ export const SPORTS: Record<string, SportMetadata> = {
     terminology: {
       matchLabel: "Match",
       opponentLabel: "Opposing Pair",
+      partnerLabel: "Partner",
       trainingLabel: "Practice",
       highlightLabel: "Winning Pattern",
     },
@@ -400,6 +401,13 @@ export const SPORTS: Record<string, SportMetadata> = {
       "Outdoor Court",
       "Covered Court"
     ],
+    scoring: {
+      noAdScoring: true, // Padel uses no-ad scoring (first to 4, win by 2)
+      fast4Enabled: true, // Fast4-style is common in padel
+      matchTiebreakAt: "1-1", // Match tiebreak at 1-1 in sets
+      tiebreakPoints: 7, // Tiebreak to 7 points (win by 2)
+      matchTiebreakPoints: 10, // Final set match tiebreak to 10 points
+    },
     stats: {
       primary: [
         {
@@ -413,6 +421,18 @@ export const SPORTS: Record<string, SportMetadata> = {
           label: "Matches Logged",
           description: "Partidos recorded",
           category: "universal",
+        },
+        {
+          id: "doubles_win_rate",
+          label: "Doubles Win Rate",
+          description: "Win rate in doubles matches",
+          category: "sport_specific",
+        },
+        {
+          id: "partner_stats",
+          label: "Partner Performance",
+          description: "Track record with each partner",
+          category: "sport_specific",
         },
         {
           id: "matches_this_year",
@@ -450,6 +470,12 @@ export const SPORTS: Record<string, SportMetadata> = {
           id: "lob_accuracy",
           label: "Lob Accuracy",
           description: "Effective lob percentage",
+          category: "sport_specific",
+        },
+        {
+          id: "partner_synergy",
+          label: "Partner Synergy",
+          description: "Performance rating with each partner",
           category: "sport_specific",
         },
       ],

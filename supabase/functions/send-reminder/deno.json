@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schemas.supabase.com/edge-runtime.json",
+  "functions": {
+    "send-reminder": {
+      "path": "./index.ts",
+      "cron": "*/15 * * * *",
+      "trigger": "cron"
+    }
+  },
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
