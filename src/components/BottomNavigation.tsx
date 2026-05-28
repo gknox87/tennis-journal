@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Trophy, BookOpen, Calendar, Ellipsis } from "lucide-react";
+import { Home, Trophy, BookOpen, Calendar, Ellipsis, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserRoles } from "@/hooks/useUserRoles";
 
