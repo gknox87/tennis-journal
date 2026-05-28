@@ -84,7 +84,7 @@ export const blogPosts: BlogPost[] = [
 <h2>Tracking Partner Chemistry</h2>
 <p>Because padel is played in pairs, tracking chemistry with different partners gives you a competitive edge. Note combinations that work well for you — for example, some players perform best paired with aggressive net players who cover their weaker serve return. This data helps you communicate better with partners and select搭档 smarter in competitive contexts.</p>
     `,
-    relatedSlugs: ["padel-journal-guide", "post-match-reflection-guide", "ping-pong-journal"]
+    relatedSlugs: ["padel-journal-guide", "post-match-reflection-guide", "table-tennis-journal"],
   },
   {
     slug: "workout-reflection-prompts",
@@ -144,7 +144,7 @@ export const blogPosts: BlogPost[] = [
     relatedSlugs: ["post-match-reflection-guide", "athletics-training-journal", "cycling-performance-journal"]
   },
   {
-    slug: "ping-pong-journal",
+    slug: "table-tennis-journal",
     title: "How to Keep a Table Tennis Journal: Performance Logging Guide",
     description: "A practical guide to logging your table tennis matches and training sessions. Includes specific reflection questions for spin, service, and mental game.",
     sport: "Table Tennis",
@@ -207,7 +207,7 @@ export const blogPosts: BlogPost[] = [
 <h2>Recovery and Injury Tracking for Badminton Players</h2>
 <p>Knee and ankle injuries are common in badminton. Log any unusual soreness in these areas post-session. Also note whether your shoulder felt strong on clears and smashes — rotator cuff fatigue in badminton accumulates over weeks and is easy to miss until it becomes a significant injury. The journal is your early warning system.</p>
     `,
-    relatedSlugs: ["ping-pong-journal", "padel-journal-guide", "swimming-training-log"]
+    relatedSlugs: ["table-tennis-journal", "padel-journal-guide", "swimming-training-log"]
   },
   {
     slug: "post-match-reflection-guide",

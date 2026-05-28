@@ -6,7 +6,7 @@ import { useEffect } from "react";
 const SPORT_IMAGES: Record<string, string> = {
   PADEL: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
   TENNIS: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-  TABLETENNIS: "https://images.unsplash.com/photo-1708268418738-4863baa9cf72?w=800&q=80",
+  TABLETENNIS: "https://images.unsplash.com/photo-1617083934555-ac8d96a87825?w=800&q=80",
   BADMINTON: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
   WEIGHTLIFTING: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
   CYCLING: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80",
@@ -15,8 +15,24 @@ const SPORT_IMAGES: Record<string, string> = {
   GENERAL: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80",
 };
 
+const SPORT_ACCENTS: Record<string, { border: string; hover: string; badge: string }> = {
+  PADEL:        { border: "border-amber-300",   hover: "hover:border-amber-500",    badge: "bg-amber-100 text-amber-800"    },
+  TENNIS:       { border: "border-green-300",   hover: "hover:border-green-500",    badge: "bg-green-100 text-green-800"    },
+  TABLETENNIS:  { border: "border-blue-300",    hover: "hover:border-blue-500",    badge: "bg-blue-100 text-blue-800"      },
+  BADMINTON:    { border: "border-purple-300",  hover: "hover:border-purple-500",  badge: "bg-purple-100 text-purple-800"  },
+  WEIGHTLIFTING:{ border: "border-red-300",     hover: "hover:border-red-500",     badge: "bg-red-100 text-red-800"       },
+  CYCLING:      { border: "border-orange-300", hover: "hover:border-orange-500",  badge: "bg-orange-100 text-orange-800"},
+  SWIMMING:     { border: "border-cyan-300",   hover: "hover:border-cyan-500",    badge: "bg-cyan-100 text-cyan-800"    },
+  ATHLETICS:    { border: "border-yellow-300", hover: "hover:border-yellow-500",  badge: "bg-yellow-100 text-yellow-800" },
+  GENERAL:      { border: "border-slate-300",  hover: "hover:border-slate-500",   badge: "bg-slate-100 text-slate-800"   },
+};
+
 function getSportImage(sport: string): string {
   return SPORT_IMAGES[sport.toUpperCase().replace(" ", "")] || SPORT_IMAGES["GENERAL"];
+}
+
+function getSportAccent(sport: string) {
+  return SPORT_ACCENTS[sport.toUpperCase().replace(" ", "")] || SPORT_ACCENTS["GENERAL"];
 }
 
 function BlogIndex() {
@@ -65,7 +81,7 @@ function BlogIndex() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
           <Link
             to={`/blog/${featured.slug}`}
-            className="group relative flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden bg-white border-2 border-[#e5e7eb] hover:border-[#3b82f6] hover:shadow-xl transition-all duration-300"
+            className={`group relative flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden bg-white border-2 ${getSportAccent(featured.sport).border} ${getSportAccent(featured.sport).hover} hover:shadow-xl transition-all duration-300`}
           >
             {/* Image */}
             <div className="sm:w-80 h-52 sm:h-auto flex-shrink-0 overflow-hidden">
@@ -76,20 +92,20 @@ function BlogIndex() {
               />
             </div>
             {/* Content */}
-            <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center">
+            <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center items-center text-center">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">{featured.sportIcon}</span>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#16a34a] bg-[#16a34a]/10 px-2.5 py-1 rounded-full">
+                <span className={`text-xs font-bold uppercase tracking-wider text-[#16a34a] ${getSportAccent(featured.sport).badge} px-2.5 py-1 rounded-full`}>
                   Featured — {featured.sport}
                 </span>
               </div>
               <h2 className="font-black text-xl sm:text-2xl tracking-tight mb-3 leading-snug group-hover:text-[#3b82f6] transition text-left">
                 {featured.title}
               </h2>
-              <p className="text-[#111827]/55 text-sm leading-relaxed mb-4 line-clamp-2 text-left">
+              <p className="text-[#111827]/55 text-sm leading-relaxed mb-4 line-clamp-2">
                 {featured.description}
               </p>
-              <div className="flex items-center gap-4 text-xs text-[#111827]/40 font-medium text-left">
+              <div className="flex items-center gap-4 text-xs text-[#111827]/40 font-medium">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   {featured.date}
@@ -119,7 +135,7 @@ function BlogIndex() {
             <Link
               key={post.slug}
               to={`/blog/${post.slug}`}
-              className="group flex flex-col rounded-xl overflow-hidden bg-white border-2 border-[#e5e7eb] hover:border-[#3b82f6] hover:shadow-lg transition-all duration-300"
+              className={`group flex flex-col rounded-xl overflow-hidden bg-white border-2 border-[#e5e7eb] ${getSportAccent(post.sport).border} ${getSportAccent(post.sport).hover} hover:shadow-lg transition-all duration-300`}
             >
               {/* Image */}
               <div className="h-44 overflow-hidden">
@@ -133,7 +149,7 @@ function BlogIndex() {
               <div className="p-5 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-2.5">
                   <span className="text-lg">{post.sportIcon}</span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#111827]/50">
+                  <span className={`text-xs font-bold uppercase tracking-wider ${getSportAccent(post.sport).badge} px-2 py-0.5 rounded-full`}>
                     {post.sport}
                   </span>
                 </div>
