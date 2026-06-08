@@ -18,6 +18,7 @@ import React from "react";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
 
 const Index = React.lazy(() => import("@/pages/Index"));
 const AddMatch = React.lazy(() => import("@/pages/AddMatch"));
@@ -100,6 +101,7 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
                 <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
                 <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
                 <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
+                <Route path="/forgot-password" element={session ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} />
                 <Route path="/features" element={<Features />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/demo" element={<Demo />} />

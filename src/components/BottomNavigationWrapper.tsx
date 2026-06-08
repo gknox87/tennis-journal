@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import { BottomNavigation } from "./BottomNavigation";
 
 // Auth pages: no header chrome, no shell top padding
-export const AUTH_ROUTES = ["/login", "/register"];
+export const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 
 export function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.includes(pathname);
