@@ -9,7 +9,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
 import { SportProvider } from "@/context/SportContext";
-import { BottomNavigationWrapper, shouldShowBottomNav } from "@/components/BottomNavigationWrapper";
+import { BottomNavigationWrapper, shouldShowBottomNav, isAuthRoute } from "@/components/BottomNavigationWrapper";
 import { Header } from "@/components/Header";
 import { isMarketingHost, appUrl } from "@/lib/hostMode";
 import { cn } from "@/lib/utils";
@@ -71,6 +71,7 @@ interface AppLayoutProps {
 function AppLayout({ marketing, session, loading }: AppLayoutProps) {
   const location = useLocation();
   const showBottomNav = !marketing && shouldShowBottomNav(location.pathname);
+  const authRoute = isAuthRoute(location.pathname);
 
   const RedirectToApp = () => {
     if (typeof window !== "undefined") {
@@ -156,11 +157,12 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
 
   return (
     <div className="app-shell bg-background">
-      <Header />
+      {!authRoute && <Header />}
 
       <div
         className={cn(
-          "flex-1 min-h-0 overflow-y-auto overscroll-contain pt-shell-top",
+          "flex-1 min-h-0 overflow-y-auto overscroll-contain",
+          !authRoute && "pt-shell-top",
           showBottomNav && "pb-shell-bottom"
         )}
         style={{ WebkitOverflowScrolling: "touch" }}

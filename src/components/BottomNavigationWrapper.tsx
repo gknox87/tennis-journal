@@ -1,10 +1,16 @@
 import { useLocation } from "react-router-dom";
 import { BottomNavigation } from "./BottomNavigation";
 
+// Auth pages: no header chrome, no shell top padding
+export const AUTH_ROUTES = ["/login", "/register"];
+
+export function isAuthRoute(pathname: string): boolean {
+  return AUTH_ROUTES.includes(pathname);
+}
+
 // Routes that should NOT show bottom navigation
 const HIDDEN_ROUTES = [
-  "/login",
-  "/register",
+  ...AUTH_ROUTES,
   "/",
 ];
 
