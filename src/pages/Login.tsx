@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Clear any existing sessions on component mount
-    const clearSession = async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error clearing session:', error);
-      }
-    };
-    clearSession();
-  }, []);
 
   const validateForm = () => {
     if (!email || !password) {

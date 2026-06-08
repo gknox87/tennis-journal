@@ -182,28 +182,34 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
+    let mounted = true;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      if (!mounted) return;
+
+      // Validate stored session on first load to prevent stale-token redirect loops
+      if (nextSession && event === "INITIAL_SESSION") {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!mounted) return;
+        setSession(error || !user ? null : nextSession);
+      } else {
+        setSession(nextSession);
+      }
+
+      setAuthReady(true);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  if (!authReady) {
+    return <PageLoader />;
   }
 
   const marketing = isMarketingHost();
@@ -211,7 +217,7 @@ function App() {
   return (
     <SportProvider>
       <Router>
-        <AppLayout marketing={marketing} session={session} loading={loading} />
+        <AppLayout marketing={marketing} session={session} loading={false} />
       </Router>
     </SportProvider>
   );
