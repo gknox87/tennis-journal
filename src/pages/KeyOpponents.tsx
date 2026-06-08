@@ -145,8 +145,8 @@ const KeyOpponents = () => {
   );
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
-<div className="container mx-auto px-4 py-8 pb-24 sm:pb-28 pt-16">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
+<div className="container mx-auto px-4 py-8">
         {/* Usage indicator for free users */}
         {isFreePlan && !subLoading && (
           <div className="mb-4 text-sm text-gray-600 text-center">

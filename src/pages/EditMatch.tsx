@@ -19,7 +19,7 @@ const EditMatch = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
 <EditMatchLoading onBack={() => navigate(-1)} />
       </div>
     );
@@ -28,8 +28,8 @@ const EditMatch = () => {
   if (!match) return null;
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16">
-<div className="container mx-auto px-4 py-8 pb-24 sm:pb-28 pt-16">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+<div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Edit Match</h1>
 
       <MatchForm

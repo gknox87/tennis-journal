@@ -87,17 +87,17 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 overflow-y-auto pt-16">
+    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 overflow-y-auto">
 
       {/* Main Content */}
-      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 sm:pb-28">
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="max-w-7xl mx-auto">
           <DashboardContent
             matches={matches}

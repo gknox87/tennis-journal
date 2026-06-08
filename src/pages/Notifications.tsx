@@ -104,40 +104,39 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24 overflow-y-auto pt-16">
-      <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white">
-        <div className="container mx-auto px-4 py-6 pt-16">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6" />
-              <h1 className="text-2xl font-bold">Notifications</h1>
-            </div>
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/40"
-                size="sm"
-                onClick={markAllAsRead}
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Mark all read
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              Notifications
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
+                : "You're all caught up"}
+            </p>
+          </div>
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllAsRead}>
+              <Check className="h-4 w-4 mr-2" />
+              Mark all read
+            </Button>
+          )}
+        </div>
+
         {isLoading ? (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-16">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
           </div>
         ) : notifications.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <Card className="p-8 sm:p-10 text-center border-dashed">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-purple-50">
+              <Bell className="h-7 w-7 text-purple-400" />
+            </div>
             <h3 className="text-lg font-semibold mb-2">No notifications</h3>
-            <p className="text-muted-foreground">
-              You're all caught up! Notifications from your coach will appear here.
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Notifications from your coach and activity updates will appear here.
             </p>
           </Card>
         ) : (

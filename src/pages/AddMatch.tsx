@@ -153,9 +153,9 @@ const AddMatch = () => {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
 {/* Back Navigation */}
-      <div className="relative z-10 container mx-auto px-4 pt-16">
+      <div className="relative z-10 container mx-auto px-4 pt-4">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -174,7 +174,7 @@ const AddMatch = () => {
         <div className="absolute bottom-20 right-32 w-24 h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-6 max-w-2xl">
         <Tabs defaultValue="manual" className="w-full">
           <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/50 backdrop-blur-sm p-1 mb-6 shadow-lg">
             <TabsTrigger

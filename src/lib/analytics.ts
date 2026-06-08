@@ -3,8 +3,16 @@ import posthog from 'posthog-js';
 // PostHog project 173738 — sportsjournal.app (EU cluster)
 const POSTHOG_KEY = 'phc_ZSfxfq2WvivHp3p2b5TK5XTkLEk7YqmHC9prERitvsmoVMqj';
 
+let analyticsReady = false;
+
+export function isAnalyticsReady(): boolean {
+  return analyticsReady;
+}
+
 export function initAnalytics() {
-  if (typeof window !== 'undefined') {
+  if (typeof window === 'undefined') return;
+
+  try {
     posthog.init(POSTHOG_KEY, {
       api_host: 'https://eu.posthog.com',
       person_profiles: 'identified_only',
@@ -17,6 +25,9 @@ export function initAnalytics() {
       autocapture: true,
       bootstrap: {},
     });
+    analyticsReady = true;
+  } catch (error) {
+    console.warn('Analytics init failed — app will continue without PostHog:', error);
   }
 }
 

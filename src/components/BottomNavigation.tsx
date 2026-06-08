@@ -86,7 +86,8 @@ export const BottomNavigation = () => {
           onClick={() => setShowMore(false)}
         >
           <div
-            className="absolute bottom-20 left-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border p-2 animate-in slide-in-from-bottom-4"
+            className="absolute left-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border p-2 animate-in slide-in-from-bottom-4"
+            style={{ bottom: 'var(--app-shell-bottom)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="grid grid-cols-2 gap-1 p-2">
@@ -110,14 +111,15 @@ export const BottomNavigation = () => {
 
       <nav
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50",
+          "fixed inset-x-0 bottom-0 z-50",
           "bg-white border-t border-gray-200",
-          "supports-[padding:env(safe-area-inset-bottom)]:pb-[env(safe-area-inset-bottom)]",
+          "pb-[var(--safe-area-bottom)]",
+          "supports-[backdrop-filter:blur(1px)]:bg-white/90 supports-[backdrop-filter:blur(1px)]:backdrop-blur-lg",
           "shadow-lg"
         )}
       >
         <div className="container mx-auto px-2 sm:px-4">
-          <div className="flex items-center justify-around h-16 sm:h-20">
+          <div className="flex items-center justify-around pt-[20px] pb-[10px]">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -127,9 +129,9 @@ export const BottomNavigation = () => {
                   key={item.path}
                   onClick={() => item.path === "#more" ? setShowMore(!showMore) : navigate(item.path)}
                   className={cn(
-                    "relative flex flex-col items-center justify-center",
-                    "min-h-[44px] min-w-[44px] sm:min-h-[56px] sm:min-w-[56px]",
-                    "px-3 py-2 rounded-xl",
+                    "flex flex-col items-center justify-center",
+                    "min-h-[44px] min-w-[44px]",
+                    "px-3 py-1 rounded-xl",
                     "transition-all duration-200",
                     "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2",
                     active
@@ -148,22 +150,13 @@ export const BottomNavigation = () => {
                   />
                   <span
                     className={cn(
-                      "text-xs sm:text-sm font-medium mt-1",
-                      "transition-all duration-200",
+                      "text-[10px] font-medium mt-0.5",
+                      "transition-colors duration-200",
                       active ? "font-semibold" : "font-normal"
                     )}
                   >
                     {item.label}
                   </span>
-                  {active && (
-                    <span
-                      className={cn(
-                        "absolute -bottom-0.5 left-1/2 -translate-x-1/2",
-                        "w-8 h-1 bg-purple-600 rounded-t-full",
-                        "transition-all duration-200"
-                      )}
-                    />
-                  )}
                 </button>
               );
             })}

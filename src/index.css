@@ -4,13 +4,8 @@
 @tailwind utilities;
 
 /* Remove default margins and ensure full width */
-/* Reset and scrolling */
 html {
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  height: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,9 +15,33 @@ body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
+  min-height: 100%;
+}
+
+/* Capacitor/iOS only: lock document scroll so fixed header/tab bar never bounce */
+html.native-app {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.native-app body,
+html.native-app #root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* App shell: viewport-height layout; full lock only on native */
+.app-shell {
   min-height: 100vh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+html.native-app .app-shell {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
  
 @layer base {
@@ -54,6 +73,19 @@ body, #root {
     --chart-3: 142 76% 36%;
     --chart-4: 38 92% 50%;
     --chart-5: 0 84.2% 60.2%;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --header-toolbar-pt: 8px;
+    --header-toolbar-pb: 24px;
+    --header-toolbar-content: 44px;
+    --app-header-bar: calc(
+      var(--header-toolbar-pt) +
+      var(--header-toolbar-content) +
+      var(--header-toolbar-pb)
+    );
+    --app-tab-bar: 74px;
+    --app-shell-top: calc(var(--safe-area-top) + var(--app-header-bar));
+    --app-shell-bottom: calc(var(--safe-area-bottom) + var(--app-tab-bar));
   }
 }
  
@@ -261,10 +293,14 @@ section {
   }
 }
 
-/* Safe area support for iOS and Android - handled by header component */
-/* Body padding is handled by individual components to avoid conflicts */
+/* App shell spacing — used by fixed header/tab bar layout */
+.pt-shell-top {
+  padding-top: var(--app-shell-top);
+}
 
-/* Global content wrapper — no top/bottom padding here, handled per-page */
+.pb-shell-bottom {
+  padding-bottom: var(--app-shell-bottom);
+}
 
 /* Ensure touch targets meet minimum size requirements for interactive elements */
 /* iOS: 44x44 points, Android: 48x48dp */

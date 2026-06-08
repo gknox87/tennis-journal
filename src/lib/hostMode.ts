@@ -14,7 +14,7 @@ export const APP_HOST = "hub.sportsjournal.app";
 export const APP_ORIGIN = `https://${APP_HOST}`;
 export const MARKETING_ORIGIN = "https://sportsjournal.app";
 
-function isCapacitorNative(): boolean {
+export function isCapacitorNative(): boolean {
   if (typeof window === "undefined") return false;
   // Capacitor injects window.Capacitor at runtime in native builds.
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;

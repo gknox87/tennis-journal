@@ -4,10 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.sportsjournal.app',
   appName: 'Sports Journal',
   webDir: 'dist',
-  backgroundColor: '#6366F1',
+  backgroundColor: '#ffffff',
   ios: {
-    contentInset: 'automatic',
-    backgroundColor: '#6366F1',
+    contentInset: 'never',
+    backgroundColor: '#ffffff',
     allowsLinkPreview: false,
     scrollEnabled: true,
   },

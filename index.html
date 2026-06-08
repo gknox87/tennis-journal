@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://pnlocibettgyqyttegcu.supabase.co https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://pnlocibettgyqyttegcu.supabase.co https://*.supabase.co wss://*.supabase.co https://eu.posthog.com https://*.posthog.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
     <title>Sports Journal — Track Matches, Improve Faster | 13 Sports</title>
     <meta name="description" content="Sports Journal is the intelligent performance journal for athletes in 13 sports. Track matches, spot patterns, and improve faster with AI-powered insights. Free to start.">
     <meta name="keywords" content="sports journal, performance journal, match logging, athlete journal, padel journal, tennis journal, badminton log, boxing journal, improve faster, sports performance tracking">
@@ -21,7 +21,7 @@
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/gGmCnfklxDUYZQpYJkfC3pyA0H33/social-images/social-1770551830305-Screenshot_2026-02-08_at_11.57.02.png">
     <!-- iOS App Store PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sports Journal">
     <meta name="mobile-web-app-capable" content="yes">
     <!-- Android -->
@@ -108,7 +108,7 @@
 
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <!-- gptengineer.js injected in dev only via vite.config.ts -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

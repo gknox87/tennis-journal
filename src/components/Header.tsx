@@ -27,7 +27,6 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileData, setProfileData] = useState<Profile | null>(userProfile || null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
@@ -83,16 +82,6 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
     fetchProfile();
   }, [userProfile]);
 
-  // Handle scroll for header styling
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   // Fetch unread notification count
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -127,15 +116,20 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
     <>
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 w-full shadow-md transition-shadow duration-300",
         "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600",
-        "supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]",
-        isScrolled && "shadow-lg",
+        "pt-[var(--safe-area-top)]",
         className
       )}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+      <div
+        className="flex items-center justify-between px-4 sm:px-6 lg:px-8"
+        style={{
+          paddingTop: "var(--header-toolbar-pt)",
+          paddingBottom: "var(--header-toolbar-pb)",
+          minHeight: "var(--app-header-bar)",
+        }}
+      >
           {/* Left: Hamburger + Logo */}
           <div className="flex items-center gap-1">
             <button
@@ -178,25 +172,24 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
               aria-label="Go to profile"
             >
               {profileData?.avatar_url ? (
-                <Avatar className="h-10 w-10 sm:h-11 sm:w-11 border-2 border-white/50 hover:border-white/80 transition-all shadow-lg hover:shadow-xl">
+                <Avatar className="h-9 w-9 border-2 border-white/50 hover:border-white/80 transition-all shadow-lg hover:shadow-xl">
                   <AvatarImage 
                     src={profileData.avatar_url} 
                     alt={displayName}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-white text-purple-600 font-semibold text-sm sm:text-base border-2 border-white/50">
+                  <AvatarFallback className="bg-white text-purple-600 font-semibold text-sm border-2 border-white/50">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
               ) : (
-                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/50 hover:border-white/80 hover:bg-white transition-all duration-200 group-hover:shadow-xl">
-                  <User className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                <div className="h-9 w-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/50 hover:border-white/80 hover:bg-white transition-all duration-200 group-hover:shadow-xl">
+                  <User className="h-5 w-5 text-purple-600" />
                 </div>
               )}
             </button>
           </div>
         </div>
-      </div>
     </header>
 
       <SideMenu open={sideMenuOpen} onOpenChange={setSideMenuOpen} />

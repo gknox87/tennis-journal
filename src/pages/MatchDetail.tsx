@@ -113,8 +113,8 @@ const MatchDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
-<div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-28 pt-16">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
+<div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <MatchDetailHeader onBack={() => navigate('/')} />
           <div className="flex items-center justify-center mt-8 sm:mt-12">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
@@ -126,8 +126,8 @@ const MatchDetail = () => {
 
   if (!match) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16">
-<div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-28">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+<div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <MatchDetailHeader onBack={() => navigate('/')} />
           <div className="flex items-center justify-center mt-8 sm:mt-12">
             <p className="text-gray-600">Match not found</p>
@@ -138,7 +138,7 @@ const MatchDetail = () => {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
 {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -147,7 +147,7 @@ const MatchDetail = () => {
         <div className="absolute bottom-20 right-32 w-18 h-18 sm:w-24 sm:h-24 bg-green-400/20 rounded-full animate-bounce" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-28 max-w-4xl">
+      <div className="relative z-10 container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-4xl">
         <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
           <MatchDetailHeader onBack={() => navigate('/')} />
           <MatchActionButtons

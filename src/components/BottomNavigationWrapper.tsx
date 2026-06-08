@@ -25,25 +25,23 @@ const PROTECTED_ROUTES = [
   "/wellness",
   "/injury-tracker",
   "/training-load",
+  "/notifications",
 ];
+
+export function shouldShowBottomNav(pathname: string): boolean {
+  if (HIDDEN_ROUTES.some((route) => pathname === route)) {
+    return false;
+  }
+
+  return PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
+}
 
 export const BottomNavigationWrapper = () => {
   const location = useLocation();
 
-  // Check if current route should show bottom navigation
-  const shouldShow = () => {
-    // Don't show on public routes
-    if (HIDDEN_ROUTES.some(route => location.pathname === route)) {
-      return false;
-    }
-
-    // Show on protected routes
-    return PROTECTED_ROUTES.some(route => 
-      location.pathname === route || location.pathname.startsWith(route + "/")
-    );
-  };
-
-  if (!shouldShow()) {
+  if (!shouldShowBottomNav(location.pathname)) {
     return null;
   }
 

@@ -34,15 +34,15 @@ const Wellness = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-rose-50 via-white to-purple-50 pt-16">
-<div className="container mx-auto px-4 py-6 pb-24 max-w-7xl pt-16">
+    <div className="min-h-full bg-gradient-to-br from-rose-50 via-white to-purple-50">
+<div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">

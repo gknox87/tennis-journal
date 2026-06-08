@@ -10,7 +10,7 @@ export function JournalingStreak() {
   if (streakData.isLoading) {
     return (
       <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200/50 shadow-lg rounded-2xl">
-        <CardContent className="p-6">
+        <CardContent className="px-6 py-6">
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
           </div>
@@ -44,8 +44,8 @@ export function JournalingStreak() {
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
 
-      <CardContent className="p-6 md:p-8 relative z-10">
-        <div className="flex flex-col items-start gap-4">
+      <CardContent className="px-6 py-6 md:px-8 md:py-8 relative z-10">
+        <div className="flex flex-col items-start gap-5">
           {/* Main streak display */}
           <div className="flex items-center gap-4 md:gap-6">
             {/* Fire emoji with glow */}
@@ -106,7 +106,7 @@ export function JournalingStreak() {
 
             {/* Progress to next milestone */}
             {currentStreak > 0 && nextMilestone.daysRemaining > 0 && (
-              <div className="space-y-1.5 mt-1 max-w-xs">
+              <div className="space-y-1.5 max-w-xs">
                 <div className="flex items-center justify-between text-[11px] md:text-xs font-medium text-white/75">
                   <span>Next: {nextMilestone.milestone} days</span>
                   <span>{nextMilestone.daysRemaining} to go</span>
@@ -120,16 +120,16 @@ export function JournalingStreak() {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Motivational message for zero streak */}
-        {currentStreak === 0 && (
-          <div className="mt-5 pt-4 border-t border-white/20">
-            <p className="text-center text-white/90 text-sm md:text-base font-medium">
-              Journal your first match or training session to start your streak!
-            </p>
-          </div>
-        )}
+          {/* Motivational message for zero streak */}
+          {currentStreak === 0 && (
+            <div className="w-full pt-4 border-t border-white/20">
+              <p className="text-center text-white/90 text-sm md:text-base font-medium">
+                Journal your first match or training session to start your streak!
+              </p>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

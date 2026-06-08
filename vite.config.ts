@@ -79,6 +79,16 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
+    {
+      name: 'html-dev-scripts',
+      transformIndexHtml(html) {
+        if (mode !== 'development') return html;
+        return html.replace(
+          '<!-- gptengineer.js injected in dev only via vite.config.ts -->',
+          '<script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>'
+        );
+      },
+    },
   ].filter(Boolean),
   resolve: {
     alias: {

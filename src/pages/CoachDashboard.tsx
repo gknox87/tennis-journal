@@ -17,8 +17,8 @@ const CoachDashboard = () => {
   const totalPlayers = coachTeams.reduce((sum, t) => sum + Math.max(0, t.member_count - 1), 0);
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
-<div className="container mx-auto px-4 py-6 pb-24 max-w-4xl pt-16">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto">
+<div className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
