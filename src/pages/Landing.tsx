@@ -63,7 +63,7 @@ const Landing = () => {
     );
 
   return (
-    <div className="min-h-full bg-white text-gray-900 font-sans antialiased overflow-y-auto pb-24 pt-16">
+    <div id="top" className="min-h-screen bg-white text-gray-900 font-sans antialiased">
       {/* ============ SECTION 1 — NAV ============ */}
       <nav className="sticky top-0 z-50 bg-violet-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
@@ -108,7 +108,7 @@ const Landing = () => {
       </nav>
 
       {/* ============ SECTION 2 — HERO (split, image right) ============ */}
-      <section id="top" className="bg-white px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24">
+      <section className="bg-white px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Copy */}
           <div className="text-center lg:text-left">

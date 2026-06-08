@@ -79,34 +79,23 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
     return null;
   };
 
-  return (
-    <div className="app-shell bg-background">
-      {!marketing && <Header />}
+  const marketingRoutes = (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/help" element={<HelpCenter />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/blog" element={<BlogIndex />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="*" element={<RedirectToApp />} />
+    </Routes>
+  );
 
-      <div
-        className={cn(
-          "flex-1 overflow-y-auto overscroll-contain pt-shell-top",
-          showBottomNav && "pb-shell-bottom"
-        )}
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-        <ErrorBoundary>
-          <React.Suspense fallback={<PageLoader />}>
-            {marketing ? (
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/features" element={<Features />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/help" element={<HelpCenter />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/blog" element={<BlogIndex />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="*" element={<RedirectToApp />} />
-              </Routes>
-            ) : (
-              <Routes>
+  const appRoutes = (
+    <Routes>
                 <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
                 <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
                 <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
@@ -149,13 +138,41 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
                 <Route path="/notes" element={<Navigate to="/training-notes" replace />} />
                 <Route path="/improvement-tips" element={<Navigate to="/improvement-notes" replace />} />
                 <Route path="*" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
-              </Routes>
-            )}
+    </Routes>
+  );
+
+  if (marketing) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ErrorBoundary>
+          <React.Suspense fallback={<PageLoader />}>
+            {marketingRoutes}
+          </React.Suspense>
+        </ErrorBoundary>
+        <Toaster />
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-shell bg-background">
+      <Header />
+
+      <div
+        className={cn(
+          "flex-1 min-h-0 overflow-y-auto overscroll-contain pt-shell-top",
+          showBottomNav && "pb-shell-bottom"
+        )}
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <ErrorBoundary>
+          <React.Suspense fallback={<PageLoader />}>
+            {appRoutes}
           </React.Suspense>
         </ErrorBoundary>
       </div>
 
-      {!marketing && <BottomNavigationWrapper />}
+      <BottomNavigationWrapper />
       <Toaster />
     </div>
   );

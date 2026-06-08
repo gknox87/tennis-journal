@@ -31,9 +31,11 @@ html.native-app #root {
   overscroll-behavior: none;
 }
 
-/* App shell: viewport-height layout; full lock only on native */
+/* App shell: fixed viewport for hub app; inner container scrolls */
 .app-shell {
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -41,7 +43,6 @@ html.native-app #root {
 html.native-app .app-shell {
   height: 100%;
   min-height: 0;
-  overflow: hidden;
 }
  
 @layer base {
