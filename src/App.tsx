@@ -10,15 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import "./App.css";
 import { SportProvider } from "@/context/SportContext";
 import { BottomNavigationWrapper } from "@/components/BottomNavigationWrapper";
+import { Header } from "@/components/Header";
 import { isMarketingHost, appUrl } from "@/lib/hostMode";
 import React from "react";
 
-// Eagerly load landing/auth pages for instant first paint
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 
-// Lazy-load all other pages to reduce initial bundle size
 const Index = React.lazy(() => import("@/pages/Index"));
 const AddMatch = React.lazy(() => import("@/pages/AddMatch"));
 const EditMatch = React.lazy(() => import("@/pages/EditMatch"));
@@ -57,7 +56,7 @@ const DataExport = React.lazy(() => import("@/pages/DataExport"));
 const GDPRPrivacy = React.lazy(() => import("@/pages/GDPRPrivacy"));
 
 const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
+  <div className="h-screen bg-background flex items-center justify-center">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
   </div>
 );
@@ -67,16 +66,12 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
     });
@@ -84,10 +79,9 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
@@ -95,7 +89,6 @@ function App() {
 
   const marketing = isMarketingHost();
 
-  // Catch-all for the marketing host: redirect unknown paths to the same path on the app host.
   const RedirectToApp = () => {
     if (typeof window !== "undefined") {
       window.location.replace(appUrl(window.location.pathname + window.location.search));
@@ -106,295 +99,78 @@ function App() {
   return (
     <SportProvider>
       <Router>
-        <div className="min-h-screen bg-background">
-          <ErrorBoundary>
-            <React.Suspense fallback={<PageLoader />}>
-              {marketing ? (
-                <Routes>
-                  {/* Marketing site (sportsjournal.app) — public pages only */}
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/features" element={<Features />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/demo" element={<Demo />} />
-                  <Route path="/help" element={<HelpCenter />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/blog" element={<BlogIndex />} />
-                  <Route path="/blog/:slug" element={<BlogPost />} />
-                  {/* Auth + app routes live on hub subdomain */}
-                  <Route path="*" element={<RedirectToApp />} />
-                </Routes>
-              ) : (
-                <Routes>
-              {/* Public routes - redirect to dashboard if authenticated */}
-              <Route
-                path="/"
-                element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
-              />
-              <Route
-                path="/login"
-                element={session ? <Navigate to="/dashboard" replace /> : <Login />}
-              />
-              <Route
-                path="/register"
-                element={session ? <Navigate to="/dashboard" replace /> : <Register />}
-              />
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/demo" element={<Demo />} />
-              <Route path="/help" element={<HelpCenter />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/blog" element={<BlogIndex />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
+        <div className="min-h-screen bg-background flex flex-col">
+          {/* Fixed header */}
+          {!marketing && <Header />}
 
-              {/* Protected routes - redirect to login if not authenticated */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/add-match"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <AddMatch />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/edit-match/:id"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <EditMatch />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/match/:id"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <MatchDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/matches"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <ViewAllMatches />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/key-opponents"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <KeyOpponents />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/opponent/:id"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <OpponentDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/improvement-notes"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <ImprovementNotes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/calendar"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Calendar />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/training-notes"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <TrainingNotes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/training-load"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <TrainingLoad />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/wellness"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Wellness />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/data-export"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <DataExport />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/privacy-gdpr"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <GDPRPrivacy />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/goals"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Goals />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/challenges"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Challenges />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/padel-stats"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <PadelStats />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/performance-dashboard"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <PerformanceDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/coach"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <CoachDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/coach-feed"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <CoachFeed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <Notifications />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notification-settings"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <NotificationSettings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/team/:id"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <TeamDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/injury-tracker"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <InjuryTracker />
-                  </ProtectedRoute>
-                }
-              />
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto pt-16 pb-24">
+            <ErrorBoundary>
+              <React.Suspense fallback={<PageLoader />}>
+                {marketing ? (
+                  <Routes>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/demo" element={<Demo />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/blog" element={<BlogIndex />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="*" element={<RedirectToApp />} />
+                  </Routes>
+                ) : (
+                  <Routes>
+                    <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+                    <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
+                    <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/demo" element={<Demo />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/blog" element={<BlogIndex />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="/dashboard" element={<ProtectedRoute session={session} isLoading={loading}><Index /></ProtectedRoute>} />
+                    <Route path="/add-match" element={<ProtectedRoute session={session} isLoading={loading}><AddMatch /></ProtectedRoute>} />
+                    <Route path="/edit-match/:id" element={<ProtectedRoute session={session} isLoading={loading}><EditMatch /></ProtectedRoute>} />
+                    <Route path="/match/:id" element={<ProtectedRoute session={session} isLoading={loading}><MatchDetail /></ProtectedRoute>} />
+                    <Route path="/matches" element={<ProtectedRoute session={session} isLoading={loading}><ViewAllMatches /></ProtectedRoute>} />
+                    <Route path="/key-opponents" element={<ProtectedRoute session={session} isLoading={loading}><KeyOpponents /></ProtectedRoute>} />
+                    <Route path="/opponent/:id" element={<ProtectedRoute session={session} isLoading={loading}><OpponentDetail /></ProtectedRoute>} />
+                    <Route path="/improvement-notes" element={<ProtectedRoute session={session} isLoading={loading}><ImprovementNotes /></ProtectedRoute>} />
+                    <Route path="/calendar" element={<ProtectedRoute session={session} isLoading={loading}><Calendar /></ProtectedRoute>} />
+                    <Route path="/training-notes" element={<ProtectedRoute session={session} isLoading={loading}><TrainingNotes /></ProtectedRoute>} />
+                    <Route path="/training-load" element={<ProtectedRoute session={session} isLoading={loading}><TrainingLoad /></ProtectedRoute>} />
+                    <Route path="/wellness" element={<ProtectedRoute session={session} isLoading={loading}><Wellness /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute session={session} isLoading={loading}><Profile /></ProtectedRoute>} />
+                    <Route path="/data-export" element={<ProtectedRoute session={session} isLoading={loading}><DataExport /></ProtectedRoute>} />
+                    <Route path="/privacy-gdpr" element={<ProtectedRoute session={session} isLoading={loading}><GDPRPrivacy /></ProtectedRoute>} />
+                    <Route path="/goals" element={<ProtectedRoute session={session} isLoading={loading}><Goals /></ProtectedRoute>} />
+                    <Route path="/challenges" element={<ProtectedRoute session={session} isLoading={loading}><Challenges /></ProtectedRoute>} />
+                    <Route path="/padel-stats" element={<ProtectedRoute session={session} isLoading={loading}><PadelStats /></ProtectedRoute>} />
+                    <Route path="/performance-dashboard" element={<ProtectedRoute session={session} isLoading={loading}><PerformanceDashboard /></ProtectedRoute>} />
+                    <Route path="/coach" element={<ProtectedRoute session={session} isLoading={loading}><CoachDashboard /></ProtectedRoute>} />
+                    <Route path="/coach-feed" element={<ProtectedRoute session={session} isLoading={loading}><CoachFeed /></ProtectedRoute>} />
+                    <Route path="/notifications" element={<ProtectedRoute session={session} isLoading={loading}><Notifications /></ProtectedRoute>} />
+                    <Route path="/notification-settings" element={<ProtectedRoute session={session} isLoading={loading}><NotificationSettings /></ProtectedRoute>} />
+                    <Route path="/team/:id" element={<ProtectedRoute session={session} isLoading={loading}><TeamDetail /></ProtectedRoute>} />
+                    <Route path="/injury-tracker" element={<ProtectedRoute session={session} isLoading={loading}><InjuryTracker /></ProtectedRoute>} />
+                    <Route path="/admin" element={<ProtectedRoute session={session} isLoading={loading}><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+                    <Route path="/admin/users" element={<ProtectedRoute session={session} isLoading={loading}><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute>} />
+                    <Route path="/admin/teams" element={<ProtectedRoute session={session} isLoading={loading}><AdminRoute><AdminTeams /></AdminRoute></ProtectedRoute>} />
+                    <Route path="/notes" element={<Navigate to="/training-notes" replace />} />
+                    <Route path="/improvement-tips" element={<Navigate to="/improvement-notes" replace />} />
+                    <Route path="*" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+                  </Routes>
+                )}
+              </React.Suspense>
+            </ErrorBoundary>
+          </div>
 
-              {/* Admin routes - require admin role */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <AdminRoute>
-                      <AdminUsers />
-                    </AdminRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/teams"
-                element={
-                  <ProtectedRoute session={session} isLoading={loading}>
-                    <AdminRoute>
-                      <AdminTeams />
-                    </AdminRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Route aliases — redirect legacy paths */}
-              <Route path="/notes" element={<Navigate to="/training-notes" replace />} />
-              <Route path="/improvement-tips" element={<Navigate to="/improvement-notes" replace />} />
-
-              {/* Catch all - redirect to dashboard if authenticated, otherwise to login */}
-              <Route
-                path="*"
-                element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
-              />
-                </Routes>
-              )}
-            </React.Suspense>
-          </ErrorBoundary>
+          {/* Fixed bottom nav */}
           {!marketing && <BottomNavigationWrapper />}
           <Toaster />
         </div>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, ArrowRight, Trophy, Target, TrendingUp } from "lucide-react";
+import { analytics } from "@/lib/analytics";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -60,11 +61,11 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -80,6 +81,7 @@ const Login = () => {
       }
 
       if (data.user) {
+        analytics.loggedIn('email');
         navigate("/dashboard");
       }
     } catch (error: unknown) {
@@ -96,7 +98,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4 relative overflow-hidden overflow-y-auto pb-24" pt-16>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
@@ -199,8 +201,8 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm">
               Don't have an account?{" "}
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
               >
                 Create one

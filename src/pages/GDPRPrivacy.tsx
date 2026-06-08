@@ -36,7 +36,7 @@ const GDPRPrivacy = () => {
         navigate('/login');
         return;
       }
-      
+
       // Fetch and download data
       const [matches, opponents, training, notes, profile] = await Promise.all([
         supabase.from('matches').select('*').eq('user_id', session.user.id),
@@ -51,7 +51,7 @@ const GDPRPrivacy = () => {
         const headers = Object.keys(data[0]);
         const csvRows = [
           headers.join(','),
-          ...data.map(row => 
+          ...data.map(row =>
             headers.map(h => {
               const val = row[h];
               const str = val === null || val === undefined ? '' : String(val);
@@ -108,7 +108,7 @@ const GDPRPrivacy = () => {
         title: "Deletion Request Submitted",
         description: "Please contact privacy@sportsjournal.app to complete account deletion."
       });
-      
+
       setShowDeleteConfirm(false);
       await supabase.auth.signOut();
       navigate('/');
@@ -148,9 +148,9 @@ const GDPRPrivacy = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="min-h-full w-full bg-white overflow-y-auto pb-24 pt-16">
       <LandingHeader />
-      
+
       {/* Hero Section */}
       <section className="w-full py-16 sm:py-20 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="max-w-4xl mx-auto px-6 sm:px-8">
@@ -173,7 +173,7 @@ const GDPRPrivacy = () => {
       <section className="w-full py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6 sm:px-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Exercise Your Rights</h2>
-          
+
           <div className="space-y-4">
             {rights.map((right, idx) => (
               <Card key={idx} className={`border-2 ${right.color === 'red' ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
@@ -250,7 +250,7 @@ const GDPRPrivacy = () => {
       <section className="w-full py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6 sm:px-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Data Retention Policy</h2>
-          
+
           <Card className="border-2 border-gray-200">
             <CardContent className="p-6">
               <div className="space-y-6">
@@ -260,11 +260,11 @@ const GDPRPrivacy = () => {
                     Active Account Data
                   </h3>
                   <p className="text-sm text-gray-600 mt-2">
-                    Your data is retained as long as your account remains active. This includes match history, 
+                    Your data is retained as long as your account remains active. This includes match history,
                     training logs, journal entries, and performance analytics.
                   </p>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <Trash2 className="h-5 w-5 text-red-600" />
@@ -277,14 +277,14 @@ const GDPRPrivacy = () => {
                     <li>• You will receive a confirmation email when deletion is complete</li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <Users className="h-5 w-5 text-green-600" />
                     Shared Data (Coaches)
                   </h3>
                   <p className="text-sm text-gray-600 mt-2">
-                    If you've shared data with coaches, this access is revoked when you delete your account. 
+                    If you've shared data with coaches, this access is revoked when you delete your account.
                     Coaches will no longer have access to your performance data.
                   </p>
                 </div>
@@ -298,7 +298,7 @@ const GDPRPrivacy = () => {
       <section className="w-full py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6 sm:px-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">What Data Can You Export?</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { icon: FileText, name: "Matches", desc: "All match results, scores, surfaces, and opponents", file: "matches.csv" },

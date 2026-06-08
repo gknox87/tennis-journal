@@ -196,9 +196,8 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-4xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
+<div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-4xl pt-16">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex-1">
@@ -488,8 +487,8 @@ const Profile = () => {
 
               {isEditing && (
                 <div className="flex justify-center pt-6 border-t border-gray-200">
-                  <Button 
-                    onClick={handleSave} 
+                  <Button
+                    onClick={handleSave}
                     disabled={isLoading}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg"
                     size="lg"

@@ -69,9 +69,9 @@ const ImprovementNotes = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       await fetchImprovementPoints();
-      
+
       toast({
         title: !currentStatus ? "Point completed!" : "Point uncompleted",
         description: "Your progress has been updated",
@@ -110,9 +110,8 @@ const ImprovementNotes = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
+<div className="container mx-auto px-2 py-2 sm:px-4 sm:py-8 pb-24 sm:pb-28 max-w-7xl pt-16">
         <div className="mt-4 flex items-center gap-4">
           <h1 className="text-2xl font-bold">AI Improvement Notes</h1>
         </div>

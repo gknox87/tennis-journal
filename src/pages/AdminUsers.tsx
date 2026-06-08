@@ -68,8 +68,8 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="container mx-auto px-4 py-6 pb-24 max-w-6xl">
+    <div className="min-h-full bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-y-auto pb-24 pt-16">
+      <div className="container mx-auto px-4 py-6 pb-24 max-w-6xl pt-16">
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Sidebar */}
           <div className="sm:w-48 shrink-0">

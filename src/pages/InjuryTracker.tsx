@@ -38,16 +38,15 @@ const InjuryTracker = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-4 py-6 pb-24 max-w-7xl">
+    <div className="min-h-full bg-gradient-to-br from-orange-50 via-white to-red-50 pt-16">
+<div className="container mx-auto px-4 py-6 pb-24 max-w-7xl pt-16">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">

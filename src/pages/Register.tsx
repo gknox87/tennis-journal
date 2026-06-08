@@ -13,6 +13,7 @@ import { type SupportedSportId } from "@/constants/sports";
 import { ONBOARDING_STORAGE_KEY, type PendingOnboardingSelection } from "@/constants/onboarding";
 import { Users, User, GraduationCap, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 type AccountType = "player" | "coach";
 
@@ -140,14 +141,10 @@ const Register = () => {
 
       if (error) throw error;
 
-      // If signup succeeded and we have a user, assign the coach role if selected
-      if (data.user && accountType === "coach") {
-        // The default 'player' role is auto-assigned by the trigger.
-        // Add 'coach' role via direct insert (RLS allows no client insert,
-        // so we use a service-level approach via edge function or rely on
-        // the metadata being read later). For now, store in user metadata.
-        // The admin will assign via manage-roles edge function.
-        // We store account_type in user_metadata so it can be read server-side.
+      // Track signup + primary sport
+      if (data.user) {
+        analytics.signedUp('email');
+        analytics.sportSelected(sportId ?? 'unknown');
       }
 
       const selection: PendingOnboardingSelection = {
@@ -158,7 +155,7 @@ const Register = () => {
 
       toast({
         title: "Account created! 🎉",
-        description: accountType === "coach" 
+        description: accountType === "coach"
           ? "Welcome, Coach! Check your email for confirmation. Your coach role will be activated shortly."
           : "Please check your email for the confirmation link.",
       });
@@ -181,7 +178,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 relative overflow-hidden">
+    <div className="min-h-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 relative overflow-hidden overflow-y-auto pb-24" pt-16>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>

@@ -55,7 +55,7 @@ export default function NotificationsPage() {
         .update({ read: true })
         .eq("id", id);
 
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, read: true } : n)
       );
     } catch (error) {
@@ -104,17 +104,17 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24 overflow-y-auto pt-16">
       <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 pt-16">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell className="h-6 w-6" />
               <h1 className="text-2xl font-bold">Notifications</h1>
             </div>
             {unreadCount > 0 && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="bg-white/20 hover:bg-white/30 text-white border-white/40"
                 size="sm"
                 onClick={markAllAsRead}
@@ -143,7 +143,7 @@ export default function NotificationsPage() {
         ) : (
           <div className="space-y-3">
             {notifications.map(notification => (
-              <Card 
+              <Card
                 key={notification.id}
                 className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
                   !notification.read ? "bg-purple-50 border-purple-200" : ""

@@ -39,10 +39,10 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     setIsSubmitted(true);
     setIsSubmitting(false);
     setFormData({
@@ -100,9 +100,9 @@ const Contact = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen w-full bg-white">
+      <div className="min-h-full w-full bg-white overflow-y-auto pb-24" pt-16>
         <LandingHeader />
-        
+
         <section className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-br from-green-50 to-emerald-50">
           <div className="max-w-4xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
             <div className="text-center">
@@ -138,9 +138,9 @@ const Contact = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="min-h-full w-full bg-white" pt-16>
       <LandingHeader />
-      
+
       {/* Hero Section */}
       <section className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">

@@ -125,9 +125,9 @@ export const Header = ({ userProfile, className }: HeaderProps) => {
 
   return (
     <>
-    <header 
+    <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
         "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600",
         "supports-[padding:env(safe-area-inset-top)]:pt-[env(safe-area-inset-top)]",
         isScrolled && "shadow-lg",

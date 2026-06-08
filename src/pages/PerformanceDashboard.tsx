@@ -70,7 +70,7 @@ const PerformanceDashboard = () => {
         console.error('Error loading initial data:', error);
       }
     };
-    
+
     if (!isLoading) {
       loadInitialData();
     }
@@ -124,7 +124,7 @@ const PerformanceDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
@@ -133,10 +133,8 @@ const PerformanceDashboard = () => {
   const isEmpty = filteredMatches.length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      <Header userProfile={userProfile} />
-
-      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-0 sm:pt-1 lg:pt-2 pb-24 sm:pb-28">
+    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-16">
+<main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-0 sm:pt-1 lg:pt-2 pb-24 sm:pb-28 pt-16 pb-24">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Page Header */}
           <div className="flex items-center justify-between">

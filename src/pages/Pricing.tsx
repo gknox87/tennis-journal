@@ -98,7 +98,7 @@ const Pricing = () => {
   ) : null;
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="min-h-full w-full bg-white overflow-y-auto pb-24" pt-16>
       <LandingHeader />
 
       {/* Hero Section */}

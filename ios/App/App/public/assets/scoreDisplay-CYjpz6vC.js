@@ -1,1 +1,0 @@
-import{r as a}from"./index-F8I1pYO_.js";function i(t,n){var r;if(!t)return"";const e=n?a[n]:null;switch(((r=e==null?void 0:e.defaultScoreFormat)==null?void 0:r.type)??"sets"){case"rally":return t.split(/,\s*/).join("  ");case"sets":return t.split(/,\s*/).join("  ");case"rounds":return t;case"time":case"distance":case"numeric":return t;default:return t}}export{i as f};

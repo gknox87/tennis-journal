@@ -139,9 +139,9 @@ const Features = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="min-h-full w-full bg-white overflow-y-auto pb-24" pt-16>
       <LandingHeader />
-      
+
       {/* Hero Section */}
       <section className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">

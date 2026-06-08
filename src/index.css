@@ -4,11 +4,25 @@
 @tailwind utilities;
 
 /* Remove default margins and ensure full width */
-body, html, #root {
+/* Reset and scrolling */
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
+  overflow-y: auto;
 }
  
 @layer base {
@@ -49,7 +63,6 @@ body, html, #root {
   }
   
   html {
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -250,6 +263,8 @@ section {
 
 /* Safe area support for iOS and Android - handled by header component */
 /* Body padding is handled by individual components to avoid conflicts */
+
+/* Global content wrapper — no top/bottom padding here, handled per-page */
 
 /* Ensure touch targets meet minimum size requirements for interactive elements */
 /* iOS: 44x44 points, Android: 48x48dp */

@@ -130,8 +130,8 @@ export default function CoachFeed() {
     }
   };
 
-  const filteredPlayers = selectedPlayer === "all" 
-    ? players 
+  const filteredPlayers = selectedPlayer === "all"
+    ? players
     : players.filter(p => p.id === selectedPlayer);
 
   const sortedPlayers = [...filteredPlayers].sort((a, b) => {
@@ -153,14 +153,13 @@ export default function CoachFeed() {
 
   if (showAnnotate && selectedMatch) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header userProfile={null} />
-        <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
+<div className="container mx-auto px-4 py-6 max-w-3xl pt-16">
           <Button variant="ghost" onClick={() => setShowAnnotate(false)} className="mb-4">
             ← Back to Feed
           </Button>
-          <AnnotateMatch 
-            match={selectedMatch} 
+          <AnnotateMatch
+            match={selectedMatch}
             onClose={() => setShowAnnotate(false)}
           />
         </div>
@@ -170,13 +169,12 @@ export default function CoachFeed() {
 
   if (showPrescribe && selectedMatch) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header userProfile={null} />
-        <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
+<div className="container mx-auto px-4 py-6 max-w-3xl">
           <Button variant="ghost" onClick={() => setShowPrescribe(false)} className="mb-4">
             ← Back to Feed
           </Button>
-          <DrillPrescription 
+          <DrillPrescription
             match={selectedMatch}
             onClose={() => setShowPrescribe(false)}
           />
@@ -186,9 +184,8 @@ export default function CoachFeed() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16">
+<div className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
@@ -323,16 +320,16 @@ export default function CoachFeed() {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handleAnnotateMatch(match)}
                             >
                               <BarChart3 className="h-3 w-3 mr-1" />
                               Annotate
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handlePrescribeDrill(match)}
                             >

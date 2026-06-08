@@ -43,17 +43,17 @@ const DataExport = () => {
   const { sport } = useSport();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState<ExportProgress>({ status: '', progress: 0 });
   const [exportComplete, setExportComplete] = useState(false);
   const [exportStats, setExportStats] = useState<ExportStats | null>(null);
-  
+
   // Google Sheets connection state
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [googleSheets, setGoogleSheets] = useState<{ id: string; name: string }[]>([]);
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
-  
+
   // PDF Report generation
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [pdfDateRange, setPdfDateRange] = useState({
@@ -110,11 +110,11 @@ const DataExport = () => {
 
   const generateCSV = (data: Record<string, unknown>[], filename: string): string => {
     if (data.length === 0) return '';
-    
+
     const headers = Object.keys(data[0]);
     const csvRows = [
       headers.join(','),
-      ...data.map(row => 
+      ...data.map(row =>
         headers.map(h => {
           const val = row[h];
           const str = val === null || val === undefined ? '' : String(val);
@@ -126,7 +126,7 @@ const DataExport = () => {
         }).join(',')
       )
     ];
-    
+
     return csvRows.join('\n');
   };
 
@@ -144,7 +144,7 @@ const DataExport = () => {
     try {
       setIsExporting(true);
       setExportProgress({ status: 'Preparing export...', progress: 10 });
-      
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({ title: "Error", description: "Not authenticated", variant: "destructive" });
@@ -193,7 +193,7 @@ const DataExport = () => {
       const opponentsCSV = generateCSV(opponents || [], 'opponents.csv');
       const trainingCSV = generateCSV(trainingSessions || [], 'training_sessions.csv');
       const notesCSV = generateCSV(playerNotes || [], 'player_notes.csv');
-      
+
       // Generate profile JSON
       const profileJSON = JSON.stringify({
         ...profile,
@@ -443,7 +443,7 @@ const DataExport = () => {
 
       // Delete user data (would need server-side handling for full account deletion)
       await supabase.auth.deleteUser(session.user.id);
-      
+
       toast({
         title: "Account Deletion Requested",
         description: "Please contact support@sportsjournal.com to complete account deletion."
@@ -457,10 +457,8 @@ const DataExport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header userProfile={null} />
-      
-      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-4xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
+<div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-4xl pt-16">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex-1">
@@ -481,8 +479,8 @@ const DataExport = () => {
               <div>
                 <h3 className="font-semibold text-gray-900">GDPR Compliance</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Your data export includes all personal data stored by SportsJournal.app, including matches, 
-                  training sessions, journal entries, and profile information. You have the right to access, 
+                  Your data export includes all personal data stored by SportsJournal.app, including matches,
+                  training sessions, journal entries, and profile information. You have the right to access,
                   rectify, and delete your personal data.
                 </p>
               </div>
@@ -730,8 +728,8 @@ const DataExport = () => {
                     Permanently delete your account and all associated data
                   </p>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="destructive"
                   onClick={handleDeleteAccount}
                   className="bg-red-600 hover:bg-red-700"
@@ -755,8 +753,8 @@ const DataExport = () => {
               <p>• Backups are purged within 90 days of deletion</p>
               <p>• Data shared with coaches is removed when you revoke access</p>
             </div>
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               className="mt-4 text-blue-600"
               onClick={() => navigate('/privacy')}
             >

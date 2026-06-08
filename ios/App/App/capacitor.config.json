@@ -2,16 +2,15 @@
 	"appId": "com.sportsjournal.app",
 	"appName": "Sports Journal",
 	"webDir": "dist",
-	"backgroundColor": "#FFFFFF",
-	"loggingBehavior": "debug",
+	"backgroundColor": "#6366F1",
 	"ios": {
 		"contentInset": "automatic",
-		"backgroundColor": "#FFFFFF",
+		"backgroundColor": "#6366F1",
 		"allowsLinkPreview": false,
-		"scrollEnabled": false
+		"scrollEnabled": true
 	},
 	"android": {
-		"backgroundColor": "#FFFFFF",
+		"backgroundColor": "#6366F1",
 		"allowMixedContent": false,
 		"captureInput": true,
 		"webContentsDebuggingEnabled": false

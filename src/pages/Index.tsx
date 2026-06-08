@@ -70,7 +70,7 @@ const Index = () => {
         console.error('Error loading initial data:', error);
       }
     };
-    
+
     // Wait for both auth and sport context to be ready
     if (!isLoading) {
       loadInitialData();
@@ -87,20 +87,17 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
-
-      {/* Header - Sticky at top */}
-      <Header userProfile={userProfile} />
+    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 overflow-y-auto pt-16">
 
       {/* Main Content */}
-      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-0 sm:pt-1 lg:pt-2 pb-24 sm:pb-28">
+      <main className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 sm:pb-28">
         <div className="max-w-7xl mx-auto">
           <DashboardContent
             matches={matches}

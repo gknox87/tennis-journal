@@ -118,12 +118,11 @@ const ViewAllMatches = () => {
   }, [matches, searchTerm, sortOption]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
+<div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl pt-16">
       <div className="space-y-4">
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        
+
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <SortControls currentSort={sortOption} onSortChange={setSortOption} />
         </div>

@@ -94,16 +94,15 @@ const TrainingNotes = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto pb-24 pt-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <Header userProfile={null} />
-      <div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-green-50 pt-16">
+<div className="container mx-auto px-4 py-6 sm:py-8 pb-24 sm:pb-28 max-w-7xl pt-16">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
@@ -116,7 +115,7 @@ const TrainingNotes = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 justify-center sm:justify-end">
             <Button onClick={handleAddNote} size="lg" className="w-full sm:w-auto shadow-lg">
               <Plus className="mr-2 h-5 w-5" />

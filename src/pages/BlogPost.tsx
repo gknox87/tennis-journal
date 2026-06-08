@@ -72,7 +72,7 @@ function BlogPost() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 overflow-y-auto pb-24 pt-16">
         <div className="text-center max-w-md">
           <BookOpen className="w-16 h-16 text-[#111827]/10 mx-auto mb-4" />
           <h1 className="text-2xl font-black text-[#111827] mb-2">Post not found</h1>
@@ -105,7 +105,7 @@ function BlogPost() {
   const contentWithIds = tempDiv.innerHTML;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-[#111827] font-sans antialiased">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 text-[#111827] font-sans antialiased pt-16">
       {/* Sticky nav */}
       <div className="border-b border-[#e5e7eb] bg-white/90 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">

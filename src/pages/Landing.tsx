@@ -63,7 +63,7 @@ const Landing = () => {
     );
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans antialiased">
+    <div className="min-h-full bg-white text-gray-900 font-sans antialiased overflow-y-auto pb-24 pt-16">
       {/* ============ SECTION 1 — NAV ============ */}
       <nav className="sticky top-0 z-50 bg-violet-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">

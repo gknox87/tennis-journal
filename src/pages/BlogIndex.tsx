@@ -46,7 +46,7 @@ function BlogIndex() {
   const remaining = blogPosts.slice(1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-[#111827] font-sans antialiased">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 text-[#111827] font-sans antialiased overflow-y-auto pb-24 pt-16">
       {/* Minimal nav */}
       <div className="border-b border-[#e5e7eb] bg-white/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">

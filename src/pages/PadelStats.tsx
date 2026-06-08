@@ -94,7 +94,7 @@ const PadelStats = () => {
 
       // Get partners and their stats
       const partnerMap = new Map<string, PartnerStats>();
-      
+
       if (doublesMatches) {
         for (const match of doublesMatches) {
           if (match.partner_id) {
@@ -126,14 +126,14 @@ const PadelStats = () => {
           .from("partners")
           .select("id, name")
           .in("id", partnerIds);
-        
+
         if (partnerData) {
           partnerData.forEach(p => {
             const stats = partnerMap.get(p.id);
             if (stats) {
               stats.name = p.name;
-              stats.winRate = stats.matchesPlayed > 0 
-                ? (stats.wins / stats.matchesPlayed) * 100 
+              stats.winRate = stats.matchesPlayed > 0
+                ? (stats.wins / stats.matchesPlayed) * 100
                 : 0;
             }
           });
@@ -141,9 +141,9 @@ const PadelStats = () => {
       }
 
       const partnerList = Array.from(partnerMap.values());
-      
+
       // Find best and most played partners
-      const bestPartner = partnerList.length > 0 
+      const bestPartner = partnerList.length > 0
         ? partnerList.reduce((best, p) => p.winRate > best.winRate ? p : best, partnerList[0])
         : null;
       const mostPlayedPartner = partnerList.length > 0
@@ -172,18 +172,16 @@ const PadelStats = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center overflow-y-auto pb-24 pt-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Header userProfile={null} />
-      
-      {/* Back Navigation */}
-      <div className="relative z-10 container mx-auto px-4 pt-4">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16">
+{/* Back Navigation */}
+      <div className="relative z-10 container mx-auto px-4 pt-16">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -347,7 +345,7 @@ const PadelStats = () => {
             <div className="text-6xl mb-4">🏸</div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No Doubles Matches Yet</h3>
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Start logging your padel doubles matches to see your partner stats here. 
+              Start logging your padel doubles matches to see your partner stats here.
               Toggle to doubles mode when adding a match and select your partner.
             </p>
             <Button

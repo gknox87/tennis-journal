@@ -156,7 +156,7 @@ const HelpCenter = () => {
       article.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       article.answer.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  })).filter(category => 
+  })).filter(category =>
     category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     category.articles.length > 0
   );
@@ -166,9 +166,9 @@ const HelpCenter = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div className="min-h-full w-full bg-white overflow-y-auto pb-24" pt-16>
       <LandingHeader />
-      
+
       {/* Hero Section */}
       <section className="w-full py-16 sm:py-20 md:py-24 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
@@ -246,7 +246,7 @@ const HelpCenter = () => {
                       <ChevronDown className="w-5 h-5 text-gray-400" />
                     )}
                   </button>
-                  
+
                   {expandedCategory === category.id && (
                     <div className="px-6 pb-6 border-t border-gray-100">
                       <div className="pt-4 space-y-4">

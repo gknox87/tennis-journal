@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Mic, PenTool } from "lucide-react";
 import { SetScore } from "@/types/match";
 import { VoiceMatchEntry } from "@/components/voice/VoiceMatchEntry";
+import { analytics } from "@/lib/analytics";
 
 const AddMatch = () => {
   const { sport } = useSport();
@@ -124,6 +125,13 @@ const AddMatch = () => {
         description: "Your match has been recorded successfully.",
       });
 
+      analytics.matchLogged(
+        sport.slug,
+        formData.matchType ?? 'singles',
+        score,
+        formData.isWin ?? false
+      );
+
       navigate(`/match/${matchData.id}`);
     } catch (error: unknown) {
       console.error('Error saving match:', error);
@@ -145,11 +153,9 @@ const AddMatch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Header userProfile={null} />
-      
-      {/* Back Navigation */}
-      <div className="relative z-10 container mx-auto px-4 pt-4">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto pb-24 pt-16">
+{/* Back Navigation */}
+      <div className="relative z-10 container mx-auto px-4 pt-16">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -159,7 +165,7 @@ const AddMatch = () => {
           Back
         </Button>
       </div>
-      
+
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -171,26 +177,26 @@ const AddMatch = () => {
       <div className="relative z-10 container mx-auto px-4 py-6 pb-24 sm:pb-28 max-w-2xl">
         <Tabs defaultValue="manual" className="w-full">
           <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/50 backdrop-blur-sm p-1 mb-6 shadow-lg">
-            <TabsTrigger 
-              value="manual" 
+            <TabsTrigger
+              value="manual"
               className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
             >
               <PenTool className="w-4 h-4 mr-2" />
               Manual Entry
             </TabsTrigger>
-            <TabsTrigger 
-              value="voice" 
+            <TabsTrigger
+              value="voice"
               className="rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
             >
               <Mic className="w-4 h-4 mr-2" />
               Voice Entry
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="manual">
             <MatchForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </TabsContent>
-          
+
           <TabsContent value="voice">
             <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-purple-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
               <VoiceMatchEntry />

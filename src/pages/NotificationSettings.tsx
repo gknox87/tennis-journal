@@ -127,7 +127,7 @@ export default function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
         <Header title="Notification Settings" showBack backTo="/profile" />
         <div className="flex justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
@@ -137,10 +137,10 @@ export default function NotificationSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24 pt-16">
       <Header title="Notification Settings" showBack backTo="/profile" />
 
-      <div 
+      <div
         className="container mx-auto px-4 py-6 max-w-2xl space-y-6"
         onChange={() => setHasChanges(true)}
       >
