@@ -64,9 +64,54 @@ export const LoadWellnessChart = ({
     (d) => d.matchArousal != null || d.matchConfidence != null
   );
 
+  const teaserData = data.slice(-7);
+  const hasTeaserPoints = teaserData.some((d) => d.load > 0 || d.mood != null);
+
+  if (!canAccessInsights && hasWellnessEntries && hasTeaserPoints) {
+    return (
+      <Card className="p-4">
+        <h3 className="text-sm font-semibold mb-1">Mind & Body</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Your recent load and mood — a preview of how training and wellbeing connect.
+        </p>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={teaserData}>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+              <XAxis dataKey="dateLabel" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis yAxisId="load" tick={{ fontSize: 10 }} width={32} />
+              <YAxis yAxisId="wellness" orientation="right" domain={[1, 5]} ticks={[1, 3, 5]} tick={{ fontSize: 10 }} width={28} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0].payload as LoadWellnessTimelinePoint;
+                  return (
+                    <div className="bg-white border rounded-lg shadow-lg p-3 text-xs space-y-1">
+                      <p className="font-semibold">{d.dateLabel}</p>
+                      <p>Load: <strong>{d.load}</strong></p>
+                      <p>Mood: <strong>{d.mood != null ? `${d.mood}/5` : '—'}</strong></p>
+                    </div>
+                  );
+                }}
+              />
+              <Bar yAxisId="load" dataKey="load" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Training load" />
+              <Line yAxisId="wellness" type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#10b981' }} connectNulls={false} name="Mood" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3 text-center">
+          Pro unlocks 14-day trends, confidence/stress overlays, and match-day markers.
+        </p>
+        <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/pricing')}>
+          Upgrade for full mind–body insights
+        </Button>
+      </Card>
+    );
+  }
+
   if (!canAccessInsights) {
     return (
-      <UpgradePrompt message="See how your mood tracks with training load — available on Pro." />
+      <UpgradePrompt message="Log training and wellness check-ins to preview how your mood tracks with load. Upgrade for the full 14-day mind–body timeline." />
     );
   }
 

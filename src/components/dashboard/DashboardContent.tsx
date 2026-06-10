@@ -13,6 +13,7 @@ import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebratio
 import { TrainingLoadWidget } from "@/components/dashboard/TrainingLoadWidget";
 import { WellnessWidget } from "@/components/dashboard/WellnessWidget";
 import { MindsetWidget } from "@/components/dashboard/MindsetWidget";
+import { AdherenceNudges } from "@/components/dashboard/AdherenceNudges";
 import { hasMatchPreMatchData } from "@/components/match/PreMatchStateCard";
 import { InjuryWidget } from "@/components/dashboard/InjuryWidget";
 import { PeriodGoalsSection } from "@/components/goals/PeriodGoalsSection";
@@ -123,6 +124,9 @@ export const DashboardContent = ({
         open={showMilestone}
         onOpenChange={setShowMilestone}
       />
+
+      {/* ─── 0. ADHERENCE NUDGES ─── */}
+      <AdherenceNudges matches={matches} />
 
       {/* ─── 1. JOURNALING STREAK ─── */}
       <Suspense fallback={

@@ -162,9 +162,15 @@ const AddMatch = () => {
         });
       }
 
+      const needsReflection =
+        !formData.notes?.trim() &&
+        (!formData.postEmotionTags || formData.postEmotionTags.length === 0);
+
       toast({
         title: "Match saved!",
-        description: "Your match has been recorded successfully.",
+        description: needsReflection
+          ? "Add a quick reflection while it's still fresh."
+          : "Your match has been recorded successfully.",
       });
 
       analytics.matchLogged(
@@ -174,7 +180,11 @@ const AddMatch = () => {
         formData.isWin ?? false
       );
 
-      navigate(`/match/${matchData.id}`);
+      if (needsReflection) {
+        navigate(`/edit-match/${matchData.id}?reflect=1`);
+      } else {
+        navigate(`/match/${matchData.id}`);
+      }
     } catch (error: unknown) {
       console.error('Error saving match:', error);
       const message = getErrorMessage(error);

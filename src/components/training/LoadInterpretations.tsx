@@ -1,6 +1,5 @@
 
 import { LoadInterpretation } from "@/types/trainingLoad";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,19 +24,15 @@ export const LoadInterpretations = ({
   interpretations,
   canAccessInsights,
 }: LoadInterpretationsProps) => {
-  if (!canAccessInsights) {
-    return (
-      <UpgradePrompt message="Get plain-language load insights and mind-body correlation — available on Pro." />
-    );
-  }
-
   if (interpretations.length === 0) {
     return null;
   }
 
+  const visibleInterpretations = canAccessInsights ? interpretations : interpretations.slice(0, 1);
+
   return (
     <div className="space-y-2">
-      {interpretations.map((interp, i) => {
+      {visibleInterpretations.map((interp, i) => {
         const Icon = INTERPRETATION_ICONS[interp.severity];
         return (
           <div
@@ -58,6 +53,11 @@ export const LoadInterpretations = ({
           </div>
         );
       })}
+      {!canAccessInsights && interpretations.length > 0 && (
+        <p className="text-xs text-muted-foreground text-center px-2">
+          Pro unlocks all load insights and full mind–body correlation.
+        </p>
+      )}
     </div>
   );
 };

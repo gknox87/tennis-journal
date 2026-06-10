@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
 import { useWellness } from "@/hooks/useWellness";
-import { useSubscription } from "@/hooks/useSubscription";
 import { getRiskZone, getRiskZoneColor, getRiskZoneLabel, getTrainingHistoryDays } from "@/utils/trainingLoadCalc";
 import { generateLoadInterpretations } from "@/utils/loadWellnessCalc";
 import { Activity, TrendingUp, ArrowRight, Info } from "lucide-react";
@@ -18,15 +17,13 @@ import {
 export const TrainingLoadWidget = () => {
   const { metrics, isLoading, sessions } = useTrainingLoad();
   const { entries: wellnessEntries } = useWellness({ fetchDays: 28 });
-  const { canAccessWellnessLoadInsights } = useSubscription();
   const navigate = useNavigate();
 
   const topInterpretation = useMemo(() => {
-    if (!canAccessWellnessLoadInsights()) return null;
     const interpretations = generateLoadInterpretations(sessions, metrics, wellnessEntries);
     const actionable = interpretations.find((i) => i.severity !== "info");
     return actionable ?? interpretations[0] ?? null;
-  }, [sessions, metrics, wellnessEntries, canAccessWellnessLoadInsights]);
+  }, [sessions, metrics, wellnessEntries]);
 
   const daysOfData = getTrainingHistoryDays(sessions);
   const acwrAvailable = metrics.acwrReliable && metrics.acwr !== null;

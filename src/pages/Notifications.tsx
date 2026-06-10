@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Trophy, FileText, Check, ExternalLink, Heart, Sparkles } from "lucide-react";
+import { Bell, Trophy, FileText, Check, ExternalLink, Heart, Sparkles, Brain, Calendar } from "lucide-react";
+import { formatNotificationBody, getNotificationTypeLabel } from "@/utils/notificationDisplay";
 import { useNavigate } from "react-router-dom";
 
 interface Notification {
@@ -100,6 +101,11 @@ export default function NotificationsPage() {
         return <Heart className="h-5 w-5 text-rose-500" />;
       case "match_reflection_reminder":
         return <Sparkles className="h-5 w-5 text-teal-600" />;
+      case "pre_match_reminder":
+        return <Brain className="h-5 w-5 text-purple-600" />;
+      case "reminder":
+      case "weekly_summary":
+        return <Calendar className="h-5 w-5 text-blue-600" />;
       default:
         return <Bell className="h-5 w-5 text-gray-600" />;
     }
@@ -140,7 +146,7 @@ export default function NotificationsPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">No notifications</h3>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Notifications from your coach and activity updates will appear here.
+              Wellness check-in reminders, post-match reflection nudges, pre-match prompts, and coach updates will appear here. Enable reminders in Notification Settings.
             </p>
           </Card>
         ) : (
@@ -168,9 +174,14 @@ export default function NotificationsPage() {
                         </Badge>
                       )}
                     </div>
+                    {getNotificationTypeLabel(notification.type) && (
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                        {getNotificationTypeLabel(notification.type)}
+                      </p>
+                    )}
                     {notification.body && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        {notification.body}
+                        {formatNotificationBody(notification.body)}
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-2">

@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
 import { SESSION_TYPES, getSessionTypeConfig } from "@/types/calendar";
-import { format, parse, isValid, isFuture, isToday } from "date-fns";
+import { format, parse, isValid, isFuture } from "date-fns";
 import { Calendar as CalendarIcon, Clock, Brain, Sparkles } from "lucide-react";
 import { MentalSkillsSessionDialog } from "@/components/mental/MentalSkillsSessionDialog";
 import {
@@ -94,6 +94,7 @@ export const EventDialog = ({
   const [loading, setLoading] = useState(false);
   const [showPreMatchDialog, setShowPreMatchDialog] = useState(false);
   const [showMentalSkillsDialog, setShowMentalSkillsDialog] = useState(false);
+  const [mentalSkillsEventId, setMentalSkillsEventId] = useState<string | null>(null);
   const { toast } = useToast();
   const sessionTypeConfig = getSessionTypeConfig(sessionType);
   const isUpcomingMatch =
@@ -101,7 +102,6 @@ export const EventDialog = ({
   const preMatchState = scheduledStateToPreMatchState(event.pre_match_state);
   const mentalSessionLog = parseMentalSessionLog(event.notes);
   const isMentalSkillsSession = sessionType === 'mental_skills';
-  const isSessionToday = startDate ? isToday(startDate) : isToday(new Date(event.start_time));
 
   const handleSavePreMatch = async (state: PreMatchState) => {
     if (!event.id || isNew) return;
@@ -209,7 +209,7 @@ export const EventDialog = ({
       }
 
       if (isNew) {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('scheduled_events')
           .insert({
             title,
@@ -218,9 +218,22 @@ export const EventDialog = ({
             session_type: sessionType,
             notes: notesToSave,
             user_id: session.user.id
-          });
+          })
+          .select('id')
+          .single();
 
         if (error) throw error;
+
+        if (sessionType === 'mental_skills' && inserted?.id) {
+          setMentalSkillsEventId(inserted.id);
+          toast({
+            title: "Event created",
+            description: "Start your guided mental skills session.",
+          });
+          onSave();
+          setShowMentalSkillsDialog(true);
+          return;
+        }
       } else {
         const { error } = await supabase
           .from('scheduled_events')
@@ -485,13 +498,45 @@ export const EventDialog = ({
             <p className="text-sm text-muted-foreground">{sessionTypeConfig.description}</p>
           </div>
 
+          {isMentalSkillsSession && (
+            <div className="p-4 rounded-lg border-2 border-indigo-300 bg-indigo-50/80 space-y-3">
+              <p className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Guided mental skills session
+              </p>
+              <p className="text-xs text-indigo-800 leading-relaxed">
+                This isn&apos;t just a calendar slot — open a guided flow with breathing protocols (4-7-8 or box), a visualisation script, and self-talk logging.
+              </p>
+              {mentalSessionLog && !isNew && (
+                <p className="text-xs text-indigo-800 bg-white/70 rounded-lg px-3 py-2">
+                  Last session: {formatMentalSessionSummary(mentalSessionLog)}
+                </p>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                disabled={isNew}
+                onClick={() => setShowMentalSkillsDialog(true)}
+              >
+                {isNew ? 'Save event to start session' : mentalSessionLog ? 'Run session again' : 'Start guided session'}
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="notes">Important Info</Label>
+            <Label htmlFor="notes">
+              {isMentalSkillsSession ? 'Session notes (optional)' : 'Important Info'}
+            </Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder={sessionTypeConfig.notesPlaceholder}
+              placeholder={
+                isMentalSkillsSession
+                  ? 'Optional notes — self-talk and imagery are captured in the guided session.'
+                  : sessionTypeConfig.notesPlaceholder
+              }
+              rows={isMentalSkillsSession ? 2 : 3}
             />
           </div>
 
@@ -533,34 +578,6 @@ export const EventDialog = ({
             </div>
           )}
 
-          {isMentalSkillsSession && !isNew && (
-            <div className="p-4 rounded-lg border border-indigo-200 bg-indigo-50/50 space-y-2">
-              <p className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Mental skills session
-              </p>
-              {mentalSessionLog && (
-                <p className="text-xs text-indigo-800 bg-white/60 rounded-lg px-3 py-2">
-                  {formatMentalSessionSummary(mentalSessionLog)}
-                </p>
-              )}
-              <p className="text-xs text-indigo-700">
-                {mentalSessionLog
-                  ? 'Session completed — run another round or review your log.'
-                  : 'Guided breathing, imagery, and self-talk exercises.'}
-              </p>
-              {isSessionToday && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowMentalSkillsDialog(true)}
-                >
-                  {mentalSessionLog ? 'Run session again' : 'Start session'}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="flex justify-between">
@@ -617,14 +634,26 @@ export const EventDialog = ({
       />
     )}
 
-    {!isNew && event.id && (
+    {(mentalSkillsEventId || event.id) && (
       <MentalSkillsSessionDialog
         open={showMentalSkillsDialog}
-        onOpenChange={setShowMentalSkillsDialog}
-        eventId={event.id}
+        onOpenChange={(open) => {
+          setShowMentalSkillsDialog(open);
+          if (!open) {
+            setMentalSkillsEventId(null);
+            if (mentalSkillsEventId) onClose();
+          }
+        }}
+        eventId={mentalSkillsEventId || event.id!}
         eventTitle={title || event.title}
         existingNotes={event.notes}
-        onSaved={onSave}
+        onSaved={() => {
+          onSave();
+          if (mentalSkillsEventId) {
+            setMentalSkillsEventId(null);
+            onClose();
+          }
+        }}
       />
     )}
     </>

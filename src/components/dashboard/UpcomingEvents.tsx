@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScheduledEvent, getSessionTypeDashboardColors, getSessionTypeLabel } from "@/types/calendar";
-import { format, differenceInHours, isFuture, isToday } from "date-fns";
+import { format, differenceInHours, isFuture } from "date-fns";
 import { Calendar, Clock, Sparkles, Brain, Wind } from "lucide-react";
 import { MentalSkillsSessionDialog } from "@/components/mental/MentalSkillsSessionDialog";
 import { parseMentalSessionLog } from "@/utils/mentalSessionLog";
@@ -34,9 +34,9 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
     return differenceInHours(start, new Date()) <= 24;
   };
 
-  const isMentalSkillsToday = (event: ScheduledEvent) => {
+  const isMentalSkillsUpcoming = (event: ScheduledEvent) => {
     if (event.session_type !== 'mental_skills') return false;
-    return isToday(new Date(event.start_time));
+    return isFuture(new Date(event.start_time));
   };
 
   const handleSavePreMatch = async (state: PreMatchState) => {
@@ -64,7 +64,7 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
         {events.map((event, index) => {
           const colors = getSessionTypeDashboardColors(event.session_type);
           const showPreMatchCta = isMatchWithin24h(event);
-          const showMentalSkillsCta = isMentalSkillsToday(event);
+          const showMentalSkillsCta = isMentalSkillsUpcoming(event);
           const preState = scheduledStateToPreMatchState(event.pre_match_state);
           const hasLogged = hasPreMatchData(preState);
           const hasMentalLog = Boolean(parseMentalSessionLog(event.notes));

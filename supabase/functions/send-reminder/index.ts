@@ -54,8 +54,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profiles, error: queryError } = await supabase
       .from("profiles")
-      .select("id, journaling_preferences")
-      .not("journaling_preferences", "is", null);
+      .select("id, journaling_preferences");
 
     if (queryError) {
       console.error("Error querying profiles:", queryError);
@@ -72,8 +71,7 @@ Deno.serve(async (req: Request) => {
     }[] = [];
 
     for (const profile of profiles || []) {
-      const prefs = profile.journaling_preferences as JournalingPreferences | null;
-      if (!prefs) continue;
+      const prefs = (profile.journaling_preferences as JournalingPreferences | null) ?? {};
 
       // Journaling reminders
       if (prefs.reminder_enabled === true) {
@@ -171,8 +169,8 @@ Deno.serve(async (req: Request) => {
 
       // Post-match reflection reminders (~1 hour after logging, no reflection yet)
       if (prefs.after_match_reminder !== false) {
-        const windowStart = new Date(now.getTime() - 75 * 60 * 1000).toISOString();
-        const windowEnd = new Date(now.getTime() - 45 * 60 * 1000).toISOString();
+        const windowStart = new Date(now.getTime() - 120 * 60 * 1000).toISOString();
+        const windowEnd = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
 
         const { data: recentMatches } = await supabase
           .from("matches")
