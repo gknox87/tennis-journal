@@ -114,10 +114,20 @@ export const analytics = {
     });
   },
 
-  aiInsightsViewed(sessionId: string) {
-    posthog.capture('ai_insights_viewed', {
-      session_id: sessionId,
+  aiInsightsViewed(patternKey: string) {
+    posthog.capture("ai_insights_viewed", {
+      pattern_key: patternKey,
     });
+  },
+
+  patternDismissed(patternKey: string) {
+    posthog.capture("pattern_dismissed", {
+      pattern_key: patternKey,
+    });
+  },
+
+  patternRefreshRequested() {
+    posthog.capture("pattern_refresh_requested");
   },
 
   // ── Sharing / social ───────────────────────────────

@@ -98,12 +98,26 @@ export default function NotificationSettings() {
     setHasChanges(true);
   };
 
+  const handleWellnessTimeChange = (time: string) => {
+    setLocalPrefs((prev) => ({ ...prev, wellness_reminder_time: time }));
+    setHasChanges(true);
+  };
+
   const handleDayToggle = (day: string) => {
     const currentDays = localPrefs.reminder_days || [];
     const newDays = currentDays.includes(day)
       ? currentDays.filter((d) => d !== day)
       : [...currentDays, day];
     setLocalPrefs((prev) => ({ ...prev, reminder_days: newDays }));
+    setHasChanges(true);
+  };
+
+  const handleWellnessDayToggle = (day: string) => {
+    const currentDays = localPrefs.wellness_reminder_days || [];
+    const newDays = currentDays.includes(day)
+      ? currentDays.filter((d) => d !== day)
+      : [...currentDays, day];
+    setLocalPrefs((prev) => ({ ...prev, wellness_reminder_days: newDays }));
     setHasChanges(true);
   };
 
@@ -123,6 +137,10 @@ export default function NotificationSettings() {
 
   const isDayActive = (day: string) => {
     return (localPrefs.reminder_days || []).includes(day);
+  };
+
+  const isWellnessDayActive = (day: string) => {
+    return (localPrefs.wellness_reminder_days || []).includes(day);
   };
 
   if (isLoading) {
@@ -213,6 +231,72 @@ export default function NotificationSettings() {
           </div>
         </Card>
 
+        {/* Wellness Check-in Reminders */}
+        <Card className="p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-rose-100 rounded-lg">
+              <Heart className="h-5 w-5 text-rose-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Daily Wellness Check-in</h2>
+              <p className="text-sm text-muted-foreground">Proactive nudge to log sleep, stress, mood, and readiness</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-gray-500" />
+                <Label htmlFor="wellness_reminder_enabled" className="cursor-pointer">
+                  Daily wellness reminder
+                </Label>
+              </div>
+              <Switch
+                id="wellness_reminder_enabled"
+                checked={localPrefs.wellness_reminder_enabled ?? true}
+                onCheckedChange={() => handleToggle("wellness_reminder_enabled")}
+              />
+            </div>
+
+            {localPrefs.wellness_reminder_enabled !== false && (
+              <>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="wellness_reminder_time" className="cursor-pointer">
+                    Reminder time
+                  </Label>
+                  <TimeInput
+                    value={localPrefs.wellness_reminder_time ?? "08:00"}
+                    onChange={handleWellnessTimeChange}
+                  />
+                </div>
+
+                <div>
+                  <Label className="mb-2 block">Remind me on</Label>
+                  <div className="flex gap-1 justify-between">
+                    {DAYS.map((day) => (
+                      <button
+                        key={`wellness-${day.value}`}
+                        onClick={() => handleWellnessDayToggle(day.value)}
+                        className={`
+                          w-10 h-10 rounded-full text-sm font-medium
+                          transition-all duration-200
+                          ${isWellnessDayActive(day.value)
+                            ? "bg-rose-500 text-white shadow-md"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }
+                        `}
+                        title={day.label}
+                      >
+                        {day.short}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </Card>
+
         {/* Event-Based Reminders */}
         <Card className="p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -237,6 +321,20 @@ export default function NotificationSettings() {
                 id="after_match_reminder"
                 checked={localPrefs.after_match_reminder ?? true}
                 onCheckedChange={() => handleToggle("after_match_reminder")}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-gray-500" />
+                <Label htmlFor="pre_match_reminder" className="cursor-pointer">
+                  Before upcoming matches, prompt for pre-match state
+                </Label>
+              </div>
+              <Switch
+                id="pre_match_reminder"
+                checked={localPrefs.pre_match_reminder ?? true}
+                onCheckedChange={() => handleToggle("pre_match_reminder")}
               />
             </div>
 
@@ -377,6 +475,14 @@ export default function NotificationSettings() {
 }
 
 // Helper components for icons in this file
+function Heart({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </svg>
+  );
+}
+
 function Trophy({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

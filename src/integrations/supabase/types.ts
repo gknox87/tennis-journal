@@ -29,6 +29,54 @@ export type Database = {
         }
         Relationships: []
       }
+      athlete_patterns: {
+        Row: {
+          action: string | null
+          category: string
+          evidence: Json | null
+          expires_at: string | null
+          generated_at: string
+          headline: string
+          id: string
+          is_dismissed: boolean
+          message: string
+          pattern_key: string
+          severity: string
+          sport_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          category: string
+          evidence?: Json | null
+          expires_at?: string | null
+          generated_at?: string
+          headline: string
+          id?: string
+          is_dismissed?: boolean
+          message: string
+          pattern_key: string
+          severity?: string
+          sport_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          category?: string
+          evidence?: Json | null
+          expires_at?: string | null
+          generated_at?: string
+          headline?: string
+          id?: string
+          is_dismissed?: boolean
+          message?: string
+          pattern_key?: string
+          severity?: string
+          sport_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       coach_player_links: {
         Row: {
           approved_at: string | null
@@ -261,6 +309,50 @@ export type Database = {
           },
         ]
       }
+      injury_check_ins: {
+        Row: {
+          check_in_date: string
+          created_at: string
+          id: string
+          injury_report_id: string
+          notes: string | null
+          pain_level: number | null
+          rehab_mood: number
+          rtp_confidence: number
+          user_id: string
+        }
+        Insert: {
+          check_in_date?: string
+          created_at?: string
+          id?: string
+          injury_report_id: string
+          notes?: string | null
+          pain_level?: number | null
+          rehab_mood: number
+          rtp_confidence: number
+          user_id: string
+        }
+        Update: {
+          check_in_date?: string
+          created_at?: string
+          id?: string
+          injury_report_id?: string
+          notes?: string | null
+          pain_level?: number | null
+          rehab_mood?: number
+          rtp_confidence?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "injury_check_ins_injury_report_id_fkey"
+            columns: ["injury_report_id"]
+            isOneToOne: false
+            referencedRelation: "injury_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           coach_notes: string | null
@@ -272,8 +364,15 @@ export type Database = {
           is_win: boolean
           notes: string | null
           opponent_id: string | null
+          post_emotion_tags: string[] | null
+          pre_arousal: number | null
+          pre_confidence: number | null
+          pre_emotion_tags: string[] | null
+          pre_nerves: number | null
+          process_goal: string | null
           reflection_prompt_level: string | null
           reflection_prompt_used: string | null
+          scheduled_event_id: string | null
           score: string
           sport_id: string | null
           user_id: string | null
@@ -288,8 +387,15 @@ export type Database = {
           is_win?: boolean
           notes?: string | null
           opponent_id?: string | null
+          post_emotion_tags?: string[] | null
+          pre_arousal?: number | null
+          pre_confidence?: number | null
+          pre_emotion_tags?: string[] | null
+          pre_nerves?: number | null
+          process_goal?: string | null
           reflection_prompt_level?: string | null
           reflection_prompt_used?: string | null
+          scheduled_event_id?: string | null
           score: string
           sport_id?: string | null
           user_id?: string | null
@@ -304,8 +410,15 @@ export type Database = {
           is_win?: boolean
           notes?: string | null
           opponent_id?: string | null
+          post_emotion_tags?: string[] | null
+          pre_arousal?: number | null
+          pre_confidence?: number | null
+          pre_emotion_tags?: string[] | null
+          pre_nerves?: number | null
+          process_goal?: string | null
           reflection_prompt_level?: string | null
           reflection_prompt_used?: string | null
+          scheduled_event_id?: string | null
           score?: string
           sport_id?: string | null
           user_id?: string | null
@@ -393,6 +506,7 @@ export type Database = {
       }
       period_goals: {
         Row: {
+          cadence: string
           completed_at: string | null
           created_at: string
           current_value: number
@@ -400,6 +514,7 @@ export type Database = {
           goal_type: string
           id: string
           is_completed: boolean
+          metadata: Json
           period_end: string
           period_start: string
           sport_id: string | null
@@ -411,6 +526,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cadence?: string
           completed_at?: string | null
           created_at?: string
           current_value?: number
@@ -418,6 +534,7 @@ export type Database = {
           goal_type: string
           id?: string
           is_completed?: boolean
+          metadata?: Json
           period_end: string
           period_start: string
           sport_id?: string | null
@@ -429,6 +546,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cadence?: string
           completed_at?: string | null
           created_at?: string
           current_value?: number
@@ -436,6 +554,7 @@ export type Database = {
           goal_type?: string
           id?: string
           is_completed?: boolean
+          metadata?: Json
           period_end?: string
           period_start?: string
           sport_id?: string | null
@@ -577,6 +696,7 @@ export type Database = {
           end_time: string
           id: string
           notes: string | null
+          pre_match_state: Json | null
           session_type: Database["public"]["Enums"]["session_type"]
           sport_id: string | null
           start_time: string
@@ -589,6 +709,7 @@ export type Database = {
           end_time: string
           id?: string
           notes?: string | null
+          pre_match_state?: Json | null
           session_type: Database["public"]["Enums"]["session_type"]
           sport_id?: string | null
           start_time: string
@@ -601,6 +722,7 @@ export type Database = {
           end_time?: string
           id?: string
           notes?: string | null
+          pre_match_state?: Json | null
           session_type?: Database["public"]["Enums"]["session_type"]
           sport_id?: string | null
           start_time?: string
@@ -820,7 +942,11 @@ export type Database = {
         Row: {
           coach_name: string | null
           created_at: string
+          emotion_tags: string[] | null
+          enjoyment: number | null
           id: string
+          session_arousal: number | null
+          session_feel: number | null
           sport_id: string | null
           training_date: string
           training_time: string | null
@@ -833,7 +959,11 @@ export type Database = {
         Insert: {
           coach_name?: string | null
           created_at?: string
+          emotion_tags?: string[] | null
+          enjoyment?: number | null
           id?: string
+          session_arousal?: number | null
+          session_feel?: number | null
           sport_id?: string | null
           training_date?: string
           training_time?: string | null
@@ -846,7 +976,11 @@ export type Database = {
         Update: {
           coach_name?: string | null
           created_at?: string
+          emotion_tags?: string[] | null
+          enjoyment?: number | null
           id?: string
+          session_arousal?: number | null
+          session_feel?: number | null
           sport_id?: string | null
           training_date?: string
           training_time?: string | null
@@ -1007,9 +1141,10 @@ export type Database = {
           id: string
           menstrual_cycle_day: number | null
           mood: number
-          motivation: number | null
-          muscle_soreness: number
+          motivation: number
+          muscle_soreness: number | null
           notes: string | null
+          performance_confidence: number
           sleep_duration_hours: number | null
           sleep_quality: number
           sport_id: string | null
@@ -1026,9 +1161,10 @@ export type Database = {
           id?: string
           menstrual_cycle_day?: number | null
           mood: number
-          motivation?: number | null
-          muscle_soreness: number
+          motivation: number
+          muscle_soreness?: number | null
           notes?: string | null
+          performance_confidence: number
           sleep_duration_hours?: number | null
           sleep_quality: number
           sport_id?: string | null
@@ -1045,9 +1181,10 @@ export type Database = {
           id?: string
           menstrual_cycle_day?: number | null
           mood?: number
-          motivation?: number | null
-          muscle_soreness?: number
+          motivation?: number
+          muscle_soreness?: number | null
           notes?: string | null
+          performance_confidence?: number
           sleep_duration_hours?: number | null
           sleep_quality?: number
           sport_id?: string | null
@@ -1211,7 +1348,7 @@ export type Database = {
         | "throbbing"
         | "tingling"
         | "stiffness"
-      session_type: "training" | "recovery" | "match"
+      session_type: "training" | "recovery" | "match" | "mental_skills"
       team_role: "coach" | "player" | "assistant_coach"
     }
     CompositeTypes: {
@@ -1368,7 +1505,7 @@ export const Constants = {
         "tingling",
         "stiffness",
       ],
-      session_type: ["training", "recovery", "match"],
+      session_type: ["training", "recovery", "match", "mental_skills"],
       team_role: ["coach", "player", "assistant_coach"],
     },
   },

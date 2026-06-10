@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Types for notification preferences
 export interface TimeBasedReminder {
   enabled: boolean;
-  time: string; // HH:mm format
-  days: string[]; // ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+  time: string;
+  days: string[];
 }
 
 export interface EventBasedReminder {
@@ -18,8 +17,12 @@ export interface ReminderPreferences {
   reminder_enabled: boolean;
   reminder_time: string;
   reminder_days: string[];
+  wellness_reminder_enabled: boolean;
+  wellness_reminder_time: string;
+  wellness_reminder_days: string[];
   after_match_reminder: boolean;
   after_training_reminder: boolean;
+  pre_match_reminder: boolean;
   weekly_summary_enabled: boolean;
   location_tracking_enabled: boolean;
   smart_nudge_enabled: boolean;
@@ -41,18 +44,18 @@ const defaultPreferences: ReminderPreferences = {
   reminder_enabled: true,
   reminder_time: '20:00',
   reminder_days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+  wellness_reminder_enabled: true,
+  wellness_reminder_time: '08:00',
+  wellness_reminder_days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
   after_match_reminder: true,
   after_training_reminder: true,
+  pre_match_reminder: true,
   weekly_summary_enabled: true,
   location_tracking_enabled: false,
   smart_nudge_enabled: true,
   smart_nudge_threshold_days: 3,
 };
 
-/**
- * Hook to manage smart notification preferences for journaling
- * Reads/writes to profiles.journaling_preferences (JSONB)
- */
 export function useSmartNotifications(): UseSmartNotificationsReturn {
   const [preferences, setPreferences] = useState<ReminderPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +81,6 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
       }
 
       if (data?.journaling_preferences) {
-        // Deep merge with defaults to ensure all fields exist
         return {
           ...defaultPreferences,
           ...(data.journaling_preferences as Partial<ReminderPreferences>),
@@ -102,7 +104,6 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
       setIsLoading(true);
       setError(null);
 
-      // Get current preferences
       const current = await getReminderPreferences();
       const updated: ReminderPreferences = {
         ...defaultPreferences,
@@ -169,13 +170,11 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
     }
   }, []);
 
-  // Initial fetch
   useEffect(() => {
     refreshPreferences();
     refreshUnreadCount();
   }, [refreshPreferences, refreshUnreadCount]);
 
-  // Set up realtime subscription for notification count updates
   useEffect(() => {
     const { data: { session } } = supabase.auth.getSession();
     if (!session?.user) return;
@@ -191,7 +190,6 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
           filter: `user_id=eq.${session.user.id}`,
         },
         () => {
-          // Refresh count when notifications change
           void refreshUnreadCount();
         }
       )

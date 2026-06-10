@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { TrainingNote } from "@/types/training";
 import { format } from "date-fns";
 import { Edit2, Trash2, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown } from "lucide-react";
-import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
+import { getEnjoymentTextColor, getSessionFeelEmoji } from "@/constants/sessionWellbeing";
+import { EmotionTagChips } from "@/components/mental/EmotionTagPicker";
 import { formatCoachDisplay } from "@/utils/coachName";
+import { cn } from "@/lib/utils";
 
 interface TrainingNoteCardProps {
   note: TrainingNote;
@@ -20,13 +22,7 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
     }
   };
 
-  const sport = (() => {
-    const id = note.sport_id as SupportedSportId | undefined;
-    if (id && SPORTS[id]) {
-      return SPORTS[id];
-    }
-    return SPORTS[DEFAULT_SPORT_ID];
-  })();
+  const sessionFeelEmoji = getSessionFeelEmoji(note.session_feel);
 
   return (
     <Card className="p-6 hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border-2 border-gray-100 hover:border-blue-200">
@@ -40,6 +36,9 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
             <span className="font-semibold text-gray-800">
               {format(new Date(note.training_date), 'MMM dd, yyyy')}
             </span>
+            {sessionFeelEmoji && (
+              <span className="text-xl leading-none" title="Session feel">{sessionFeelEmoji}</span>
+            )}
           </div>
           <div className="flex gap-1">
             <Button
@@ -61,8 +60,8 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
           </div>
         </div>
 
-        {/* Time and Coach */}
-        <div className="flex gap-4 text-sm text-gray-600">
+        {/* Time, Coach, Enjoyment */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
           {note.training_time && (
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -75,7 +74,25 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
               <span>{formatCoachDisplay(note.coach_name)}</span>
             </div>
           )}
+          {note.enjoyment != null && (
+            <div className="flex items-center gap-1">
+              <span className={cn("font-medium", getEnjoymentTextColor(note.enjoyment))}>
+                Enjoyment: {note.enjoyment}/5
+              </span>
+            </div>
+          )}
+          {note.session_arousal != null && (
+            <div className="flex items-center gap-1">
+              <span className="font-medium text-purple-700">
+                Arousal: {note.session_arousal}/10
+              </span>
+            </div>
+          )}
         </div>
+
+        {note.emotion_tags && note.emotion_tags.length > 0 && (
+          <EmotionTagChips tags={note.emotion_tags} />
+        )}
 
         {/* What Worked On */}
         {note.what_worked_on && (

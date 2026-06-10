@@ -5,10 +5,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles, Save, X, Zap, Users } from "lucide-react";
+import { CalendarIcon, Sparkles, Save, X, Zap, Users, Brain } from "lucide-react";
 import { ScoreInput } from "@/components/ScoreInput";
 import { UniversalScoreInput } from "@/components/scoring/UniversalScoreInput";
 import { MatchSettings } from "@/components/MatchSettings";
+import { PreMatchStateForm, hasPreMatchData } from "@/components/mental/PreMatchStateForm";
+import { findMatchingScheduledEvent } from "@/utils/preMatchState";
+import type { PreMatchState } from "@/types/mental";
 import { Card } from "@/components/ui/card";
 import { OpponentInput } from "@/components/OpponentInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,6 +42,13 @@ export interface MatchFormData {
   reflectionPromptLevel?: string | null;
   matchType?: 'singles' | 'doubles';
   sportId?: string;
+  preNerves?: number | null;
+  preConfidence?: number | null;
+  preArousal?: number | null;
+  processGoal?: string | null;
+  preEmotionTags?: string[];
+  postEmotionTags?: string[];
+  scheduledEventId?: string | null;
 }
 
 interface MatchFormProps {
@@ -81,6 +91,19 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const [notes, setNotes] = useState(initialData?.notes || "");
   const [reflectionPromptUsed, setReflectionPromptUsed] = useState<string | null>(initialData?.reflectionPromptUsed || null);
   const [reflectionPromptLevel, setReflectionPromptLevel] = useState<string | null>(initialData?.reflectionPromptLevel || null);
+  const [preMatchState, setPreMatchState] = useState<PreMatchState>(() =>
+    initialData
+      ? {
+          nerves: initialData.preNerves ?? null,
+          confidence: initialData.preConfidence ?? null,
+          arousal: initialData.preArousal ?? null,
+          process_goal: initialData.processGoal ?? null,
+          emotion_tags: initialData.preEmotionTags ?? [],
+        }
+      : {}
+  );
+  const [postEmotionTags, setPostEmotionTags] = useState<string[]>(initialData?.postEmotionTags ?? []);
+  const [scheduledEventId, setScheduledEventId] = useState<string | null>(initialData?.scheduledEventId ?? null);
   const hasVenueOptions = Boolean(sport.venueOptions?.length);
   
   // Partner suggestions state
@@ -219,7 +242,14 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       reflectionPromptUsed,
       reflectionPromptLevel,
       matchType,
-    } as any);
+      preNerves: preMatchState.nerves ?? null,
+      preConfidence: preMatchState.confidence ?? null,
+      preArousal: preMatchState.arousal ?? null,
+      processGoal: preMatchState.process_goal ?? null,
+      preEmotionTags: preMatchState.emotion_tags ?? [],
+      postEmotionTags,
+      scheduledEventId,
+    });
   };
 
   const opponentLabel = `${sport.terminology.opponentLabel}`;
@@ -240,6 +270,32 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       setCourtType("");
     }
   }, [hasVenueOptions, sport]);
+
+  // Pre-fill pre-match state from calendar event when date/opponent changes
+  useEffect(() => {
+    if (initialData?.preNerves != null || initialData?.scheduledEventId) return;
+
+    const loadScheduledPreMatch = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || !date) return;
+
+      const matchDate = date.toISOString().split('T')[0];
+      const matched = await findMatchingScheduledEvent(
+        session.user.id,
+        matchDate,
+        opponent || undefined
+      );
+
+      if (matched?.pre_match_state && hasPreMatchData(matched.pre_match_state)) {
+        setPreMatchState(matched.pre_match_state);
+        setScheduledEventId(matched.id);
+      } else if (matched) {
+        setScheduledEventId(matched.id);
+      }
+    };
+
+    void loadScheduledPreMatch();
+  }, [date, opponent, initialData?.preNerves, initialData?.scheduledEventId]);
 
   const handleOpponentChange = (value: string) => {
     setOpponent(value);
@@ -494,6 +550,20 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
         )}
       </Card>
 
+      {/* Pre-match State */}
+      <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-purple-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-violet-600">
+            <Brain className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold gradient-text">Pre-match State</h3>
+            <p className="text-sm text-gray-600">How did you feel before you stepped on court?</p>
+          </div>
+        </div>
+        <PreMatchStateForm value={preMatchState} onChange={setPreMatchState} />
+      </Card>
+
       {/* Match Settings & Notes */}
       <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
         <MatchSettings
@@ -502,7 +572,6 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
             setNotes(newNotes);
             if (promptUsed) {
               setReflectionPromptUsed(promptUsed);
-              // Extract level from promptUsed (format: "post_match_win_standard")
               const parts = promptUsed.split('_');
               if (parts.length >= 3) {
                 setReflectionPromptLevel(parts[parts.length - 1]);
@@ -516,6 +585,8 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
           matchDate={date}
           reflectionPromptUsed={reflectionPromptUsed}
           reflectionPromptLevel={reflectionPromptLevel}
+          postEmotionTags={postEmotionTags}
+          onPostEmotionTagsChange={setPostEmotionTags}
         />
       </Card>
 

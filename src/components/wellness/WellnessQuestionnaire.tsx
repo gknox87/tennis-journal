@@ -1,20 +1,20 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { WellnessScaleSelector } from "@/components/wellness/WellnessScaleSelector";
-import { WELLNESS_QUESTIONS, WellnessFieldKey } from "@/types/wellness";
+import { WELLNESS_QUESTIONS, WELLNESS_SORENESS_DESCRIPTORS, WELLNESS_MAX_SCORE, WellnessFieldKey } from "@/types/wellness";
 import { WellnessSubmitInput } from "@/hooks/useWellness";
-import { calculateHooperIndex, getWellnessZone, getWellnessZoneColor, getWellnessZoneLabel } from "@/utils/wellnessCalc";
-import { ChevronLeft, ChevronRight, Check, Moon, Zap, Activity, Brain, Smile, SkipForward } from "lucide-react";
+import { calculateWellnessScore, getWellnessZone, getWellnessZoneColor, getWellnessZoneLabel } from "@/utils/wellnessCalc";
+import { ChevronLeft, ChevronRight, Check, Moon, Zap, Brain, Smile, Flame, Target, Activity, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-const STEP_ICONS = [Moon, Zap, Activity, Brain, Smile];
+const STEP_ICONS = [Moon, Zap, Brain, Smile, Flame, Target];
 
 interface WellnessQuestionnaireProps {
   open: boolean;
@@ -34,12 +34,13 @@ export const WellnessQuestionnaire = ({
   const [answers, setAnswers] = useState<Record<WellnessFieldKey, number | null>>({
     sleep_quality: null,
     fatigue: null,
-    muscle_soreness: null,
     stress_level: null,
     mood: null,
+    motivation: null,
+    performance_confidence: null,
   });
   const [sleepHours, setSleepHours] = useState<string>("");
-  const [motivation, setMotivation] = useState<number | null>(null);
+  const [muscleSoreness, setMuscleSoreness] = useState<number | null>(null);
   const [energy, setEnergy] = useState<number | null>(null);
   const [appetite, setAppetite] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
@@ -48,7 +49,6 @@ export const WellnessQuestionnaire = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Check profile for menstrual tracking setting
   useEffect(() => {
     const checkProfile = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -63,7 +63,6 @@ export const WellnessQuestionnaire = ({
     if (open) checkProfile();
   }, [open]);
 
-  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setCurrentQuestion(0);
@@ -71,17 +70,19 @@ export const WellnessQuestionnaire = ({
       setAnswers({
         sleep_quality: null,
         fatigue: null,
-        muscle_soreness: null,
         stress_level: null,
         mood: null,
+        motivation: null,
+        performance_confidence: null,
       });
       setSleepHours("");
-      setMotivation(null);
+      setMuscleSoreness(null);
       setEnergy(null);
       setAppetite(null);
       setNotes("");
       setMenstrualDay("");
       setIsSubmitting(false);
+      setSubmitError(null);
     }
   }, [open]);
 
@@ -135,21 +136,15 @@ export const WellnessQuestionnaire = ({
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      // Defensive: ensure all core values exist before submitting
-      const sq = answers.sleep_quality ?? 3;
-      const fg = answers.fatigue ?? 3;
-      const ms = answers.muscle_soreness ?? 3;
-      const sl = answers.stress_level ?? 3;
-      const md = answers.mood ?? 3;
-
       await onSubmit({
-        sleep_quality: sq,
+        sleep_quality: answers.sleep_quality!,
         sleep_duration_hours: sleepHours ? parseFloat(sleepHours) : null,
-        fatigue: fg,
-        muscle_soreness: ms,
-        stress_level: sl,
-        mood: md,
-        motivation,
+        fatigue: answers.fatigue!,
+        muscle_soreness: muscleSoreness,
+        stress_level: answers.stress_level!,
+        mood: answers.mood!,
+        motivation: answers.motivation!,
+        performance_confidence: answers.performance_confidence!,
         energy,
         appetite,
         notes: notes.trim() || null,
@@ -164,13 +159,14 @@ export const WellnessQuestionnaire = ({
     }
   };
 
-  const previewScore = allCoreAnswered ? calculateHooperIndex(answers as Record<WellnessFieldKey, number>) : null;
+  const previewScore = allCoreAnswered
+    ? calculateWellnessScore(answers as Record<WellnessFieldKey, number>)
+    : null;
   const previewZone = previewScore !== null ? getWellnessZone(previewScore) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-0">
-        {/* Progress bar */}
         <div className="px-6 pt-6 pb-2">
           <Progress value={progressPercent} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1 text-center">
@@ -185,7 +181,6 @@ export const WellnessQuestionnaire = ({
         </div>
 
         <div className="px-6 pb-6">
-          {/* Core questions */}
           {step === "questions" && question && (
             <div className="space-y-4">
               <div className="text-center space-y-2">
@@ -201,7 +196,6 @@ export const WellnessQuestionnaire = ({
                 descriptors={question.descriptors}
               />
 
-              {/* Optional sleep hours on first question */}
               {currentQuestion === 0 && (
                 <div className="pt-2 border-t">
                   <Label htmlFor="sleep-hours" className="text-sm text-muted-foreground">
@@ -223,7 +217,6 @@ export const WellnessQuestionnaire = ({
             </div>
           )}
 
-          {/* Optional extras */}
           {step === "extras" && (
             <div className="space-y-4">
               <div className="text-center space-y-1">
@@ -235,23 +228,15 @@ export const WellnessQuestionnaire = ({
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Motivation to train (1–5)</Label>
-                  <div className="flex gap-2 mt-1">
-                    {[1, 2, 3, 4, 5].map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => setMotivation(motivation === v ? null : v)}
-                        className={cn(
-                          "flex-1 h-11 rounded-lg border-2 font-bold transition-all",
-                          motivation === v
-                            ? "bg-primary text-white border-primary shadow-md"
-                            : "border-gray-200 text-gray-500 hover:border-gray-300"
-                        )}
-                      >
-                        {v}
-                      </button>
-                    ))}
+                  <Label className="text-sm font-medium flex items-center gap-1">
+                    <Activity className="h-3.5 w-3.5" /> Muscle soreness (1–5)
+                  </Label>
+                  <div className="mt-2">
+                    <WellnessScaleSelector
+                      value={muscleSoreness}
+                      onChange={(v) => setMuscleSoreness(muscleSoreness === v ? null : v)}
+                      descriptors={WELLNESS_SORENESS_DESCRIPTORS}
+                    />
                   </div>
                 </div>
 
@@ -318,7 +303,6 @@ export const WellnessQuestionnaire = ({
             </div>
           )}
 
-          {/* Notes */}
           {step === "notes" && (
             <div className="space-y-4">
               <div className="text-center space-y-1">
@@ -337,7 +321,6 @@ export const WellnessQuestionnaire = ({
             </div>
           )}
 
-          {/* Summary */}
           {step === "summary" && (
             <div className="space-y-5">
               <div className="text-center space-y-2">
@@ -350,7 +333,7 @@ export const WellnessQuestionnaire = ({
                     >
                       <div className="text-center">
                         <span className="text-3xl font-black">{previewScore}</span>
-                        <span className="text-xs block opacity-90">/25</span>
+                        <span className="text-xs block opacity-90">/{WELLNESS_MAX_SCORE}</span>
                       </div>
                     </div>
                     <p
@@ -363,13 +346,13 @@ export const WellnessQuestionnaire = ({
                 ) : (
                   <div className="py-4">
                     <p className="text-sm text-amber-600 font-medium">
-                      Complete all 5 core questions to see your wellness score.
+                      Complete all 6 core questions to see your wellness score.
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-5 gap-2 text-center">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                 {WELLNESS_QUESTIONS.map((q, i) => {
                   const val = answers[q.key];
                   const StepIcon = STEP_ICONS[i];
@@ -390,13 +373,16 @@ export const WellnessQuestionnaire = ({
                   Sleep duration: {sleepHours} hours
                 </p>
               )}
-              {motivation && <p className="text-sm text-center text-muted-foreground">Motivation: {motivation}/5</p>}
+              {muscleSoreness && (
+                <p className="text-sm text-center text-muted-foreground">
+                  Muscle soreness: {muscleSoreness}/5
+                </p>
+              )}
               {energy && <p className="text-sm text-center text-muted-foreground">Energy: {energy}/5</p>}
               {appetite && <p className="text-sm text-center text-muted-foreground">Appetite: {appetite}/5</p>}
             </div>
           )}
 
-          {/* Navigation buttons */}
           <div className="flex items-center justify-between mt-6 pt-4 border-t">
             <Button
               variant="ghost"
@@ -420,13 +406,13 @@ export const WellnessQuestionnaire = ({
                   disabled={isSubmitting || !allCoreAnswered}
                   className="gap-1 shadow-lg w-full"
                 >
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
-                Save Check-in
-              </Button>
+                  {isSubmitting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  Save Check-in
+                </Button>
               </div>
             ) : step === "extras" || step === "notes" ? (
               <div className="flex gap-2">

@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { useSport } from "@/context/SportContext";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
+import { useWellness } from "@/hooks/useWellness";
+import { useSubscription } from "@/hooks/useSubscription";
 import { LogSessionDialog } from "@/components/training/LogSessionDialog";
 import { LoadDashboard } from "@/components/training/LoadDashboard";
 import { Plus, Zap, Trash2 } from "lucide-react";
@@ -15,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 const TrainingLoad = () => {
   const { sport } = useSport();
   const { sessions, isLoading, logSession, deleteSession, metrics } = useTrainingLoad();
+  const { entries: wellnessEntries } = useWellness({ fetchDays: 56 });
+  const { canAccessWellnessLoadInsights } = useSubscription();
   const [showDialog, setShowDialog] = useState(false);
   const navigate = useNavigate();
 
@@ -72,7 +76,12 @@ const TrainingLoad = () => {
           </Card>
         ) : (
           <>
-            <LoadDashboard sessions={sessions} metrics={metrics} />
+            <LoadDashboard
+              sessions={sessions}
+              metrics={metrics}
+              wellnessEntries={wellnessEntries}
+              canAccessInsights={canAccessWellnessLoadInsights()}
+            />
 
             {/* Recent sessions */}
             <div className="mt-6">

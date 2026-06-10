@@ -10,6 +10,8 @@ import type { PromptType, PromptLevel, PromptAnswers } from "@/types/reflection"
 import { getPromptIdentifier } from "@/constants/reflectionPrompts";
 import { differenceInDays } from "date-fns";
 
+import { EmotionTagPicker } from "@/components/mental/EmotionTagPicker";
+
 interface MatchSettingsProps {
   notes: string;
   onNotesChange: (value: string, answers?: PromptAnswers, promptUsed?: string) => void;
@@ -17,6 +19,8 @@ interface MatchSettingsProps {
   matchDate?: Date;
   reflectionPromptUsed?: string | null;
   reflectionPromptLevel?: string | null;
+  postEmotionTags?: string[];
+  onPostEmotionTagsChange?: (tags: string[]) => void;
 }
 
 export const MatchSettings = ({
@@ -26,6 +30,8 @@ export const MatchSettings = ({
   matchDate,
   reflectionPromptUsed,
   reflectionPromptLevel,
+  postEmotionTags = [],
+  onPostEmotionTagsChange,
 }: MatchSettingsProps) => {
   const [useGuidedPrompts, setUseGuidedPrompts] = useState(true);
   const [promptAnswers, setPromptAnswers] = useState<PromptAnswers>({});
@@ -224,6 +230,16 @@ export const MatchSettings = ({
           </>
         )}
       </div>
+
+      {onPostEmotionTagsChange && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200/30">
+          <EmotionTagPicker
+            label="How did you feel during / after the match?"
+            value={postEmotionTags}
+            onChange={onPostEmotionTagsChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

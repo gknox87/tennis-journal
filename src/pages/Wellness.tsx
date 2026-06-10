@@ -1,17 +1,20 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Header } from "@/components/Header";
 import { useSport } from "@/context/SportContext";
 import { useWellness } from "@/hooks/useWellness";
 import { WellnessQuestionnaire } from "@/components/wellness/WellnessQuestionnaire";
 import { WellnessTrendChart, WellnessBreakdownChart } from "@/components/wellness/WellnessTrendChart";
+import { PerformanceMindsetSection } from "@/components/mental/ArousalTrendChart";
+import { useArousalTrend } from "@/hooks/useArousalTrend";
 import { getWellnessZone, getWellnessZoneColor, getWellnessZoneLabel } from "@/utils/wellnessCalc";
-import { WELLNESS_QUESTIONS } from "@/types/wellness";
+import { WELLNESS_MAX_SCORE } from "@/types/wellness";
 import { Plus, Heart, Trash2, AlertTriangle, AlertCircle, Info, Flame } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const ALERT_ICONS = {
   critical: AlertCircle,
@@ -28,9 +31,44 @@ const ALERT_STYLES = {
 const Wellness = () => {
   const { sport } = useSport();
   const { entries, isLoading, submitEntry, deleteEntry, todayEntry, metrics } = useWellness();
+  const { data: arousalData, isLoading: arousalLoading } = useArousalTrend();
   const [showDialog, setShowDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const recentEntries = [...entries].reverse().slice(0, 14);
+
+  useEffect(() => {
+    const openFromReminder = async () => {
+      if (searchParams.get("from") === "reminder") {
+        setShowDialog(true);
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("from");
+          return next;
+        }, { replace: true });
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user || todayEntry) return;
+
+      const { data } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", sessionData.session.user.id)
+        .eq("type", "wellness_reminder")
+        .eq("read", false)
+        .limit(1);
+
+      if (data && data.length > 0) {
+        setShowDialog(true);
+      }
+    };
+
+    if (!isLoading) {
+      openFromReminder();
+    }
+  }, [isLoading, todayEntry, searchParams, setSearchParams]);
 
   if (isLoading) {
     return (
@@ -42,8 +80,7 @@ const Wellness = () => {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-rose-50 via-white to-purple-50">
-<div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -65,7 +102,6 @@ const Wellness = () => {
           )}
         </div>
 
-        {/* Alerts */}
         {metrics.alerts.length > 0 && (
           <div className="space-y-2 mb-6">
             {metrics.alerts.map((alert, i) => {
@@ -91,7 +127,7 @@ const Wellness = () => {
             <Heart className="h-12 w-12 mx-auto mb-4 text-rose-500 opacity-50" />
             <h3 className="text-lg font-semibold mb-2">No Check-ins Yet</h3>
             <p className="text-muted-foreground mb-6 text-sm">
-              Start your daily wellness check-in to track sleep, fatigue, soreness, stress, and mood.
+              Start your daily wellness check-in to track sleep, fatigue, stress, mood, motivation, and confidence.
             </p>
             <Button onClick={() => setShowDialog(true)} size="lg">
               <Plus className="mr-2 h-5 w-5" /> Your First Check-in
@@ -99,7 +135,6 @@ const Wellness = () => {
           </Card>
         ) : (
           <>
-            {/* Recent entries */}
             <div className="mb-6">
               <h2 className="text-lg font-semibold mb-4">Recent Check-ins</h2>
               <div className="space-y-2">
@@ -120,7 +155,8 @@ const Wellness = () => {
                             {format(parseISO(entry.entry_date), "EEEE, MMM dd")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            S:{entry.sleep_quality} F:{entry.fatigue} M:{entry.muscle_soreness} St:{entry.stress_level} Mo:{entry.mood}
+                            S:{entry.sleep_quality} F:{entry.fatigue} St:{entry.stress_level} Mo:{entry.mood} Mt:{entry.motivation} Cf:{entry.performance_confidence}
+                            {entry.muscle_soreness != null ? ` Sr:${entry.muscle_soreness}` : ""}
                             {entry.sleep_duration_hours ? ` · ${entry.sleep_duration_hours}h sleep` : ""}
                           </p>
                         </div>
@@ -139,7 +175,6 @@ const Wellness = () => {
               </div>
             </div>
 
-            {/* Summary cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <Card className="p-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Today</p>
@@ -165,7 +200,7 @@ const Wellness = () => {
               <Card className="p-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">7-Day Avg</p>
                 <p className="text-2xl font-bold text-foreground">{metrics.weeklyAverage}</p>
-                <p className="text-xs text-muted-foreground">/25</p>
+                <p className="text-xs text-muted-foreground">/{WELLNESS_MAX_SCORE}</p>
               </Card>
               <Card className="p-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Streak</p>
@@ -182,13 +217,13 @@ const Wellness = () => {
               </Card>
             </div>
 
-            {/* Trend chart */}
             <Card className="p-4 mb-6">
               <h2 className="text-sm font-semibold mb-3">Wellness Trend</h2>
               <WellnessTrendChart data={metrics.trend} />
             </Card>
 
-            {/* Breakdown chart */}
+            <PerformanceMindsetSection data={arousalData} isLoading={arousalLoading} />
+
             <Card className="p-5 mb-8 bg-gradient-to-br from-slate-50/50 to-white border-slate-200">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">

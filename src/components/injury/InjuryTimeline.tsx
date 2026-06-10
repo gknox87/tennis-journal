@@ -1,14 +1,22 @@
 
-import { InjuryReport, getPainColor, getRegionLabel, INJURY_TRENDS } from "@/types/injury";
+import { InjuryReport, InjuryCheckIn, getPainColor, getRegionLabel, INJURY_TRENDS } from "@/types/injury";
+import {
+  getRehabMoodEmoji,
+  getRehabMoodLabel,
+  getRtpConfidenceLabel,
+  getPsychScaleTextColor,
+} from "@/constants/injuryPsychology";
 import { Card } from "@/components/ui/card";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Brain } from "lucide-react";
 
 interface InjuryTimelineProps {
   reports: InjuryReport[];
+  checkIns: InjuryCheckIn[];
 }
 
-export const InjuryTimeline = ({ reports }: InjuryTimelineProps) => {
+export const InjuryTimeline = ({ reports, checkIns }: InjuryTimelineProps) => {
   if (reports.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
@@ -17,7 +25,6 @@ export const InjuryTimeline = ({ reports }: InjuryTimelineProps) => {
     );
   }
 
-  // Group reports by body part
   const grouped: Record<string, InjuryReport[]> = {};
   reports.forEach((r) => {
     const key = r.body_part;
@@ -48,10 +55,12 @@ export const InjuryTimeline = ({ reports }: InjuryTimelineProps) => {
             {groupReports.map((report) => {
               const trendInfo = INJURY_TRENDS.find((t) => t.value === report.trend);
               const painColor = getPainColor(report.pain_level);
+              const reportCheckIns = checkIns
+                .filter((c) => c.injury_report_id === report.id)
+                .sort((a, b) => b.check_in_date.localeCompare(a.check_in_date));
 
               return (
                 <div key={report.id} className="relative">
-                  {/* Timeline dot */}
                   <div
                     className="absolute -left-[21px] top-1 w-3 h-3 rounded-full border-2 border-white"
                     style={{ backgroundColor: painColor }}
@@ -114,6 +123,42 @@ export const InjuryTimeline = ({ reports }: InjuryTimelineProps) => {
                         </>
                       )}
                     </div>
+
+                    {/* Rehab check-ins for this injury */}
+                    {reportCheckIns.length > 0 && (
+                      <div className="mt-2.5 pt-2.5 border-t border-muted space-y-1.5">
+                        <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
+                          <Brain className="h-3 w-3" />
+                          Rehab check-ins
+                        </p>
+                        {reportCheckIns.map((checkIn) => (
+                          <div
+                            key={checkIn.id}
+                            className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] bg-muted/40 rounded px-2 py-1"
+                          >
+                            <span className="text-muted-foreground font-medium">
+                              {format(parseISO(checkIn.check_in_date), "MMM dd")}
+                            </span>
+                            {checkIn.pain_level != null && (
+                              <span style={{ color: getPainColor(checkIn.pain_level) }}>
+                                Pain {checkIn.pain_level}/10
+                              </span>
+                            )}
+                            <span className={cn("font-medium", getPsychScaleTextColor(checkIn.rehab_mood))}>
+                              {getRehabMoodEmoji(checkIn.rehab_mood)} {getRehabMoodLabel(checkIn.rehab_mood)}
+                            </span>
+                            <span className={cn("font-medium", getPsychScaleTextColor(checkIn.rtp_confidence))}>
+                              RTP: {getRtpConfidenceLabel(checkIn.rtp_confidence)}
+                            </span>
+                            {checkIn.notes && (
+                              <span className="text-muted-foreground italic w-full">
+                                {checkIn.notes}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </Card>
                 </div>
               );

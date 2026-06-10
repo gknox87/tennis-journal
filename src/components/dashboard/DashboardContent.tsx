@@ -6,7 +6,7 @@ import { StatsSection } from "@/components/StatsSection";
 import { MatchList } from "@/components/MatchList";
 import { NotesSection } from "@/components/dashboard/NotesSection";
 import { NotesDialog } from "@/components/NotesDialog";
-import { ImprovementChecklist } from "@/components/ImprovementChecklist";
+import { PatternInsightsWidget } from "@/components/dashboard/PatternInsightsWidget";
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents";
 import { JournalingStreak } from "@/components/dashboard/JournalingStreak";
 import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebration";
@@ -26,7 +26,6 @@ import { useInjuryReports } from "@/hooks/useInjuryReports";
 import { isMilestone } from "@/utils/streakCalculations";
 
 const MemoizedStatsSection = memo(StatsSection);
-const MemoizedImprovementChecklist = memo(ImprovementChecklist);
 
 interface DashboardContentProps {
   matches: Match[];
@@ -190,6 +189,9 @@ export const DashboardContent = ({
         </div>
       </section>
 
+      {/* ─── 2.5. PATTERN INSIGHTS ─── */}
+      <PatternInsightsWidget matchCount={matches.length} />
+
       {/* ─── 3. BADGES ─── */}
       <section>
         <Suspense fallback={
@@ -219,7 +221,7 @@ export const DashboardContent = ({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
         }>
-          <UpcomingEvents events={upcomingEvents} />
+          <UpcomingEvents events={upcomingEvents} onPreMatchSaved={fetchUpcomingEvents} />
         </Suspense>
       </section>
 

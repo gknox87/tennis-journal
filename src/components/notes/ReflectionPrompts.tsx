@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Clock, Zap, Target, BookOpen } from 'lucide-react';
-import type { PromptType, PromptLevel, PromptAnswers } from '@/types/reflection';
+import type { PromptType, PromptLevel, PromptAnswers, PromptQuestion } from '@/types/reflection';
 import { getPromptSet, getPromptIdentifier } from '@/constants/reflectionPrompts';
+import { formatAnswersToNotes } from '@/utils/reflectionNotes';
+import { cn } from '@/lib/utils';
 
 interface ReflectionPromptsProps {
   promptType: PromptType;
@@ -146,17 +147,27 @@ export const ReflectionPrompts = ({
                   )}
                 </Label>
               </div>
-              <div className="relative ml-9">
-                <Textarea
-                  id={prompt.id}
-                  value={answers[prompt.id] || ''}
-                  onChange={(e) => handleAnswerChange(prompt.id, e.target.value)}
-                  placeholder={prompt.placeholder || 'Share your thoughts...'}
-                  className="min-h-[100px] rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-colors resize-none"
-                />
-                <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-white/90 px-2 py-1 rounded-full">
-                  {(answers[prompt.id] || '').length} characters
-                </div>
+              <div className="ml-9">
+                {prompt.inputType === 'scale' ? (
+                  <ScalePromptInput
+                    prompt={prompt}
+                    value={answers[prompt.id] || ''}
+                    onChange={(value) => handleAnswerChange(prompt.id, value)}
+                  />
+                ) : (
+                  <div className="relative">
+                    <Textarea
+                      id={prompt.id}
+                      value={answers[prompt.id] || ''}
+                      onChange={(e) => handleAnswerChange(prompt.id, e.target.value)}
+                      placeholder={prompt.placeholder || 'Share your thoughts...'}
+                      className="min-h-[100px] rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-colors resize-none"
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-white/90 px-2 py-1 rounded-full">
+                      {(answers[prompt.id] || '').length} characters
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -172,20 +183,81 @@ export const ReflectionPrompts = ({
   );
 };
 
-/**
- * Format answers into a readable notes format with question headers
- */
-function formatAnswersToNotes(
-  prompts: Array<{ id: string; question: string }>,
-  answers: PromptAnswers
-): string {
-  const sections = prompts
-    .filter((prompt) => answers[prompt.id]?.trim())
-    .map((prompt) => {
-      const answer = answers[prompt.id].trim();
-      return `${prompt.question}\n${answer}`;
-    });
+const SCALE_COLORS = [
+  'bg-green-100 text-green-800 border-green-300',
+  'bg-green-100 text-green-800 border-green-300',
+  'bg-lime-100 text-lime-800 border-lime-300',
+  'bg-lime-100 text-lime-800 border-lime-300',
+  'bg-yellow-100 text-yellow-800 border-yellow-300',
+  'bg-yellow-100 text-yellow-800 border-yellow-300',
+  'bg-orange-100 text-orange-800 border-orange-300',
+  'bg-orange-100 text-orange-800 border-orange-300',
+  'bg-red-100 text-red-800 border-red-300',
+  'bg-red-100 text-red-800 border-red-300',
+];
 
-  return sections.join('\n\n');
+function parseScaleAnswer(value: string): { rating: number | null; notes: string } {
+  const match = value.match(/^(\d{1,2})\/10\s*-?\s*(.*)$/s);
+  if (!match) return { rating: null, notes: value };
+  const rating = parseInt(match[1], 10);
+  return {
+    rating: rating >= 1 && rating <= 10 ? rating : null,
+    notes: match[2].trim(),
+  };
+}
+
+function formatScaleAnswer(rating: number | null, notes: string): string {
+  if (rating === null) return notes;
+  return notes ? `${rating}/10 - ${notes}` : `${rating}/10`;
+}
+
+interface ScalePromptInputProps {
+  prompt: PromptQuestion;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function ScalePromptInput({ prompt, value, onChange }: ScalePromptInputProps) {
+  const { rating, notes } = parseScaleAnswer(value);
+
+  const handleRatingChange = (newRating: number) => {
+    onChange(formatScaleAnswer(newRating, notes));
+  };
+
+  const handleNotesChange = (newNotes: string) => {
+    onChange(formatScaleAnswer(rating, newNotes));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+        <span>1 — {prompt.scaleLowLabel || 'Low'}</span>
+        <span>10 — {prompt.scaleHighLabel || 'High'}</span>
+      </div>
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+          <button
+            key={num}
+            type="button"
+            onClick={() => handleRatingChange(num)}
+            className={cn(
+              'h-10 rounded-xl border-2 font-bold text-sm transition-all duration-200',
+              rating === num
+                ? cn(SCALE_COLORS[num - 1], 'shadow-md scale-105')
+                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+            )}
+          >
+            {num}
+          </button>
+        ))}
+      </div>
+      <Textarea
+        value={notes}
+        onChange={(e) => handleNotesChange(e.target.value)}
+        placeholder={prompt.placeholder || 'Any extra context about your energy or mindset...'}
+        className="min-h-[80px] rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-colors resize-none"
+      />
+    </div>
+  );
 }
 

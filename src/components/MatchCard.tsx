@@ -15,6 +15,7 @@ interface MatchCardProps {
   finalSetTiebreak?: boolean;
   sportId?: string | null;
   sportName?: string | null;
+  processGoal?: string | null;
   onDelete: () => void;
   onEdit: () => void;
 }
@@ -27,6 +28,7 @@ export const MatchCard = ({
   isWin,
   sportId,
   sportName,
+  processGoal,
   onDelete,
   onEdit 
 }: MatchCardProps) => {
@@ -105,6 +107,11 @@ export const MatchCard = ({
       </CardHeader>
       
       <CardContent className="pt-0 pb-6">
+        {processGoal?.trim() && (
+          <p className="text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2 italic truncate">
+            Goal: {processGoal}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

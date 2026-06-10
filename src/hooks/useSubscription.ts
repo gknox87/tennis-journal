@@ -21,6 +21,8 @@ interface SubscriptionData {
   canExportData: () => boolean;
   canUseCustomPrompts: () => boolean;
   canAccessAdvancedAnalytics: () => boolean;
+  canAccessWellnessLoadInsights: () => boolean;
+  canAccessPatternInsights: () => boolean;
   keyOpponentLimit: number | null;
   aiLimit: number | null;
   videoLimit: number | null;
@@ -64,13 +66,12 @@ export const useSubscription = (): SubscriptionData => {
       const userId = session.user.id;
       const monthStart = getMonthStart();
 
-      // Check AI usage (matches with reflection_prompt_used)
+      // Check AI usage (improvement points created this month)
       const { count: aiCount } = await supabase
-        .from("matches")
+        .from("improvement_points")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .gte("created_at", monthStart)
-        .not("reflection_prompt_used", "is", null);
+        .gte("created_at", monthStart);
 
       // Check video usage (training sessions with notes containing "video")
       // Simplified: count training sessions this month as proxy for video
@@ -147,6 +148,8 @@ export const useSubscription = (): SubscriptionData => {
   const canExportData = () => !isFreePlan;
   const canUseCustomPrompts = () => !isFreePlan;
   const canAccessAdvancedAnalytics = () => !isFreePlan;
+  const canAccessWellnessLoadInsights = () => !isFreePlan;
+  const canAccessPatternInsights = () => isProPlan || isTeamPlan;
 
   const startTrial = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -187,6 +190,8 @@ export const useSubscription = (): SubscriptionData => {
     canExportData,
     canUseCustomPrompts,
     canAccessAdvancedAnalytics,
+    canAccessWellnessLoadInsights,
+    canAccessPatternInsights,
     keyOpponentLimit: isFreePlan ? FREE_OPPONENT_LIMIT : null,
     aiLimit: isFreePlan ? FREE_AI_LIMIT : null,
     videoLimit: isFreePlan ? FREE_VIDEO_LIMIT : null,

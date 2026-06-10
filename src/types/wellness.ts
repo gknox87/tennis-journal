@@ -7,11 +7,12 @@ export interface WellnessEntry {
   sleep_quality: number;
   sleep_duration_hours?: number | null;
   fatigue: number;
-  muscle_soreness: number;
+  muscle_soreness?: number | null;
   stress_level: number;
   mood: number;
+  motivation: number;
+  performance_confidence: number;
   total_wellness_score: number;
-  motivation?: number | null;
   energy?: number | null;
   appetite?: number | null;
   notes?: string | null;
@@ -22,9 +23,10 @@ export interface WellnessEntry {
 export type WellnessFieldKey =
   | "sleep_quality"
   | "fatigue"
-  | "muscle_soreness"
   | "stress_level"
-  | "mood";
+  | "mood"
+  | "motivation"
+  | "performance_confidence";
 
 export interface WellnessScaleDescriptor {
   value: number;
@@ -60,19 +62,7 @@ export const WELLNESS_QUESTIONS: WellnessQuestion[] = [
       { value: 2, label: "More tired than normal" },
       { value: 3, label: "Normal fatigue levels" },
       { value: 4, label: "Less tired than normal" },
-      { value: 5, label: "Very fresh (highly energized)" },
-    ],
-  },
-  {
-    key: "muscle_soreness",
-    title: "Soreness",
-    question: "How SORE were you when you woke up this morning?",
-    descriptors: [
-      { value: 1, label: "Extremely sore (difficult to move normally)" },
-      { value: 2, label: "Very sore (noticeable with every movement)" },
-      { value: 3, label: "Somewhat sore (occasional discomfort)" },
-      { value: 4, label: "Slightly sore (barely noticeable)" },
-      { value: 5, label: "No soreness at all" },
+      { value: 5, label: "Very fresh (highly energised)" },
     ],
   },
   {
@@ -99,12 +89,46 @@ export const WELLNESS_QUESTIONS: WellnessQuestion[] = [
       { value: 5, label: "Great mood (positive and optimistic)" },
     ],
   },
+  {
+    key: "motivation",
+    title: "Motivation",
+    question: "How MOTIVATED are you to train or compete today?",
+    descriptors: [
+      { value: 1, label: "No motivation (want to skip entirely)" },
+      { value: 2, label: "Low motivation (going through the motions)" },
+      { value: 3, label: "Moderate motivation (willing but not fired up)" },
+      { value: 4, label: "Good motivation (keen to get started)" },
+      { value: 5, label: "Highly motivated (can't wait to train/compete)" },
+    ],
+  },
+  {
+    key: "performance_confidence",
+    title: "Confidence",
+    question: "How CONFIDENT are you in your ability to perform today?",
+    descriptors: [
+      { value: 1, label: "No confidence (expect to struggle)" },
+      { value: 2, label: "Low confidence (doubting my skills)" },
+      { value: 3, label: "Moderate confidence (unsure either way)" },
+      { value: 4, label: "Good confidence (trust my preparation)" },
+      { value: 5, label: "Very confident (ready to execute at my best)" },
+    ],
+  },
+];
+
+export const WELLNESS_SORENESS_DESCRIPTORS: WellnessScaleDescriptor[] = [
+  { value: 1, label: "Extremely sore (difficult to move normally)" },
+  { value: 2, label: "Very sore (noticeable with every movement)" },
+  { value: 3, label: "Somewhat sore (occasional discomfort)" },
+  { value: 4, label: "Slightly sore (barely noticeable)" },
+  { value: 5, label: "No soreness at all" },
 ];
 
 export type WellnessZone = "good" | "moderate" | "concern" | "critical";
 
+export const WELLNESS_MAX_SCORE = 30;
+
 export const WELLNESS_ALERTS = {
-  TOTAL_SCORE_LOW: 12,
+  TOTAL_SCORE_LOW: 14,
   SINGLE_ITEM_CRITICAL: 1,
   CONSECUTIVE_DECLINE: 3,
   SLEEP_CRITICAL: 2,

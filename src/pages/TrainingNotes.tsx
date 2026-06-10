@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
-import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Zap, Activity, ArrowRight } from "lucide-react";
+import { Plus, Calendar, User2, Target, ThumbsUp, Zap, Activity, ArrowRight, Smile } from "lucide-react";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
 import { getRiskZone, getRiskZoneLabel } from "@/utils/trainingLoadCalc";
 import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
@@ -25,6 +25,20 @@ const TrainingNotes = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { sessions, metrics } = useTrainingLoad();
+
+  const now = new Date();
+  const thisMonthNotes = trainingNotes.filter((note) => {
+    const noteDate = new Date(note.training_date);
+    return noteDate.getMonth() === now.getMonth() && noteDate.getFullYear() === now.getFullYear();
+  });
+  const thisMonthEnjoymentNotes = thisMonthNotes.filter((note) => note.enjoyment != null);
+  const avgEnjoymentThisMonth =
+    thisMonthEnjoymentNotes.length > 0
+      ? (
+          thisMonthEnjoymentNotes.reduce((sum, note) => sum + (note.enjoyment ?? 0), 0) /
+          thisMonthEnjoymentNotes.length
+        ).toFixed(1)
+      : null;
 
   const fetchTrainingNotes = async () => {
     try {
@@ -182,25 +196,19 @@ const TrainingNotes = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs sm:text-sm opacity-90">This Month</p>
-                <p className="text-lg sm:text-2xl font-bold">
-                  {trainingNotes.filter(note => {
-                    const noteDate = new Date(note.training_date);
-                    const now = new Date();
-                    return noteDate.getMonth() === now.getMonth() && noteDate.getFullYear() === now.getFullYear();
-                  }).length}
-                </p>
+                <p className="text-lg sm:text-2xl font-bold">{thisMonthNotes.length}</p>
               </div>
             </div>
           </Card>
           <Card className="p-3 sm:p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
-                <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Smile className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm opacity-90">Positive Notes</p>
+                <p className="text-xs sm:text-sm opacity-90">Avg Enjoyment (month)</p>
                 <p className="text-lg sm:text-2xl font-bold">
-                  {trainingNotes.filter(note => note.what_felt_good).length}
+                  {avgEnjoymentThisMonth != null ? `${avgEnjoymentThisMonth}/5` : "—"}
                 </p>
               </div>
             </div>

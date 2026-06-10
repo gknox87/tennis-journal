@@ -18,9 +18,12 @@ const InjuryTracker = () => {
   const { sport } = useSport();
   const {
     reports,
+    checkIns,
     isLoading,
     createReport,
     deleteReport,
+    createCheckIn,
+    getLatestCheckIn,
     activeInjuries,
     frequentRegions,
   } = useInjuryReports();
@@ -124,7 +127,9 @@ const InjuryTracker = () => {
                       <ActiveInjuryCard
                         key={injury.id}
                         injury={injury}
+                        latestCheckIn={getLatestCheckIn(injury.id)}
                         onDelete={deleteReport}
+                        onCheckIn={createCheckIn}
                       />
                     ))}
                   </div>
@@ -144,11 +149,12 @@ const InjuryTracker = () => {
                 <TabsContent value="insights" className="mt-4">
                   <InjuryInsights
                     reports={reports}
+                    checkIns={checkIns}
                     frequentRegions={frequentRegions}
                   />
                 </TabsContent>
                 <TabsContent value="history" className="mt-4">
-                  <InjuryTimeline reports={reports} />
+                  <InjuryTimeline reports={reports} checkIns={checkIns} />
                 </TabsContent>
               </Tabs>
             </div>

@@ -29,9 +29,14 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
-import { format, parse, isValid } from "date-fns";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { SESSION_TYPES, getSessionTypeConfig } from "@/types/calendar";
+import { format, parse, isValid, isFuture } from "date-fns";
+import { Calendar as CalendarIcon, Clock, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PreMatchStateDialog } from "@/components/mental/PreMatchStateDialog";
+import { saveScheduledPreMatchState } from "@/utils/preMatchState";
+import { hasPreMatchData, scheduledStateToPreMatchState } from "@/components/mental/PreMatchStateForm";
+import type { PreMatchState } from "@/types/mental";
 
 interface EventDialogProps {
   event: ScheduledEvent;
@@ -80,7 +85,22 @@ export const EventDialog = ({
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPreMatchDialog, setShowPreMatchDialog] = useState(false);
   const { toast } = useToast();
+  const sessionTypeConfig = getSessionTypeConfig(sessionType);
+  const isUpcomingMatch =
+    sessionType === 'match' && isFuture(new Date(event.start_time));
+  const preMatchState = scheduledStateToPreMatchState(event.pre_match_state);
+
+  const handleSavePreMatch = async (state: PreMatchState) => {
+    if (!event.id || isNew) return;
+    await saveScheduledPreMatchState(event.id, state);
+    toast({
+      title: "Pre-match state saved",
+      description: "Your mental state has been logged for this match.",
+    });
+    onSave();
+  };
 
   // Update state when event changes
   useEffect(() => {
@@ -244,6 +264,7 @@ export const EventDialog = ({
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -256,7 +277,7 @@ export const EventDialog = ({
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter event title"
+              placeholder={sessionTypeConfig.titlePlaceholder}
             />
           </div>
 
@@ -430,11 +451,14 @@ export const EventDialog = ({
                 <SelectValue placeholder="Select session type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="training">Training</SelectItem>
-                <SelectItem value="recovery">Recovery</SelectItem>
-                <SelectItem value="match">Match</SelectItem>
+                {SESSION_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-sm text-muted-foreground">{sessionTypeConfig.description}</p>
           </div>
 
           <div className="space-y-2">
@@ -443,9 +467,31 @@ export const EventDialog = ({
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any notes..."
+              placeholder={sessionTypeConfig.notesPlaceholder}
             />
           </div>
+
+          {isUpcomingMatch && !isNew && (
+            <div className="p-4 rounded-lg border border-purple-200 bg-purple-50/50 space-y-2">
+              <p className="text-sm font-semibold text-purple-900 flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                Pre-match mental state
+              </p>
+              <p className="text-xs text-purple-700">
+                {hasPreMatchData(preMatchState)
+                  ? 'Pre-match state logged — update before you play.'
+                  : 'Log nerves, confidence, arousal, and your process goal before the match.'}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreMatchDialog(true)}
+              >
+                {hasPreMatchData(preMatchState) ? 'Update pre-match log' : 'Log pre-match state'}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between">
@@ -491,5 +537,16 @@ export const EventDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+
+    {!isNew && (
+      <PreMatchStateDialog
+        open={showPreMatchDialog}
+        onOpenChange={setShowPreMatchDialog}
+        eventTitle={title || event.title}
+        initialState={preMatchState}
+        onSave={handleSavePreMatch}
+      />
+    )}
+    </>
   );
 };

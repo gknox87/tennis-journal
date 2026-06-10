@@ -2,12 +2,12 @@
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useInjuryReports } from "@/hooks/useInjuryReports";
-import { getPainColor, getRegionLabel } from "@/types/injury";
-import { AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react";
+import { getPainColor } from "@/types/injury";
+import { AlertTriangle, ArrowRight, ShieldCheck, Brain } from "lucide-react";
 
 export const InjuryWidget = () => {
   const navigate = useNavigate();
-  const { activeInjuries, isLoading } = useInjuryReports();
+  const { activeInjuries, getLatestCheckIn, isLoading } = useInjuryReports();
 
   if (isLoading) {
     return (
@@ -21,6 +21,11 @@ export const InjuryWidget = () => {
   const worstPain = hasInjuries
     ? Math.max(...activeInjuries.map((i) => i.pain_level))
     : 0;
+
+  const lowConfidenceCount = activeInjuries.filter((injury) => {
+    const latest = getLatestCheckIn(injury.id);
+    return latest && latest.rtp_confidence <= 2;
+  }).length;
 
   const accentColor = hasInjuries ? getPainColor(worstPain) : "#22c55e";
 
@@ -64,22 +69,36 @@ export const InjuryWidget = () => {
                 Worst: {worstPain}/10
               </span>
             </div>
+            {lowConfidenceCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
+                <Brain className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  Confidence low on {lowConfidenceCount} injur{lowConfidenceCount === 1 ? "y" : "ies"}
+                </span>
+              </div>
+            )}
             <div className="space-y-1.5">
-              {activeInjuries.slice(0, 2).map((injury) => (
-                <div
-                  key={injury.id}
-                  className="flex items-center gap-2 text-xs text-gray-600 bg-white/60 rounded-lg px-2.5 py-1.5"
-                >
+              {activeInjuries.slice(0, 2).map((injury) => {
+                const latest = getLatestCheckIn(injury.id);
+                return (
                   <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: getPainColor(injury.pain_level) }}
-                  />
-                  <span className="truncate font-medium">{injury.body_part}</span>
-                  <span className="text-gray-400 ml-auto shrink-0">
-                    Pain {injury.pain_level}/10
-                  </span>
-                </div>
-              ))}
+                    key={injury.id}
+                    className="flex items-center gap-2 text-xs text-gray-600 bg-white/60 rounded-lg px-2.5 py-1.5"
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: getPainColor(injury.pain_level) }}
+                    />
+                    <span className="truncate font-medium">{injury.body_part}</span>
+                    <span className="text-gray-400 ml-auto shrink-0">
+                      Pain {injury.pain_level}/10
+                      {latest && latest.rtp_confidence <= 2 && (
+                        <span className="text-amber-600 ml-1">· Low conf.</span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
               {activeInjuries.length > 2 && (
                 <p className="text-[11px] text-gray-400 text-center">
                   +{activeInjuries.length - 2} more

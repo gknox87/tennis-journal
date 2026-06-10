@@ -81,7 +81,7 @@ const Goals = () => {
               <Target className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Period Goals</h1>
+              <h1 className="text-2xl font-bold">Goals</h1>
               <p className="text-sm text-gray-500">
                 {activeGoals.length} active · {completedGoals.length} completed · {expiredGoals.length} expired
               </p>
@@ -101,7 +101,7 @@ const Goals = () => {
             <Target className="w-16 h-16 text-gray-200 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-700 mb-2">No goals yet</h3>
             <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Set goals for any period — monthly, quarterly, or a full season — and track your progress automatically from match data.
+              Set process goals like weekly training sessions or wellness check-ins — progress updates automatically from your journal. Outcome goals like win rate are tracked too.
             </p>
             <Button
               className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white"

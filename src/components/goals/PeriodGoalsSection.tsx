@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Target, Plus, TrendingUp, TrendingDown, Trophy } from "lucide-react";
@@ -12,6 +13,7 @@ interface PeriodGoalsSectionProps {
 }
 
 export const PeriodGoalsSection = ({ className }: PeriodGoalsSectionProps) => {
+  const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { toast } = useToast();
   const {
@@ -100,7 +102,7 @@ export const PeriodGoalsSection = ({ className }: PeriodGoalsSectionProps) => {
           <Target className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h4 className="font-semibold text-gray-700 mb-1">No goals set yet</h4>
           <p className="text-sm text-gray-500 mb-4">
-            Set monthly, quarterly, or seasonal goals to track your progress automatically.
+            Track weekly habits like training sessions and wellness check-ins, or set outcome targets — all updated automatically.
           </p>
           <Button
             className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white"
@@ -125,7 +127,7 @@ export const PeriodGoalsSection = ({ className }: PeriodGoalsSectionProps) => {
             <Button
               variant="ghost"
               className="w-full rounded-xl text-gray-500"
-              onClick={() => {/* Navigate to goals page */}}
+              onClick={() => navigate("/goals")}
             >
               View all {activeGoals.length + completedGoals.length} goals
             </Button>

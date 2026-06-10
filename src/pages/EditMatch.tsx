@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
 import { EditMatchLoading } from "@/components/match/EditMatchLoading";
+
 import { useMatchEdit } from "@/hooks/useMatchEdit";
 import { Header } from "@/components/Header";
 
@@ -45,6 +46,13 @@ const EditMatch = () => {
           isBestOfFive: match.sets && match.sets.length > 3,
           reflectionPromptUsed: match.reflection_prompt_used || null,
           reflectionPromptLevel: match.reflection_prompt_level || null,
+          preNerves: match.pre_nerves ?? null,
+          preConfidence: match.pre_confidence ?? null,
+          preArousal: match.pre_arousal ?? null,
+          processGoal: match.process_goal ?? null,
+          preEmotionTags: match.pre_emotion_tags ?? [],
+          postEmotionTags: match.post_emotion_tags ?? [],
+          scheduledEventId: match.scheduled_event_id ?? null,
         }}
       />
       </div>

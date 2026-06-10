@@ -10,14 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format, addMonths, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from "date-fns";
 import { CalendarIcon, Target, Plus } from "lucide-react";
-import { GOAL_TYPE_CONFIGS } from "@/types/goals";
-import type { GoalType } from "@/types/goals";
+import {
+  GOAL_TYPE_CONFIGS,
+  GOAL_TEMPLATES,
+  PROCESS_GOAL_CONFIGS,
+  OUTCOME_GOAL_CONFIGS,
+} from "@/types/goals";
+import type { GoalType, GoalCadence, GoalMetadata } from "@/types/goals";
+import { ACTIVITY_TYPES } from "@/types/trainingLoad";
+import type { ActivityType } from "@/types/trainingLoad";
 import { useToast } from "@/hooks/use-toast";
 
 interface GoalCreationDialogProps {
@@ -31,6 +38,8 @@ interface GoalCreationDialogProps {
     unit: string;
     period_start: string;
     period_end: string;
+    cadence: GoalCadence;
+    metadata?: GoalMetadata;
   }) => Promise<void>;
 }
 
@@ -42,9 +51,11 @@ export const GoalCreationDialog = ({
   const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [goalType, setGoalType] = useState<GoalType>("win_rate");
-  const [targetValue, setTargetValue] = useState("");
-  const [unit, setUnit] = useState("percent");
+  const [goalType, setGoalType] = useState<GoalType>("training_sessions");
+  const [cadence, setCadence] = useState<GoalCadence>("weekly");
+  const [targetValue, setTargetValue] = useState("3");
+  const [unit, setUnit] = useState("count");
+  const [activityType, setActivityType] = useState<ActivityType>("technical");
   const [periodStart, setPeriodStart] = useState<Date>(new Date());
   const [periodEnd, setPeriodEnd] = useState<Date>(endOfMonth(addMonths(new Date(), 2)));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,6 +68,28 @@ export const GoalCreationDialog = ({
     if (config) {
       setUnit(config.defaultUnit);
       setTargetValue(config.defaultTarget.toString());
+      if (config.supportsWeekly) {
+        setCadence("weekly");
+      } else {
+        setCadence("period_total");
+      }
+    }
+  };
+
+  const applyTemplate = (templateId: string) => {
+    const template = GOAL_TEMPLATES.find((t) => t.id === templateId);
+    if (!template) return;
+
+    setGoalType(template.goal_type);
+    setCadence(template.cadence);
+    setTargetValue(template.target_value.toString());
+    setTitle(template.title);
+    setDescription(template.description || "");
+
+    const config = GOAL_TYPE_CONFIGS.find((c) => c.id === template.goal_type);
+    if (config) setUnit(config.defaultUnit);
+    if (template.metadata?.activity_type) {
+      setActivityType(template.metadata.activity_type);
     }
   };
 
@@ -100,6 +133,9 @@ export const GoalCreationDialog = ({
 
     setIsSubmitting(true);
     try {
+      const metadata: GoalMetadata | undefined =
+        goalType === "activity_sessions" ? { activity_type: activityType } : undefined;
+
       await onCreate({
         title: title.trim(),
         description: description.trim(),
@@ -108,16 +144,19 @@ export const GoalCreationDialog = ({
         unit,
         period_start: format(periodStart, "yyyy-MM-dd"),
         period_end: format(periodEnd, "yyyy-MM-dd"),
+        cadence: selectedConfig?.supportsWeekly ? cadence : "period_total",
+        metadata,
       });
 
       toast({ title: "Goal created! 🎯", description: `"${title}" is now being tracked.` });
 
-      // Reset form
       setTitle("");
       setDescription("");
-      setGoalType("win_rate");
-      setTargetValue("");
-      setUnit("percent");
+      setGoalType("training_sessions");
+      setCadence("weekly");
+      setTargetValue("3");
+      setUnit("count");
+      setActivityType("technical");
       setPeriodStart(new Date());
       setPeriodEnd(endOfMonth(addMonths(new Date(), 2)));
       onOpenChange(false);
@@ -138,11 +177,30 @@ export const GoalCreationDialog = ({
             Set a New Goal
           </DialogTitle>
           <DialogDescription>
-            Define a target for a specific period and track your progress automatically.
+            Track process habits automatically from your journal data, or set outcome targets for the period.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-4">
+          {/* Quick-start templates */}
+          <div className="space-y-2">
+            <Label>Quick start</Label>
+            <div className="flex flex-wrap gap-2">
+              {GOAL_TEMPLATES.map((template) => (
+                <Button
+                  key={template.id}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full text-xs h-8"
+                  onClick={() => applyTemplate(template.id)}
+                >
+                  {template.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Goal Type */}
           <div className="space-y-2">
             <Label>Goal Type</Label>
@@ -151,20 +209,83 @@ export const GoalCreationDialog = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                {GOAL_TYPE_CONFIGS.map((config) => (
-                  <SelectItem key={config.id} value={config.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{config.icon}</span>
-                      <span>{config.label}</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  <SelectLabel>Process goals</SelectLabel>
+                  {PROCESS_GOAL_CONFIGS.map((config) => (
+                    <SelectItem key={config.id} value={config.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{config.icon}</span>
+                        <span>{config.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Outcome goals</SelectLabel>
+                  {OUTCOME_GOAL_CONFIGS.map((config) => (
+                    <SelectItem key={config.id} value={config.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{config.icon}</span>
+                        <span>{config.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
             {selectedConfig && (
               <p className="text-xs text-gray-500">{selectedConfig.description}</p>
             )}
           </div>
+
+          {/* Activity type for activity_sessions */}
+          {goalType === "activity_sessions" && (
+            <div className="space-y-2">
+              <Label>Activity Type</Label>
+              <Select
+                value={activityType}
+                onValueChange={(v) => setActivityType(v as ActivityType)}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {ACTIVITY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Cadence toggle */}
+          {selectedConfig?.supportsWeekly && (
+            <div className="space-y-2">
+              <Label>Tracking cadence</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={cadence === "weekly" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-xl flex-1"
+                  onClick={() => setCadence("weekly")}
+                >
+                  Per week
+                </Button>
+                <Button
+                  type="button"
+                  variant={cadence === "period_total" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-xl flex-1"
+                  onClick={() => setCadence("period_total")}
+                >
+                  Total for period
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Title */}
           <div className="space-y-2">
@@ -173,7 +294,11 @@ export const GoalCreationDialog = ({
               id="goal-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={`e.g. "Win 70% of ${selectedConfig?.label.toLowerCase() || "matches"}"`}
+              placeholder={
+                cadence === "weekly"
+                  ? `e.g. "${selectedConfig?.defaultTarget || 3} ${selectedConfig?.label.toLowerCase() || "sessions"} per week"`
+                  : `e.g. "Reach ${selectedConfig?.defaultTarget || 10} ${selectedConfig?.label.toLowerCase() || "sessions"}"`
+              }
               className="rounded-xl"
             />
           </div>
@@ -192,7 +317,9 @@ export const GoalCreationDialog = ({
 
           {/* Target Value */}
           <div className="space-y-2">
-            <Label htmlFor="goal-target">Target Value *</Label>
+            <Label htmlFor="goal-target">
+              Target {cadence === "weekly" ? "per week" : "for period"} *
+            </Label>
             <div className="flex items-center gap-3">
               <Input
                 id="goal-target"
@@ -205,6 +332,7 @@ export const GoalCreationDialog = ({
               />
               <span className="text-sm text-gray-500 whitespace-nowrap">
                 {unit === "percent" ? "%" : unit === "days" ? "days" : unit === "count" ? "" : unit}
+                {cadence === "weekly" && unit === "count" ? " / week" : ""}
               </span>
             </div>
           </div>
@@ -214,6 +342,7 @@ export const GoalCreationDialog = ({
             <Label>Time Period</Label>
             <div className="flex gap-2">
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className="rounded-xl"
@@ -222,6 +351,7 @@ export const GoalCreationDialog = ({
                 This Month
               </Button>
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className="rounded-xl"
@@ -230,6 +360,7 @@ export const GoalCreationDialog = ({
                 This Quarter
               </Button>
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className="rounded-xl"

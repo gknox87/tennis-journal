@@ -5,6 +5,10 @@ export interface TrainingNote {
   coach_name?: string;
   training_date: string;
   training_time?: string;
+  session_feel?: number | null;
+  enjoyment?: number | null;
+  emotion_tags?: string[];
+  session_arousal?: number | null;
   what_worked_on?: string;
   what_felt_good?: string;
   what_didnt_feel_good?: string;

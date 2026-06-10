@@ -50,6 +50,7 @@ export const MatchList = ({
             finalSetTiebreak={match.final_set_tiebreak}
             sportId={match.sport_id}
             sportName={match.sport_name}
+            processGoal={match.process_goal}
             onDelete={onMatchDelete}
             onEdit={() => handleEditMatch(match.id)}
           />

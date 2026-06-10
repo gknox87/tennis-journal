@@ -3,9 +3,9 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { useToast } from "@/hooks/use-toast";
-import { WellnessEntry } from "@/types/wellness";
+import { WellnessEntry, WELLNESS_MAX_SCORE } from "@/types/wellness";
 import {
-  calculateHooperIndex,
+  calculateWellnessScore,
   getWellnessZone,
   getWellnessZoneLabel,
   checkWellnessAlerts,
@@ -15,16 +15,18 @@ import {
   WellnessAlert,
   WellnessTrendPoint,
 } from "@/utils/wellnessCalc";
+import { analytics } from "@/lib/analytics";
 import { subDays, format } from "date-fns";
 
 export interface WellnessSubmitInput {
   sleep_quality: number;
   sleep_duration_hours?: number | null;
   fatigue: number;
-  muscle_soreness: number;
+  muscle_soreness?: number | null;
   stress_level: number;
   mood: number;
-  motivation?: number | null;
+  motivation: number;
+  performance_confidence: number;
   energy?: number | null;
   appetite?: number | null;
   notes?: string | null;
@@ -86,7 +88,7 @@ export function useWellness() {
         const user = sessionData?.session?.user;
         if (!user) throw new Error("Not authenticated");
 
-        const totalScore = calculateHooperIndex(input);
+        const totalScore = calculateWellnessScore(input);
         const entryDate = input.entry_date || format(new Date(), "yyyy-MM-dd");
 
         const { error, status, statusText } = await supabase.from("wellness_entries").upsert(
@@ -97,11 +99,12 @@ export function useWellness() {
             sleep_quality: input.sleep_quality,
             sleep_duration_hours: input.sleep_duration_hours || null,
             fatigue: input.fatigue,
-            muscle_soreness: input.muscle_soreness,
+            muscle_soreness: input.muscle_soreness ?? null,
             stress_level: input.stress_level,
             mood: input.mood,
+            motivation: input.motivation,
+            performance_confidence: input.performance_confidence,
             total_wellness_score: totalScore,
-            motivation: input.motivation || null,
             energy: input.energy || null,
             appetite: input.appetite || null,
             notes: input.notes || null,
@@ -115,9 +118,11 @@ export function useWellness() {
           throw error;
         }
 
+        analytics.wellnessLogged(String(input.mood), input.motivation);
+
         toast({
           title: "Wellness saved",
-          description: `Score: ${totalScore}/25 — ${getWellnessZoneLabel(getWellnessZone(totalScore))}`,
+          description: `Score: ${totalScore}/${WELLNESS_MAX_SCORE} — ${getWellnessZoneLabel(getWellnessZone(totalScore))}`,
         });
 
         await fetchEntries();
@@ -129,6 +134,7 @@ export function useWellness() {
           description: message,
           variant: "destructive",
         });
+        throw error;
       }
     },
     [sport.id, fetchEntries, toast]

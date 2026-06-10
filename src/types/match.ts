@@ -5,8 +5,9 @@ export interface SetScore {
   playerTiebreak?: string;
   opponentTiebreak?: string;
 }
+import type { MentalGameFields } from './mental';
 
-export interface Match {
+export interface Match extends MentalGameFields {
   id: string;
   date: string;
   opponent_id: string | null;

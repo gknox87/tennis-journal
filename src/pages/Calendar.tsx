@@ -12,6 +12,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { eachDayOfInterval, parseISO, format } from "date-fns";
 import type { ScheduledEvent } from "@/types/calendar";
+import { SESSION_TYPES, getSessionTypeColor } from "@/types/calendar";
 
 const Calendar = () => {
   const { fetchScheduledEvents } = useDataFetching();
@@ -76,10 +77,16 @@ const Calendar = () => {
     }
   };
 
+  const getEventColors = (event: ScheduledEvent) => {
+    const color = getSessionTypeColor(event.session_type, 'desktop');
+    return { backgroundColor: color, borderColor: color };
+  };
+
   // Expand multi-day events for FullCalendar
   const expandedEvents = events.flatMap(event => {
     const startDate = parseISO(event.start_time);
     const endDate = parseISO(event.end_time);
+    const colors = getEventColors(event);
 
     // If it's a multi-day event, create an entry for each day
     if (startDate.toDateString() !== endDate.toDateString()) {
@@ -90,6 +97,7 @@ const Calendar = () => {
         start: format(day, 'yyyy-MM-dd'),
         end: format(day, 'yyyy-MM-dd'),
         allDay: true,
+        ...colors,
         extendedProps: { originalEvent: event }
       }));
     }
@@ -100,6 +108,7 @@ const Calendar = () => {
       title: event.title,
       start: event.start_time,
       end: event.end_time,
+      ...colors,
       extendedProps: { originalEvent: event }
     }];
   });
@@ -120,6 +129,18 @@ const Calendar = () => {
             onAddEvent={handleAddEvent}
           />
         ) : (
+          <>
+          <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 px-1">
+            {SESSION_TYPES.map((type) => (
+              <div key={type.value} className="flex items-center gap-1.5 text-sm text-gray-600">
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: type.color.desktop }}
+                />
+                <span>{type.label}</span>
+              </div>
+            ))}
+          </div>
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
@@ -144,6 +165,7 @@ const Calendar = () => {
             slotMaxTime="22:00:00"
             allDaySlot={true}
           />
+          </>
         )}
       </div>
 

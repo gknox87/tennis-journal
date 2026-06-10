@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Trophy, FileText, Check, ExternalLink } from "lucide-react";
+import { Bell, Trophy, FileText, Check, ExternalLink, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Notification {
@@ -96,6 +96,8 @@ export default function NotificationsPage() {
         return <Trophy className="h-5 w-5 text-purple-600" />;
       case "coach_note":
         return <FileText className="h-5 w-5 text-blue-600" />;
+      case "wellness_reminder":
+        return <Heart className="h-5 w-5 text-rose-500" />;
       default:
         return <Bell className="h-5 w-5 text-gray-600" />;
     }

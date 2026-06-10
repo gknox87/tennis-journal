@@ -1,13 +1,30 @@
 
-import { WellnessEntry, WellnessZone, WELLNESS_ALERTS, WELLNESS_ZONE_COLORS } from "@/types/wellness";
+import { WellnessEntry, WellnessZone, WELLNESS_ALERTS, WELLNESS_ZONE_COLORS, WELLNESS_MAX_SCORE } from "@/types/wellness";
 
-export function calculateHooperIndex(entry: Pick<WellnessEntry, "sleep_quality" | "fatigue" | "muscle_soreness" | "stress_level" | "mood">): number {
-  return entry.sleep_quality + entry.fatigue + entry.muscle_soreness + entry.stress_level + entry.mood;
+export type WellnessScoreInput = Pick<
+  WellnessEntry,
+  "sleep_quality" | "fatigue" | "stress_level" | "mood" | "motivation" | "performance_confidence"
+>;
+
+export function calculateWellnessScore(entry: WellnessScoreInput): number {
+  return (
+    entry.sleep_quality +
+    entry.fatigue +
+    entry.stress_level +
+    entry.mood +
+    entry.motivation +
+    entry.performance_confidence
+  );
+}
+
+/** @deprecated Use calculateWellnessScore */
+export function calculateHooperIndex(entry: WellnessScoreInput): number {
+  return calculateWellnessScore(entry);
 }
 
 export function getWellnessZone(score: number): WellnessZone {
-  if (score >= 21) return "good";
-  if (score >= 16) return "moderate";
+  if (score >= 25) return "good";
+  if (score >= 19) return "moderate";
   if (score >= WELLNESS_ALERTS.TOTAL_SCORE_LOW) return "concern";
   return "critical";
 }
@@ -45,21 +62,20 @@ export function checkWellnessAlerts(
 ): WellnessAlert[] {
   const alerts: WellnessAlert[] = [];
 
-  // Check total score
   if (entry.total_wellness_score < WELLNESS_ALERTS.TOTAL_SCORE_LOW) {
     alerts.push({
       type: "warning",
-      message: `Total wellness score (${entry.total_wellness_score}/25) is below threshold. Consider a lighter training day.`,
+      message: `Total wellness score (${entry.total_wellness_score}/${WELLNESS_MAX_SCORE}) is below threshold. Consider a lighter training day.`,
     });
   }
 
-  // Check individual critical items
   const fields: { key: keyof WellnessEntry; label: string }[] = [
     { key: "sleep_quality", label: "Sleep" },
     { key: "fatigue", label: "Fatigue" },
-    { key: "muscle_soreness", label: "Muscle soreness" },
     { key: "stress_level", label: "Stress" },
     { key: "mood", label: "Mood" },
+    { key: "motivation", label: "Motivation" },
+    { key: "performance_confidence", label: "Performance confidence" },
   ];
 
   for (const field of fields) {
@@ -72,7 +88,6 @@ export function checkWellnessAlerts(
     }
   }
 
-  // Check sleep critical
   if (entry.sleep_quality <= WELLNESS_ALERTS.SLEEP_CRITICAL) {
     const recentSleepScores = history
       .slice(-3)
@@ -85,7 +100,6 @@ export function checkWellnessAlerts(
     }
   }
 
-  // Check consecutive decline
   if (history.length >= WELLNESS_ALERTS.CONSECUTIVE_DECLINE) {
     const recent = history.slice(-(WELLNESS_ALERTS.CONSECUTIVE_DECLINE));
     let declining = true;
@@ -111,9 +125,11 @@ export interface WellnessTrendPoint {
   score: number;
   sleep: number;
   fatigue: number;
-  soreness: number;
+  soreness: number | null;
   stress: number;
   mood: number;
+  motivation: number;
+  confidence: number;
 }
 
 export function calculateWellnessTrend(entries: WellnessEntry[]): WellnessTrendPoint[] {
@@ -122,9 +138,11 @@ export function calculateWellnessTrend(entries: WellnessEntry[]): WellnessTrendP
     score: e.total_wellness_score,
     sleep: e.sleep_quality,
     fatigue: e.fatigue,
-    soreness: e.muscle_soreness,
+    soreness: e.muscle_soreness ?? null,
     stress: e.stress_level,
     mood: e.mood,
+    motivation: e.motivation,
+    confidence: e.performance_confidence,
   }));
 }
 
@@ -147,7 +165,6 @@ export function calculateWellnessStreak(entries: WellnessEntry[]): number {
   const firstDate = new Date(sorted[0].entry_date);
   firstDate.setHours(0, 0, 0, 0);
 
-  // If the most recent entry isn't today or yesterday, streak is 0
   const diffDays = Math.floor((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays > 1) return 0;
 

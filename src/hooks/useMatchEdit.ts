@@ -4,16 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Match, SetScore } from "@/types/match";
-
-interface MatchFormData {
-  date: Date;
-  sets: SetScore[];
-  isWin: boolean;
-  notes?: string;
-  finalSetTiebreak?: boolean;
-  courtType?: string;
-  opponent?: string;
-}
+import type { MatchFormData } from "@/components/match/MatchForm";
 
 export const useMatchEdit = (id: string) => {
   const navigate = useNavigate();
@@ -145,6 +136,15 @@ export const useMatchEdit = (id: string) => {
           notes: formData.notes || null,
           final_set_tiebreak: formData.finalSetTiebreak,
           court_type: formData.courtType || null,
+          reflection_prompt_used: formData.reflectionPromptUsed || null,
+          reflection_prompt_level: formData.reflectionPromptLevel || null,
+          pre_nerves: formData.preNerves ?? null,
+          pre_confidence: formData.preConfidence ?? null,
+          pre_arousal: formData.preArousal ?? null,
+          process_goal: formData.processGoal || null,
+          pre_emotion_tags: formData.preEmotionTags ?? [],
+          post_emotion_tags: formData.postEmotionTags ?? [],
+          scheduled_event_id: formData.scheduledEventId ?? null,
         })
         .eq("id", id)
         .eq("user_id", session.user.id);

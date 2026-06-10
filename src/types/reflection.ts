@@ -7,6 +7,9 @@ export interface PromptQuestion {
   question: string;
   placeholder?: string;
   required?: boolean;
+  inputType?: 'text' | 'scale';
+  scaleLowLabel?: string;
+  scaleHighLabel?: string;
 }
 
 export type PromptAnswers = Record<string, string>;

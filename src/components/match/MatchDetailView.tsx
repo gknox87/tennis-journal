@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Trophy, Target, FileText, Clock } from "lucide-react";
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
 import { formatScore } from "@/utils/scoreDisplay";
+import { MatchReflectionSection } from "@/components/match/MatchReflectionSection";
+import { PreMatchStateCard, hasMatchPreMatchData } from "@/components/match/PreMatchStateCard";
+import { isGuidedReflection } from "@/utils/reflectionNotes";
 
 interface MatchDetailViewProps {
   match: Match;
@@ -41,6 +44,9 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
       : "from-red-50 to-rose-50";
   };
 
+  const showPreMatch = hasMatchPreMatchData(match);
+  const showReflection = Boolean(match.notes?.trim());
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Hero Section */}
@@ -48,7 +54,6 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
         <div className={`h-1 sm:h-2 bg-gradient-to-r ${getResultColor(match.is_win)}`} />
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 pt-6 sm:pt-8">
           <div className="flex flex-col gap-4 sm:gap-6">
-            {/* Top row with icon and opponent name */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r ${getResultColor(match.is_win)} shadow-lg flex-shrink-0`}>
                 <span className="text-2xl sm:text-3xl" aria-hidden>{sport.icon}</span>
@@ -63,14 +68,37 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
                 </div>
               </div>
             </div>
-                        
-                      </div>
+          </div>
         </CardHeader>
       </Card>
 
+      {/* Mental game data — above score/details */}
+      {showPreMatch && <PreMatchStateCard match={match} />}
+
+      {showReflection && isGuidedReflection(match) ? (
+        <MatchReflectionSection match={match} />
+      ) : showReflection ? (
+        <Card className="bg-white/90 backdrop-blur-sm shadow-xl border border-white/50">
+          <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-indigo-100 flex-shrink-0">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
+              </div>
+              <span className="text-base sm:text-xl">Match Notes</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base text-left max-w-prose">
+                {match.notes}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Match Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Match Info */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-xl border border-white/50">
           <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
             <CardTitle className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
@@ -118,7 +146,6 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
           </CardContent>
         </Card>
 
-        {/* Score Breakdown */}
         <Card className="bg-white/90 backdrop-blur-sm shadow-xl border border-white/50">
           <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
             <CardTitle className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
@@ -144,27 +171,6 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Notes Section */}
-      {match.notes && (
-        <Card className="bg-white/90 backdrop-blur-sm shadow-xl border border-white/50">
-          <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
-            <CardTitle className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-indigo-100 flex-shrink-0">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
-              </div>
-              <span className="text-base sm:text-xl">Match Notes</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base text-left max-w-prose">
-                {match.notes}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

@@ -1,8 +1,28 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
-import type { PeriodGoal, GoalType, GoalProgress } from "@/types/goals";
-import { differenceInDays, differenceInCalendarDays, isAfter, isBefore, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import type {
+  PeriodGoal,
+  GoalType,
+  GoalProgress,
+  GoalCadence,
+  GoalMetadata,
+  WeeklyAdherence,
+} from "@/types/goals";
+import {
+  differenceInCalendarDays,
+  isAfter,
+  parseISO,
+  startOfDay,
+  endOfDay,
+} from "date-fns";
+import { isGuidedReflection } from "@/utils/reflectionNotes";
+import {
+  allWeeklyTargetsMet,
+  computeWeeklyAdherence,
+  weeklyProgressPercentage,
+  weeklyRemaining,
+} from "@/utils/processGoalCalc";
 
 interface UsePeriodGoalsReturn {
   goals: PeriodGoal[];
@@ -27,11 +47,30 @@ export interface CreateGoalInput {
   unit: string;
   period_start: string;
   period_end: string;
+  cadence?: GoalCadence;
+  metadata?: GoalMetadata;
+}
+
+function normalizeGoal(row: Record<string, unknown>): PeriodGoal {
+  const rawMetadata = row.metadata;
+  const metadata: GoalMetadata =
+    rawMetadata && typeof rawMetadata === "object" && !Array.isArray(rawMetadata)
+      ? (rawMetadata as GoalMetadata)
+      : {};
+
+  return {
+    ...(row as PeriodGoal),
+    cadence: (row.cadence as GoalCadence) || "period_total",
+    metadata,
+  };
 }
 
 export function usePeriodGoals(): UsePeriodGoalsReturn {
   const { sport } = useSport();
   const [goals, setGoals] = useState<PeriodGoal[]>([]);
+  const [weeklyAdherenceByGoalId, setWeeklyAdherenceByGoalId] = useState<
+    Record<string, WeeklyAdherence>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,17 +94,17 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
 
       if (fetchError) throw fetchError;
 
-      // Auto-update status for expired goals
       const now = new Date();
       const updatedGoals = (data || []).map((goal) => {
-        const goalEnd = parseISO(goal.period_end);
-        if (goal.status === "active" && isAfter(now, endOfDay(goalEnd))) {
-          return { ...goal, status: "expired" as const };
+        const normalized = normalizeGoal(goal as Record<string, unknown>);
+        const goalEnd = parseISO(normalized.period_end);
+        if (normalized.status === "active" && isAfter(now, endOfDay(goalEnd))) {
+          return { ...normalized, status: "expired" as const };
         }
-        return goal as PeriodGoal;
+        return normalized;
       });
 
-      setGoals(updatedGoals as PeriodGoal[]);
+      setGoals(updatedGoals);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load goals";
       setError(message);
@@ -79,54 +118,129 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
     fetchGoals();
   }, [fetchGoals]);
 
-  // Auto-sync goal progress when goals or matches change
-  useEffect(() => {
-    const syncProgress = async () => {
-      if (goals.length === 0) return;
+  const fetchGoalActivityDates = async (
+    goal: PeriodGoal,
+    userId: string
+  ): Promise<string[]> => {
+    const periodStart = goal.period_start;
+    const periodEnd = goal.period_end;
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return;
+    switch (goal.goal_type) {
+      case "wellness_checkins": {
+        const { data, error } = await supabase
+          .from("wellness_entries")
+          .select("entry_date")
+          .eq("user_id", userId)
+          .gte("entry_date", periodStart)
+          .lte("entry_date", periodEnd);
 
-      const now = new Date();
-      const activeGoals = goals.filter(
-        (g) => g.status === "active" && !g.is_completed
-      );
-
-      for (const goal of activeGoals) {
-        const newValue = await calculateCurrentValueInternal(goal, user.id);
-
-        if (newValue !== goal.current_value) {
-          const updates: Partial<PeriodGoal> = {
-            current_value: newValue,
-            updated_at: new Date().toISOString(),
-          };
-
-          // Check if goal is completed
-          if (newValue >= goal.target_value && !goal.is_completed) {
-            updates.is_completed = true;
-            updates.status = "completed";
-            updates.completed_at = new Date().toISOString();
-          }
-
-          await supabase.from("period_goals").update(updates).eq("id", goal.id);
-        }
+        if (error || !data) return [];
+        return data.map((row) => row.entry_date);
       }
 
-      // Refresh after sync
-      await fetchGoals();
-    };
+      case "journaled_sessions": {
+        const { data, error } = await supabase
+          .from("training_notes")
+          .select("training_date")
+          .eq("user_id", userId)
+          .gte("training_date", periodStart)
+          .lte("training_date", periodEnd);
 
-    syncProgress();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        if (error || !data) return [];
+        return data.map((row) => row.training_date);
+      }
+
+      case "activity_sessions": {
+        let query = supabase
+          .from("training_sessions")
+          .select("session_date")
+          .eq("user_id", userId)
+          .gte("session_date", periodStart)
+          .lte("session_date", periodEnd);
+
+        if (goal.metadata?.activity_type) {
+          query = query.eq("activity_type", goal.metadata.activity_type);
+        }
+
+        const { data, error } = await query;
+        if (error || !data) return [];
+        return data.map((row) => row.session_date);
+      }
+
+      case "match_reflections": {
+        const { data, error } = await supabase
+          .from("matches")
+          .select("date, reflection_prompt_used, notes")
+          .eq("user_id", userId)
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
+
+        if (error || !data) return [];
+        return data
+          .filter((match) => isGuidedReflection(match))
+          .map((match) => match.date);
+      }
+
+      case "training_sessions": {
+        const { data, error } = await supabase
+          .from("training_sessions")
+          .select("session_date")
+          .eq("user_id", userId)
+          .gte("session_date", periodStart)
+          .lte("session_date", periodEnd);
+
+        if (error || !data) return [];
+        return data.map((row) => row.session_date);
+      }
+
+      case "matches_played":
+      case "matches_logged": {
+        const { data, error } = await supabase
+          .from("matches")
+          .select("date")
+          .eq("user_id", userId)
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
+
+        if (error || !data) return [];
+        return data.map((row) => row.date);
+      }
+
+      case "matches_won": {
+        const { data, error } = await supabase
+          .from("matches")
+          .select("date")
+          .eq("user_id", userId)
+          .eq("is_win", true)
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
+
+        if (error || !data) return [];
+        return data.map((row) => row.date);
+      }
+
+      default:
+        return [];
+    }
+  };
 
   const calculateCurrentValueInternal = async (
     goal: PeriodGoal,
     userId: string
   ): Promise<number> => {
-    const periodStart = startOfDay(parseISO(goal.period_start));
-    const periodEnd = endOfDay(parseISO(goal.period_end));
+    if (goal.cadence === "weekly") {
+      const dates = await fetchGoalActivityDates(goal, userId);
+      const adherence = computeWeeklyAdherence(
+        dates,
+        goal.period_start,
+        goal.period_end,
+        goal.target_value
+      );
+      return adherence.currentWeekCount;
+    }
+
+    const periodStart = goal.period_start;
+    const periodEnd = goal.period_end;
 
     switch (goal.goal_type) {
       case "win_rate": {
@@ -134,8 +248,8 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
           .from("matches")
           .select("is_win")
           .eq("user_id", userId)
-          .gte("date", goal.period_start)
-          .lte("date", goal.period_end);
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
 
         if (error || !matches || matches.length === 0) return 0;
         const wins = matches.filter((m) => m.is_win).length;
@@ -148,8 +262,8 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
           .from("matches")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
-          .gte("date", goal.period_start)
-          .lte("date", goal.period_end);
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
 
         if (error) return 0;
         return count || 0;
@@ -161,8 +275,8 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
           .eq("is_win", true)
-          .gte("date", goal.period_start)
-          .lte("date", goal.period_end);
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
 
         if (error) return 0;
         return count || 0;
@@ -173,35 +287,87 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
           .from("training_sessions")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
-          .gte("session_date", goal.period_start)
-          .lte("session_date", goal.period_end);
+          .gte("session_date", periodStart)
+          .lte("session_date", periodEnd);
 
         if (error) return 0;
         return count || 0;
       }
 
+      case "wellness_checkins": {
+        const { count, error } = await supabase
+          .from("wellness_entries")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .gte("entry_date", periodStart)
+          .lte("entry_date", periodEnd);
+
+        if (error) return 0;
+        return count || 0;
+      }
+
+      case "journaled_sessions": {
+        const { count, error } = await supabase
+          .from("training_notes")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .gte("training_date", periodStart)
+          .lte("training_date", periodEnd);
+
+        if (error) return 0;
+        return count || 0;
+      }
+
+      case "activity_sessions": {
+        let query = supabase
+          .from("training_sessions")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .gte("session_date", periodStart)
+          .lte("session_date", periodEnd);
+
+        if (goal.metadata?.activity_type) {
+          query = query.eq("activity_type", goal.metadata.activity_type);
+        }
+
+        const { count, error } = await query;
+        if (error) return 0;
+        return count || 0;
+      }
+
+      case "match_reflections": {
+        const { data, error } = await supabase
+          .from("matches")
+          .select("reflection_prompt_used, notes")
+          .eq("user_id", userId)
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
+
+        if (error || !data) return 0;
+        return data.filter((match) => isGuidedReflection(match)).length;
+      }
+
       case "streak_days": {
-        // Calculate journaling streak within the period
         const { data: matches } = await supabase
           .from("matches")
           .select("date")
           .eq("user_id", userId)
-          .gte("date", goal.period_start)
-          .lte("date", goal.period_end);
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
 
         const { data: trainingNotes } = await supabase
           .from("training_notes")
           .select("training_date")
           .eq("user_id", userId)
-          .gte("training_date", goal.period_start)
-          .lte("training_date", goal.period_end);
+          .gte("training_date", periodStart)
+          .lte("training_date", periodEnd);
 
         const { data: playerNotes } = await supabase
           .from("player_notes")
           .select("created_at")
           .eq("user_id", userId)
-          .gte("created_at", goal.period_start + "T00:00:00")
-          .lte("created_at", goal.period_end + "T23:59:59");
+          .gte("created_at", periodStart + "T00:00:00")
+          .lte("created_at", periodEnd + "T23:59:59");
 
         const dates = new Set<string>();
         matches?.forEach((m) => dates.add(m.date));
@@ -230,14 +396,12 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
       }
 
       case "personal_best": {
-        // Check if any personal best was set in this period
-        // This is sport-specific; for now, return 1 if any match was logged
         const { count, error } = await supabase
           .from("matches")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
-          .gte("date", goal.period_start)
-          .lte("date", goal.period_end);
+          .gte("date", periodStart)
+          .lte("date", periodEnd);
 
         if (error || !count) return 0;
         return count > 0 ? 1 : 0;
@@ -248,39 +412,185 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
     }
   };
 
-  const getGoalProgress = useCallback((goal: PeriodGoal): GoalProgress => {
-    const periodStart = startOfDay(parseISO(goal.period_start));
-    const periodEnd = endOfDay(parseISO(goal.period_end));
-    const now = startOfDay(new Date());
+  const computeWeeklyAdherenceForGoals = useCallback(
+    async (goalList: PeriodGoal[]) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
 
-    const daysTotal = differenceInCalendarDays(periodEnd, periodStart) + 1;
-    const daysElapsed = Math.min(
-      differenceInCalendarDays(now, periodStart) + 1,
-      daysTotal
-    );
-    const daysRemaining = Math.max(0, daysTotal - daysElapsed);
+      const weeklyGoals = goalList.filter((g) => g.cadence === "weekly");
+      if (weeklyGoals.length === 0) return;
 
-    const percentage =
-      goal.target_value > 0
-        ? Math.min(100, Math.round((goal.current_value / goal.target_value) * 100))
-        : 0;
+      const adherenceUpdates: Record<string, WeeklyAdherence> = {};
+      for (const goal of weeklyGoals) {
+        const dates = await fetchGoalActivityDates(goal, user.id);
+        adherenceUpdates[goal.id] = computeWeeklyAdherence(
+          dates,
+          goal.period_start,
+          goal.period_end,
+          goal.target_value
+        );
+      }
+      setWeeklyAdherenceByGoalId(adherenceUpdates);
+    },
+    []
+  );
 
-    const expectedProgress = daysTotal > 0 ? (daysElapsed / daysTotal) * goal.target_value : 0;
-    const isOnTrack = goal.current_value >= expectedProgress;
+  const syncGoalProgress = useCallback(async (goalList: PeriodGoal[]) => {
+    if (goalList.length === 0) return;
 
-    const dailyRate = daysElapsed > 0 ? goal.current_value / daysElapsed : 0;
-    const projectedValue = Math.round(dailyRate * daysTotal);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user) return;
 
-    return {
-      percentage,
-      remaining: Math.max(0, goal.target_value - goal.current_value),
-      isOnTrack,
-      daysElapsed,
-      daysTotal,
-      daysRemaining,
-      projectedValue,
-    };
+    const now = new Date();
+    const activeGoals = goalList.filter((g) => g.status === "active" && !g.is_completed);
+    const adherenceUpdates: Record<string, WeeklyAdherence> = {};
+
+    for (const goal of activeGoals) {
+      let adherence: WeeklyAdherence | undefined;
+
+      if (goal.cadence === "weekly") {
+        const dates = await fetchGoalActivityDates(goal, user.id);
+        adherence = computeWeeklyAdherence(
+          dates,
+          goal.period_start,
+          goal.period_end,
+          goal.target_value
+        );
+        adherenceUpdates[goal.id] = adherence;
+      }
+
+      const newValue = await calculateCurrentValueInternal(goal, user.id);
+      const periodEnded = isAfter(now, endOfDay(parseISO(goal.period_end)));
+
+      const updates: Partial<PeriodGoal> = {};
+      let shouldUpdate = newValue !== goal.current_value;
+
+      if (newValue !== goal.current_value) {
+        updates.current_value = newValue;
+        updates.updated_at = new Date().toISOString();
+      }
+
+      if (goal.cadence === "weekly" && adherence && periodEnded) {
+        const allMet = allWeeklyTargetsMet(adherence);
+        if (allMet) {
+          updates.is_completed = true;
+          updates.status = "completed";
+          updates.completed_at = new Date().toISOString();
+          shouldUpdate = true;
+        } else if (goal.status === "active") {
+          updates.status = "expired";
+          shouldUpdate = true;
+        }
+      } else if (
+        goal.cadence !== "weekly" &&
+        newValue >= goal.target_value &&
+        !goal.is_completed
+      ) {
+        updates.is_completed = true;
+        updates.status = "completed";
+        updates.completed_at = new Date().toISOString();
+        shouldUpdate = true;
+      } else if (periodEnded && goal.status === "active" && !goal.is_completed) {
+        updates.status = "expired";
+        shouldUpdate = true;
+      }
+
+      if (shouldUpdate) {
+        await supabase.from("period_goals").update(updates).eq("id", goal.id);
+      }
+    }
+
+    if (Object.keys(adherenceUpdates).length > 0) {
+      setWeeklyAdherenceByGoalId((prev) => ({ ...prev, ...adherenceUpdates }));
+    }
   }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const runSync = async () => {
+      if (goals.length > 0) {
+        await syncGoalProgress(goals);
+        await fetchGoals();
+      }
+    };
+
+    runSync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!isLoading && goals.length > 0) {
+      computeWeeklyAdherenceForGoals(goals);
+    }
+  }, [goals, isLoading, computeWeeklyAdherenceForGoals]);
+
+  const getGoalProgress = useCallback(
+    (goal: PeriodGoal): GoalProgress => {
+      const periodStart = startOfDay(parseISO(goal.period_start));
+      const periodEnd = endOfDay(parseISO(goal.period_end));
+      const now = startOfDay(new Date());
+
+      const daysTotal = differenceInCalendarDays(periodEnd, periodStart) + 1;
+      const daysElapsed = Math.min(
+        differenceInCalendarDays(now, periodStart) + 1,
+        daysTotal
+      );
+      const daysRemaining = Math.max(0, daysTotal - daysElapsed);
+
+      const weekly = weeklyAdherenceByGoalId[goal.id];
+
+      if (goal.cadence === "weekly" && weekly) {
+        const percentage = weeklyProgressPercentage(
+          weekly.currentWeekCount,
+          goal.target_value
+        );
+        const currentWeekMet = weekly.currentWeekCount >= goal.target_value;
+        const expectedMetByNow = Math.max(
+          1,
+          Math.ceil((weekly.weeksElapsed / Math.max(weekly.weeksTotal, 1)) * weekly.weeksTotal)
+        );
+        const isOnTrack =
+          currentWeekMet || weekly.weeksMet >= expectedMetByNow - 1;
+
+        return {
+          percentage,
+          remaining: weeklyRemaining(weekly.currentWeekCount, goal.target_value),
+          isOnTrack,
+          daysElapsed,
+          daysTotal,
+          daysRemaining,
+          projectedValue: weekly.weeksMet,
+          weekly,
+        };
+      }
+
+      const percentage =
+        goal.target_value > 0
+          ? Math.min(100, Math.round((goal.current_value / goal.target_value) * 100))
+          : 0;
+
+      const expectedProgress =
+        daysTotal > 0 ? (daysElapsed / daysTotal) * goal.target_value : 0;
+      const isOnTrack = goal.current_value >= expectedProgress;
+
+      const dailyRate = daysElapsed > 0 ? goal.current_value / daysElapsed : 0;
+      const projectedValue = Math.round(dailyRate * daysTotal);
+
+      return {
+        percentage,
+        remaining: Math.max(0, goal.target_value - goal.current_value),
+        isOnTrack,
+        daysElapsed,
+        daysTotal,
+        daysRemaining,
+        projectedValue,
+      };
+    },
+    [weeklyAdherenceByGoalId]
+  );
 
   const calculateCurrentValue = useCallback(
     async (goal: PeriodGoal): Promise<number> => {
@@ -310,6 +620,8 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
           unit: input.unit,
           period_start: input.period_start,
           period_end: input.period_end,
+          cadence: input.cadence || "period_total",
+          metadata: input.metadata || {},
         });
 
         if (error) throw error;
@@ -351,6 +663,11 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
         const { error } = await supabase.from("period_goals").delete().eq("id", id);
 
         if (error) throw error;
+        setWeeklyAdherenceByGoalId((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
         await fetchGoals();
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Failed to delete goal";

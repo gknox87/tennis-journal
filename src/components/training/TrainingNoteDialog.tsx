@@ -10,10 +10,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { CoachInput } from "@/components/training/CoachInput";
+import { SessionFeelPicker } from "@/components/training/SessionFeelPicker";
+import { ScalePicker } from "@/components/mental/ScalePicker";
+import { EmotionTagPicker } from "@/components/mental/EmotionTagPicker";
+import { WellnessScaleSelector } from "@/components/wellness/WellnessScaleSelector";
+import { ENJOYMENT_DESCRIPTORS } from "@/constants/sessionWellbeing";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
-import { Calendar as CalendarIcon, Clock, User2, Target, ThumbsUp, ThumbsDown, Save } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Target, ThumbsUp, ThumbsDown, Save, Smile } from "lucide-react";
 import { format, parse } from "date-fns";
 import { useSport } from "@/context/SportContext";
 import { cn } from "@/lib/utils";
@@ -32,6 +37,10 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
     coach_name: "",
     training_date: format(new Date(), 'yyyy-MM-dd'),
     training_time: "",
+    session_feel: null as number | null,
+    enjoyment: null as number | null,
+    emotion_tags: [] as string[],
+    session_arousal: null as number | null,
     what_worked_on: "",
     what_felt_good: "",
     what_didnt_feel_good: "",
@@ -48,6 +57,10 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         coach_name: normalizeCoachName(editingNote.coach_name) || "",
         training_date: editingNote.training_date,
         training_time: editingNote.training_time || "",
+        session_feel: editingNote.session_feel ?? null,
+        enjoyment: editingNote.enjoyment ?? null,
+        emotion_tags: editingNote.emotion_tags ?? [],
+        session_arousal: editingNote.session_arousal ?? null,
         what_worked_on: editingNote.what_worked_on || "",
         what_felt_good: editingNote.what_felt_good || "",
         what_didnt_feel_good: editingNote.what_didnt_feel_good || "",
@@ -59,6 +72,10 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         coach_name: "",
         training_date: format(today, 'yyyy-MM-dd'),
         training_time: "",
+        session_feel: null,
+        enjoyment: null,
+        emotion_tags: [],
+        session_arousal: null,
         what_worked_on: "",
         what_felt_good: "",
         what_didnt_feel_good: "",
@@ -106,6 +123,10 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         sport_id: sport.id,
         training_time: formData.training_time || null,
         coach_name: normalizeCoachName(formData.coach_name),
+        session_feel: formData.session_feel,
+        enjoyment: formData.enjoyment,
+        emotion_tags: formData.emotion_tags,
+        session_arousal: formData.session_arousal,
         what_worked_on: formData.what_worked_on || null,
         what_felt_good: formData.what_felt_good || null,
         what_didnt_feel_good: formData.what_didnt_feel_good || null,
@@ -266,6 +287,52 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
                   placeholder="e.g., John Smith"
                 />
               </div>
+            </div>
+          </Card>
+
+          {/* Session Feel + Enjoyment */}
+          <Card className="p-6 bg-white/80 backdrop-blur-sm border-2 border-purple-200/50">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                <Smile className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">How did this session feel?</h3>
+            </div>
+            <SessionFeelPicker
+              value={formData.session_feel}
+              onChange={(session_feel) => setFormData((prev) => ({ ...prev, session_feel }))}
+            />
+
+            <div className="mt-6 space-y-3">
+              <div>
+                <Label className="text-sm font-semibold text-gray-700">Enjoyment</Label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Enjoyment is a leading indicator of burnout — track it even when technique went well.
+                </p>
+              </div>
+              <WellnessScaleSelector
+                value={formData.enjoyment}
+                onChange={(enjoyment) => setFormData((prev) => ({ ...prev, enjoyment }))}
+                descriptors={ENJOYMENT_DESCRIPTORS}
+              />
+            </div>
+
+            <div className="mt-6">
+              <ScalePicker
+                label="Session arousal / energy"
+                value={formData.session_arousal}
+                onChange={(session_arousal) => setFormData((prev) => ({ ...prev, session_arousal }))}
+                lowLabel="Low energy"
+                highLabel="Fired up"
+              />
+            </div>
+
+            <div className="mt-6">
+              <EmotionTagPicker
+                label="How did you feel during practice?"
+                value={formData.emotion_tags}
+                onChange={(emotion_tags) => setFormData((prev) => ({ ...prev, emotion_tags }))}
+              />
             </div>
           </Card>
 

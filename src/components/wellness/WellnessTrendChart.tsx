@@ -11,7 +11,7 @@ import {
   ReferenceArea,
 } from "recharts";
 import { WellnessTrendPoint } from "@/utils/wellnessCalc";
-import { WELLNESS_ZONE_COLORS } from "@/types/wellness";
+import { WELLNESS_ZONE_COLORS, WELLNESS_MAX_SCORE } from "@/types/wellness";
 import { WELLNESS_CHART_MIN_ENTRIES } from "@/utils/sportLabels";
 import { format, parseISO } from "date-fns";
 import { TrendingUp } from "lucide-react";
@@ -66,15 +66,14 @@ export const WellnessTrendChart = ({ data }: WellnessTrendChartProps) => {
         <LineChart data={formattedData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
 
-          {/* Zone bands */}
-          <ReferenceArea y1={0} y2={11} fill={WELLNESS_ZONE_COLORS.critical} fillOpacity={0.08} />
-          <ReferenceArea y1={12} y2={15} fill={WELLNESS_ZONE_COLORS.concern} fillOpacity={0.08} />
-          <ReferenceArea y1={16} y2={20} fill={WELLNESS_ZONE_COLORS.moderate} fillOpacity={0.08} />
-          <ReferenceArea y1={21} y2={25} fill={WELLNESS_ZONE_COLORS.good} fillOpacity={0.08} />
+          <ReferenceArea y1={0} y2={13} fill={WELLNESS_ZONE_COLORS.critical} fillOpacity={0.08} />
+          <ReferenceArea y1={14} y2={18} fill={WELLNESS_ZONE_COLORS.concern} fillOpacity={0.08} />
+          <ReferenceArea y1={19} y2={24} fill={WELLNESS_ZONE_COLORS.moderate} fillOpacity={0.08} />
+          <ReferenceArea y1={25} y2={30} fill={WELLNESS_ZONE_COLORS.good} fillOpacity={0.08} />
 
-          <ReferenceLine y={12} stroke={WELLNESS_ZONE_COLORS.concern} strokeDasharray="4 4" opacity={0.5} />
-          <ReferenceLine y={16} stroke={WELLNESS_ZONE_COLORS.moderate} strokeDasharray="4 4" opacity={0.5} />
-          <ReferenceLine y={21} stroke={WELLNESS_ZONE_COLORS.good} strokeDasharray="4 4" opacity={0.5} />
+          <ReferenceLine y={14} stroke={WELLNESS_ZONE_COLORS.concern} strokeDasharray="4 4" opacity={0.5} />
+          <ReferenceLine y={19} stroke={WELLNESS_ZONE_COLORS.moderate} strokeDasharray="4 4" opacity={0.5} />
+          <ReferenceLine y={25} stroke={WELLNESS_ZONE_COLORS.good} strokeDasharray="4 4" opacity={0.5} />
 
           <XAxis
             dataKey="dateLabel"
@@ -83,11 +82,11 @@ export const WellnessTrendChart = ({ data }: WellnessTrendChartProps) => {
             axisLine={false}
           />
           <YAxis
-            domain={[0, 25]}
+            domain={[0, WELLNESS_MAX_SCORE]}
             tick={{ fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            ticks={[5, 10, 15, 20, 25]}
+            ticks={[6, 12, 18, 24, 30]}
           />
           <Tooltip
             content={({ active, payload }) => {
@@ -96,10 +95,11 @@ export const WellnessTrendChart = ({ data }: WellnessTrendChartProps) => {
               return (
                 <div className="bg-white border rounded-lg shadow-lg p-3 text-xs space-y-1">
                   <p className="font-semibold">{d.dateLabel}</p>
-                  <p>Total: <strong>{d.score}/25</strong></p>
+                  <p>Total: <strong>{d.score}/{WELLNESS_MAX_SCORE}</strong></p>
                   <p>Sleep: {d.sleep} · Fatigue: {d.fatigue}</p>
-                  <p>Soreness: {d.soreness} · Stress: {d.stress}</p>
-                  <p>Mood: {d.mood}</p>
+                  <p>Stress: {d.stress} · Mood: {d.mood}</p>
+                  <p>Motivation: {d.motivation} · Confidence: {d.confidence}</p>
+                  {d.soreness != null && <p>Soreness: {d.soreness}</p>}
                 </div>
               );
             }}
@@ -137,12 +137,18 @@ export const WellnessBreakdownChart = ({ data }: WellnessBreakdownChartProps) =>
     dateLabel: format(parseISO(d.date), "MMM dd"),
   }));
 
+  const hasSoreness = data.some((d) => d.soreness != null);
+
   const lines = [
     { key: "sleep", color: "#3b82f6", label: "Sleep", bg: "bg-blue-100" },
     { key: "fatigue", color: "#f97316", label: "Fatigue", bg: "bg-orange-100" },
-    { key: "soreness", color: "#ef4444", label: "Soreness", bg: "bg-red-100" },
     { key: "stress", color: "#a855f7", label: "Stress", bg: "bg-purple-100" },
     { key: "mood", color: "#10b981", label: "Mood", bg: "bg-emerald-100" },
+    { key: "motivation", color: "#f59e0b", label: "Motivation", bg: "bg-amber-100" },
+    { key: "confidence", color: "#6366f1", label: "Confidence", bg: "bg-indigo-100" },
+    ...(hasSoreness
+      ? [{ key: "soreness", color: "#ef4444", label: "Soreness", bg: "bg-red-100" }]
+      : []),
   ];
 
   return (
@@ -184,7 +190,7 @@ export const WellnessBreakdownChart = ({ data }: WellnessBreakdownChartProps) =>
                         {l.label}:
                       </span>
                       <span className="font-medium" style={{ color: l.color }}>
-                        {d[l.key]}
+                        {d[l.key] ?? "—"}
                       </span>
                     </div>
                   ))}
@@ -201,6 +207,7 @@ export const WellnessBreakdownChart = ({ data }: WellnessBreakdownChartProps) =>
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, fill: l.color, stroke: "#fff", strokeWidth: 2 }}
+              connectNulls={false}
             />
           ))}
         </LineChart>

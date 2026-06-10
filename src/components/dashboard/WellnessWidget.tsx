@@ -1,6 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { useWellness } from "@/hooks/useWellness";
+import { WELLNESS_MAX_SCORE } from "@/types/wellness";
 import { getWellnessZoneColor, getWellnessZoneLabel } from "@/utils/wellnessCalc";
 import { Heart, ArrowRight, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +50,7 @@ export const WellnessWidget = () => {
               <div>
                 <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-0.5">Today</p>
                 <p className="text-3xl font-bold tracking-tight" style={{ color: zoneColor }}>
-                  {metrics.todayScore}<span className="text-base font-medium text-gray-400">/25</span>
+                  {metrics.todayScore}<span className="text-base font-medium text-gray-400">/{WELLNESS_MAX_SCORE}</span>
                 </p>
                 <p className="text-xs font-medium mt-0.5" style={{ color: zoneColor }}>
                   {zoneLabel}

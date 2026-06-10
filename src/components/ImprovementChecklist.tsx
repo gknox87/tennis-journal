@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSport } from "@/context/SportContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { RefreshCw } from "lucide-react";
 
 interface ImprovementPoint {
@@ -18,6 +19,7 @@ export const ImprovementChecklist = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const { sport } = useSport();
+  const { canUseAI } = useSubscription();
 
   const fetchImprovementPoints = async () => {
     try {
@@ -61,6 +63,16 @@ export const ImprovementChecklist = () => {
   const generateNewTips = async () => {
     try {
       setIsGenerating(true);
+
+      if (!canUseAI()) {
+        toast({
+          title: "AI limit reached",
+          description: "Upgrade to Pro for unlimited AI match analysis.",
+          variant: "default",
+        });
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({

@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import {
   InjuryReport,
+  InjuryCheckIn,
   BodyRegion,
   getRegionLabel,
   getPainColor,
-  IMPACT_LEVELS,
 } from "@/types/injury";
 import {
   BarChart,
@@ -17,14 +17,33 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { AlertTriangle, Activity, MapPin, TrendingDown } from "lucide-react";
+import { AlertTriangle, Activity, MapPin, TrendingDown, Brain, CheckCircle2, Info } from "lucide-react";
+import { InjuryPsychChart } from "./InjuryPsychChart";
+import {
+  buildPsychChartData,
+  getInjuryPsychInterpretations,
+} from "@/utils/injuryPsychCalc";
+import { cn } from "@/lib/utils";
 
 interface InjuryInsightsProps {
   reports: InjuryReport[];
+  checkIns: InjuryCheckIn[];
   frequentRegions: { region: BodyRegion; count: number }[];
 }
 
-export const InjuryInsights = ({ reports, frequentRegions }: InjuryInsightsProps) => {
+const SEVERITY_STYLES = {
+  warning: "bg-amber-50 border-amber-200 text-amber-800",
+  info: "bg-blue-50 border-blue-200 text-blue-800",
+  positive: "bg-green-50 border-green-200 text-green-800",
+};
+
+const SEVERITY_ICONS = {
+  warning: AlertTriangle,
+  info: Info,
+  positive: CheckCircle2,
+};
+
+export const InjuryInsights = ({ reports, checkIns, frequentRegions }: InjuryInsightsProps) => {
   const stats = useMemo(() => {
     if (reports.length === 0) return null;
 
@@ -43,7 +62,6 @@ export const InjuryInsights = ({ reports, frequentRegions }: InjuryInsightsProps
       (r) => r.sought_medical_attention
     ).length;
 
-    // Most common pain types
     const painTypeCounts: Record<string, number> = {};
     reports.forEach((r) => {
       r.pain_types.forEach((pt) => {
@@ -80,6 +98,21 @@ export const InjuryInsights = ({ reports, frequentRegions }: InjuryInsightsProps
     }));
   }, [frequentRegions, reports]);
 
+  const psychInterpretations = useMemo(
+    () => getInjuryPsychInterpretations(reports, checkIns),
+    [reports, checkIns]
+  );
+
+  const activeWithCheckIns = useMemo(
+    () =>
+      reports.filter(
+        (r) =>
+          (r.trend !== "improving" || r.pain_level > 0) &&
+          checkIns.some((c) => c.injury_report_id === r.id)
+      ),
+    [reports, checkIns]
+  );
+
   if (!stats || reports.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
@@ -113,6 +146,57 @@ export const InjuryInsights = ({ reports, frequentRegions }: InjuryInsightsProps
           <p className="text-xs text-muted-foreground">Total Reports</p>
         </Card>
       </div>
+
+      {/* Psychological interpretations */}
+      {psychInterpretations.length > 0 && (
+        <div className="space-y-2">
+          {psychInterpretations.map((interp, i) => {
+            const Icon = SEVERITY_ICONS[interp.severity];
+            return (
+              <Card
+                key={`${interp.injuryId}-${interp.headline}-${i}`}
+                className={cn("p-4 border", SEVERITY_STYLES[interp.severity])}
+              >
+                <div className="flex items-start gap-2">
+                  <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {interp.headline}
+                      {interp.bodyPart && (
+                        <span className="font-normal text-xs ml-1.5 opacity-75">
+                          ({interp.bodyPart})
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs mt-0.5 opacity-90">{interp.message}</p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Rehab psychology charts */}
+      {activeWithCheckIns.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            <Brain className="h-4 w-4 text-purple-500" />
+            Rehab Psychology Trends
+          </h3>
+          {activeWithCheckIns.map((injury) => (
+            <Card key={injury.id} className="p-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                {injury.body_part}
+              </p>
+              <InjuryPsychChart
+                data={buildPsychChartData(checkIns, injury)}
+                bodyPart={injury.body_part}
+              />
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Frequent regions chart */}
       {chartData.length > 0 && (

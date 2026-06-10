@@ -94,3 +94,17 @@ export interface ActivityDistributionData {
   count: number;
   totalLoad: number;
 }
+
+export interface LoadWellnessTimelinePoint {
+  date: string;
+  dateLabel: string;
+  load: number;
+  mood: number | null;
+}
+
+export interface LoadInterpretation {
+  severity: "info" | "caution" | "warning";
+  headline: string;
+  message: string;
+  action?: string;
+}

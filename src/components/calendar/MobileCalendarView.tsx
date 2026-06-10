@@ -18,7 +18,7 @@ import {
   isToday
 } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { ScheduledEvent, SessionType } from "@/types/calendar";
+import { ScheduledEvent, getSessionTypeColor, getSessionTypeLabel } from "@/types/calendar";
 import { cn } from "@/lib/utils";
 
 interface MobileCalendarViewProps {
@@ -95,19 +95,6 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
       setCurrentDate(startOfMonth(selectedDate));
     } else {
       setCurrentDate(startOfWeek(selectedDate, { weekStartsOn: 1 }));
-    }
-  };
-
-  const getSessionTypeColor = (type: SessionType) => {
-    switch (type) {
-      case 'training':
-        return 'bg-blue-500';
-      case 'match':
-        return 'bg-green-500';
-      case 'recovery':
-        return 'bg-orange-500';
-      default:
-        return 'bg-gray-500';
     }
   };
 
@@ -211,14 +198,14 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                   >
                     <div className="p-3 sm:p-4 md:p-5">
                       <div className="flex items-start gap-2.5 sm:gap-3">
-                        <div className={`w-1 h-full min-h-[40px] sm:min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)} shadow-sm`} />
+                        <div className={`w-1 h-full min-h-[40px] sm:min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type, 'mobile')} shadow-sm`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1">
                             <h3 className="font-bold text-sm sm:text-base text-gray-800 group-hover:text-purple-700 transition-colors truncate">
                               {event.title || 'Untitled Event'}
                             </h3>
-                            <div className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${getSessionTypeColor(event.session_type)} text-white shadow-sm flex-shrink-0 capitalize`}>
-                              {event.session_type}
+                            <div className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${getSessionTypeColor(event.session_type, 'mobile')} text-white shadow-sm flex-shrink-0`}>
+                              {getSessionTypeLabel(event.session_type)}
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
@@ -310,7 +297,7 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                 >
                   <div className="p-3 sm:p-4 md:p-5">
                     <div className="flex items-start gap-2.5 sm:gap-3">
-                      <div className={`w-1 h-full min-h-[40px] sm:min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type)} shadow-sm`} />
+                      <div className={`w-1 h-full min-h-[40px] sm:min-h-[48px] rounded-full flex-shrink-0 ${getSessionTypeColor(event.session_type, 'mobile')} shadow-sm`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1">
                           <h3 className="font-bold text-sm sm:text-base text-gray-800 group-hover:text-purple-700 transition-colors truncate">
@@ -322,8 +309,8 @@ export const MobileCalendarView = ({ events, onEventClick, onAddEvent }: MobileC
                                 Today
                               </span>
                             )}
-                            <div className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${getSessionTypeColor(event.session_type)} text-white shadow-sm capitalize`}>
-                              {event.session_type}
+                            <div className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${getSessionTypeColor(event.session_type, 'mobile')} text-white shadow-sm`}>
+                              {getSessionTypeLabel(event.session_type)}
                             </div>
                           </div>
                         </div>

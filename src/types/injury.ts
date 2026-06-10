@@ -54,6 +54,18 @@ export interface InjuryReport {
   coach_notified: boolean;
 }
 
+export interface InjuryCheckIn {
+  id: string;
+  injury_report_id: string;
+  user_id: string;
+  check_in_date: string;
+  pain_level?: number | null;
+  rehab_mood: number;
+  rtp_confidence: number;
+  notes?: string | null;
+  created_at: string;
+}
+
 export interface BodyRegionDescriptor {
   value: BodyRegion;
   label: string;
