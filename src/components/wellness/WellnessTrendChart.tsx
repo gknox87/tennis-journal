@@ -12,18 +12,46 @@ import {
 } from "recharts";
 import { WellnessTrendPoint } from "@/utils/wellnessCalc";
 import { WELLNESS_ZONE_COLORS } from "@/types/wellness";
+import { WELLNESS_CHART_MIN_ENTRIES } from "@/utils/sportLabels";
 import { format, parseISO } from "date-fns";
+import { TrendingUp } from "lucide-react";
 
 interface WellnessTrendChartProps {
   data: WellnessTrendPoint[];
 }
 
+function WellnessChartEmptyState({
+  entryCount,
+  minEntries,
+}: {
+  entryCount: number;
+  minEntries: number;
+}) {
+  const remaining = minEntries - entryCount;
+  return (
+    <div className="flex flex-col items-center justify-center h-48 text-center px-4">
+      <TrendingUp className="h-10 w-10 text-muted-foreground/40 mb-3" />
+      <p className="text-sm font-medium text-foreground">
+        {entryCount === 0
+          ? "No wellness data yet"
+          : `${entryCount} check-in${entryCount === 1 ? "" : "s"} logged`}
+      </p>
+      <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+        {entryCount === 0
+          ? "Complete your first daily check-in to start tracking."
+          : `Log ${remaining} more daily check-in${remaining === 1 ? "" : "s"} to see meaningful trends.`}
+      </p>
+    </div>
+  );
+}
+
 export const WellnessTrendChart = ({ data }: WellnessTrendChartProps) => {
-  if (data.length === 0) {
+  if (data.length < WELLNESS_CHART_MIN_ENTRIES) {
     return (
-      <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-        No data yet — check in daily to see trends.
-      </div>
+      <WellnessChartEmptyState
+        entryCount={data.length}
+        minEntries={WELLNESS_CHART_MIN_ENTRIES}
+      />
     );
   }
 
@@ -95,7 +123,14 @@ interface WellnessBreakdownChartProps {
 }
 
 export const WellnessBreakdownChart = ({ data }: WellnessBreakdownChartProps) => {
-  if (data.length === 0) return null;
+  if (data.length < WELLNESS_CHART_MIN_ENTRIES) {
+    return (
+      <WellnessChartEmptyState
+        entryCount={data.length}
+        minEntries={WELLNESS_CHART_MIN_ENTRIES}
+      />
+    );
+  }
 
   const formattedData = data.map((d) => ({
     ...d,

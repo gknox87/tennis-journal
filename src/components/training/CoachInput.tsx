@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { User2 } from "lucide-react";
 import { useSport } from "@/context/SportContext";
+import { normalizeCoachName } from "@/utils/coachName";
 
 interface Coach {
   id: string;
@@ -59,7 +60,7 @@ export const CoachInput = ({
       // Deduplicate coach names
       const uniqueNames = new Map<string, Coach>();
       data?.forEach((row, idx) => {
-        const name = row.coach_name?.trim();
+        const name = normalizeCoachName(row.coach_name);
         if (name && !uniqueNames.has(name.toLowerCase())) {
           uniqueNames.set(name.toLowerCase(), {
             id: `coach-${idx}`,
@@ -96,7 +97,7 @@ export const CoachInput = ({
   };
 
   const handleSelectCoach = (coachName: string) => {
-    onChange(coachName);
+    onChange(normalizeCoachName(coachName) || coachName);
     setShowSuggestions(false);
     inputRef.current?.blur();
   };

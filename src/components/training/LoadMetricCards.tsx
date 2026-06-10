@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { WeeklyLoadMetrics } from "@/types/trainingLoad";
-import { getRiskZone, getRiskZoneColor } from "@/utils/trainingLoadCalc";
+import { getRiskZone, getRiskZoneColor, getRiskZoneLabel } from "@/utils/trainingLoadCalc";
 import { Activity, TrendingUp, BarChart3, AlertTriangle } from "lucide-react";
 
 interface LoadMetricCardsProps {
@@ -9,14 +9,15 @@ interface LoadMetricCardsProps {
 }
 
 export const LoadMetricCards = ({ metrics }: LoadMetricCardsProps) => {
-  const riskZone = getRiskZone(metrics.acwr);
-  const riskColor = getRiskZoneColor(riskZone);
+  const acwrAvailable = metrics.acwrReliable && metrics.acwr !== null;
+  const riskZone = acwrAvailable ? getRiskZone(metrics.acwr!) : null;
+  const riskColor = acwrAvailable ? getRiskZoneColor(riskZone!) : "#6b7280";
 
   const cards = [
     {
       title: "ACWR",
-      value: metrics.acwr.toFixed(2),
-      subtitle: riskZone.charAt(0).toUpperCase() + riskZone.slice(1),
+      value: acwrAvailable ? metrics.acwr!.toFixed(2) : "—",
+      subtitle: acwrAvailable ? getRiskZoneLabel(riskZone!) : "Not enough data",
       icon: Activity,
       color: riskColor,
     },

@@ -1,6 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -115,7 +116,8 @@ function AppLayout({ session, loading }: AppLayoutProps) {
                 <Route path="/key-opponents" element={<ProtectedRoute session={session} isLoading={loading}><KeyOpponents /></ProtectedRoute>} />
                 <Route path="/opponent/:id" element={<ProtectedRoute session={session} isLoading={loading}><OpponentDetail /></ProtectedRoute>} />
                 <Route path="/improvement-notes" element={<ProtectedRoute session={session} isLoading={loading}><ImprovementNotes /></ProtectedRoute>} />
-                <Route path="/calendar" element={<ProtectedRoute session={session} isLoading={loading}><Calendar /></ProtectedRoute>} />
+                <Route path="/planner" element={<ProtectedRoute session={session} isLoading={loading}><Calendar /></ProtectedRoute>} />
+                <Route path="/calendar" element={<Navigate to="/planner" replace />} />
                 <Route path="/training-notes" element={<ProtectedRoute session={session} isLoading={loading}><TrainingNotes /></ProtectedRoute>} />
                 <Route path="/training-load" element={<ProtectedRoute session={session} isLoading={loading}><TrainingLoad /></ProtectedRoute>} />
                 <Route path="/wellness" element={<ProtectedRoute session={session} isLoading={loading}><Wellness /></ProtectedRoute>} />
@@ -144,7 +146,7 @@ function AppLayout({ session, loading }: AppLayoutProps) {
   if (marketing) {
     return (
       <div className="min-h-screen bg-background">
-        <ErrorBoundary>
+        <ErrorBoundary recoveryRoute="/">
           <React.Suspense fallback={<PageLoader />}>
             {marketingRoutes}
           </React.Suspense>
@@ -166,7 +168,7 @@ function AppLayout({ session, loading }: AppLayoutProps) {
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <ErrorBoundary>
+        <ErrorBoundary recoveryRoute="/dashboard">
           <React.Suspense fallback={<PageLoader />}>
             {appRoutes}
           </React.Suspense>
@@ -213,9 +215,11 @@ function App() {
 
   return (
     <SportProvider>
-      <Router>
-        <AppLayout session={session} loading={false} />
-      </Router>
+      <TooltipProvider delayDuration={200}>
+        <Router>
+          <AppLayout session={session} loading={false} />
+        </Router>
+      </TooltipProvider>
     </SportProvider>
   );
 }

@@ -15,7 +15,7 @@ const playerNavItems: NavItem[] = [
   { label: "Home", path: "/dashboard", icon: Home },
   { label: "Matches", path: "/matches", icon: Trophy },
   { label: "Notes", path: "/training-notes", icon: BookOpen },
-  { label: "Planner", path: "/calendar", icon: Calendar },
+  { label: "Planner", path: "/planner", icon: Calendar },
   {
     label: "More",
     path: "#more",
@@ -36,7 +36,7 @@ const coachNavItems: NavItem[] = [
   { label: "Home", path: "/dashboard", icon: Home },
   { label: "Matches", path: "/matches", icon: Trophy },
   { label: "Athlete Feed", path: "/coach-feed", icon: BookOpen },
-  { label: "Planner", path: "/calendar", icon: Calendar },
+  { label: "Planner", path: "/planner", icon: Calendar },
   {
     label: "More",
     path: "#more",

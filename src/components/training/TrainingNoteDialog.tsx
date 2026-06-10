@@ -17,6 +17,7 @@ import { Calendar as CalendarIcon, Clock, User2, Target, ThumbsUp, ThumbsDown, S
 import { format, parse } from "date-fns";
 import { useSport } from "@/context/SportContext";
 import { cn } from "@/lib/utils";
+import { normalizeCoachName } from "@/utils/coachName";
 
 interface TrainingNoteDialogProps {
   open: boolean;
@@ -44,7 +45,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
     if (editingNote) {
       const date = parse(editingNote.training_date, 'yyyy-MM-dd', new Date());
       setFormData({
-        coach_name: editingNote.coach_name || "",
+        coach_name: normalizeCoachName(editingNote.coach_name) || "",
         training_date: editingNote.training_date,
         training_time: editingNote.training_time || "",
         what_worked_on: editingNote.what_worked_on || "",
@@ -104,7 +105,7 @@ export const TrainingNoteDialog = ({ open, onOpenChange, editingNote, onSuccess 
         user_id: session.user.id,
         sport_id: sport.id,
         training_time: formData.training_time || null,
-        coach_name: formData.coach_name?.trim() || null,
+        coach_name: normalizeCoachName(formData.coach_name),
         what_worked_on: formData.what_worked_on || null,
         what_felt_good: formData.what_felt_good || null,
         what_didnt_feel_good: formData.what_didnt_feel_good || null,

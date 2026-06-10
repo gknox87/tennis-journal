@@ -17,7 +17,6 @@ import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -104,34 +103,32 @@ export function JournalingCalendar({ className }: JournalingCalendarProps) {
           const isTodayDate = isToday(day);
 
           return (
-            <TooltipProvider key={dateStr} delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className={cn(
-                      'aspect-square rounded-lg flex items-center justify-center text-xs font-semibold transition-all duration-150 relative cursor-pointer',
-                      isJournaled
-                        ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-sm'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200/50',
-                      isTodayDate && !isJournaled && 'ring-2 ring-blue-400 ring-offset-1 bg-blue-50',
-                      isTodayDate && isJournaled && 'ring-2 ring-blue-400 ring-offset-1'
-                    )}
-                  >
-                    {format(day, 'd')}
-                    {isJournaled && (
-                      <Check className="absolute top-1 right-1 h-3 w-3 text-white drop-shadow-sm" />
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    {isJournaled
-                      ? `Journaled on ${format(day, 'MMM d, yyyy')}`
-                      : `No journal entry on ${format(day, 'MMM d, yyyy')}`}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip key={dateStr}>
+              <TooltipTrigger asChild>
+                <div
+                  className={cn(
+                    'aspect-square rounded-lg flex items-center justify-center text-xs font-semibold transition-all duration-150 relative cursor-pointer',
+                    isJournaled
+                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-sm'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200/50',
+                    isTodayDate && !isJournaled && 'ring-2 ring-blue-400 ring-offset-1 bg-blue-50',
+                    isTodayDate && isJournaled && 'ring-2 ring-blue-400 ring-offset-1'
+                  )}
+                >
+                  {format(day, 'd')}
+                  {isJournaled && (
+                    <Check className="absolute top-1 right-1 h-3 w-3 text-white drop-shadow-sm" />
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isJournaled
+                    ? `Journaled on ${format(day, 'MMM d, yyyy')}`
+                    : `No journal entry on ${format(day, 'MMM d, yyyy')}`}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </div>
@@ -256,34 +253,32 @@ export function JournalingCalendar({ className }: JournalingCalendarProps) {
               const isTodayDate = isToday(day);
 
               return (
-                <TooltipProvider key={dateStr} delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          'aspect-square rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-150 relative cursor-pointer',
-                          isJournaled
-                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-sm'
-                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200/50',
-                          isTodayDate && !isJournaled && 'ring-2 ring-blue-400 ring-offset-1 bg-blue-50',
-                          isTodayDate && isJournaled && 'ring-2 ring-blue-400 ring-offset-1'
-                        )}
-                      >
-                        {format(day, 'd')}
-                        {isJournaled && (
-                          <Check className="absolute top-1.5 right-1.5 h-3.5 w-3.5 text-white drop-shadow-sm" />
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        {isJournaled
-                          ? `Journaled on ${format(day, 'MMM d, yyyy')}`
-                          : `No journal entry on ${format(day, 'MMM d, yyyy')}`}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip key={dateStr}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        'aspect-square rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-150 relative cursor-pointer',
+                        isJournaled
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-sm'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200/50',
+                        isTodayDate && !isJournaled && 'ring-2 ring-blue-400 ring-offset-1 bg-blue-50',
+                        isTodayDate && isJournaled && 'ring-2 ring-blue-400 ring-offset-1'
+                      )}
+                    >
+                      {format(day, 'd')}
+                      {isJournaled && (
+                        <Check className="absolute top-1.5 right-1.5 h-3.5 w-3.5 text-white drop-shadow-sm" />
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {isJournaled
+                        ? `Journaled on ${format(day, 'MMM d, yyyy')}`
+                        : `No journal entry on ${format(day, 'MMM d, yyyy')}`}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               );
             })}
           </div>

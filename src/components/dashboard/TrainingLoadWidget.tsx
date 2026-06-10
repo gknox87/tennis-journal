@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
-import { getRiskZone, getRiskZoneColor } from "@/utils/trainingLoadCalc";
+import { getRiskZone, getRiskZoneColor, getRiskZoneLabel, getTrainingHistoryDays } from "@/utils/trainingLoadCalc";
 import { Activity, TrendingUp, ArrowRight, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,22 +10,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useMemo } from "react";
-import { differenceInDays, parseISO } from "date-fns";
 
 export const TrainingLoadWidget = () => {
   const { metrics, isLoading, sessions } = useTrainingLoad();
   const navigate = useNavigate();
 
-  // Check if we have at least 7 days of data for reliable ACWR — must be before any early return
-  const daysOfData = useMemo(() => {
-    if (sessions.length === 0) return 0;
-    const dates = sessions.map((s) => parseISO(s.session_date));
-    const earliest = new Date(Math.min(...dates.map((d) => d.getTime())));
-    return differenceInDays(new Date(), earliest) + 1;
-  }, [sessions]);
-
-  const isACWRReliable = daysOfData >= 7;
+  const daysOfData = getTrainingHistoryDays(sessions);
+  const acwrAvailable = metrics.acwrReliable && metrics.acwr !== null;
 
   const hasSessions = sessions.length > 0;
 
@@ -41,15 +32,9 @@ export const TrainingLoadWidget = () => {
     return null;
   }
 
-  const riskZone = isACWRReliable ? getRiskZone(metrics.acwr) : "optimal";
-  const riskColor = isACWRReliable ? getRiskZoneColor(riskZone) : "#6b7280";
-  const riskLabel = isACWRReliable
-    ? riskZone.charAt(0).toUpperCase() + riskZone.slice(1)
-    : "Not enough data";
-
-  if (!hasSessions) {
-    return null;
-  }
+  const riskZone = acwrAvailable ? getRiskZone(metrics.acwr!) : null;
+  const riskColor = acwrAvailable ? getRiskZoneColor(riskZone!) : "#6b7280";
+  const riskLabel = acwrAvailable ? getRiskZoneLabel(riskZone!) : "Not enough data";
 
   return (
     <Card className="p-4 sm:p-5 bg-white/60 backdrop-blur-sm border-border/50 shadow-sm">
@@ -72,20 +57,20 @@ export const TrainingLoadWidget = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <p className="text-xs text-muted-foreground">ACWR</p>
-            {!isACWRReliable && (
+            {!acwrAvailable && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3 w-3 text-gray-400 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[220px] text-xs">
-                  ACWR accuracy improves after 2–4 weeks of data.
-                  You currently have {daysOfData} day{daysOfData > 1 ? "s" : ""}.
+                  ACWR needs at least 4 weeks of logged sessions.
+                  You currently have {daysOfData} day{daysOfData !== 1 ? "s" : ""} of history.
                 </TooltipContent>
               </Tooltip>
             )}
           </div>
           <p className="text-2xl font-bold" style={{ color: riskColor }}>
-            {metrics.acwr.toFixed(2)}
+            {acwrAvailable ? metrics.acwr!.toFixed(2) : "—"}
           </p>
           <p className="text-xs" style={{ color: riskColor }}>{riskLabel}</p>
         </div>

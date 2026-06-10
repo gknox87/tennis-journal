@@ -19,6 +19,7 @@ const PROTECTED_ROUTES = [
   "/dashboard",
   "/matches",
   "/training-notes",
+  "/planner",
   "/calendar",
   "/key-opponents",
   "/add-match",

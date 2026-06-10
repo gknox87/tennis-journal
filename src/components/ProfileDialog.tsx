@@ -9,6 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { Camera } from "lucide-react";
+import {
+  getClubLabel,
+  getClubPlaceholder,
+  getVenueLabel,
+  getRankingLabel,
+  getRankingPlaceholder,
+} from "@/utils/sportLabels";
 
 interface ProfileData {
   full_name: string | null;
@@ -199,24 +206,26 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="club">Club</Label>
+              <Label htmlFor="club">{getClubLabel(sport)}</Label>
               <Input
                 id="club"
                 value={profileData.club || ""}
                 onChange={(e) => setProfileData({ ...profileData, club: e.target.value })}
+                placeholder={getClubPlaceholder(sport)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="ranking">Current Ranking</Label>
+              <Label htmlFor="ranking">{getRankingLabel(sport)}</Label>
               <Input
                 id="ranking"
                 value={profileData.ranking || ""}
                 onChange={(e) => setProfileData({ ...profileData, ranking: e.target.value })}
+                placeholder={getRankingPlaceholder(sport)}
               />
             </div>
             {sport.venueOptions && sport.venueOptions.length > 0 && (
               <div className="grid gap-2">
-                <Label htmlFor="surface">Preferred Venue</Label>
+                <Label htmlFor="surface">{getVenueLabel(sport)}</Label>
                 <Select
                   value={profileData.preferred_surface || ""}
                   onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}

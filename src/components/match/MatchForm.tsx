@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,6 +18,12 @@ import { SetScore } from "@/types/match";
 import { useSport } from "@/context/SportContext";
 import type { ScoreFormat } from "@/types/sport";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  validateMatchForm,
+  hasMatchFormErrors,
+  type MatchFormErrors,
+} from "@/utils/matchFormValidation";
+import { getVenueLabel } from "@/utils/sportLabels";
 
 export interface MatchFormData {
   date: Date;
@@ -148,6 +154,8 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   };
 
   const [sets, setSets] = useState<SetScore[]>(getInitialSets());
+  const [formErrors, setFormErrors] = useState<MatchFormErrors>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (sport.defaultScoreFormat.type !== "sets" && isBestOfFive) {
@@ -168,23 +176,34 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
     }
   }, [isBestOfFive, initialData?.sets?.length, sport]);
 
+  const scrollToFirstError = () => {
+    requestAnimationFrame(() => {
+      const firstError = formRef.current?.querySelector("[data-field-error]");
+      firstError?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate that at least one score is entered
-    let validSets: SetScore[];
-    if (isSetBasedSport) {
-      validSets = sets.filter(set =>
-        set.playerScore !== "" && set.opponentScore !== ""
-      );
-    } else {
-      // For time/distance/numeric/rounds, player score alone is enough
-      validSets = sets.filter(set => set.playerScore !== "");
+    const errors = validateMatchForm({
+      opponent,
+      partner,
+      matchType,
+      sets,
+      scoreFormat,
+      sportId: sport.id,
+      universalPlayerScore: universalPlayerScore,
+      supportsDoubles,
+    });
+
+    if (hasMatchFormErrors(errors)) {
+      setFormErrors(errors);
+      scrollToFirstError();
+      return;
     }
 
-    if (validSets.length === 0) {
-      return; // Let the backend handle the error message
-    }
+    setFormErrors({});
 
     await onSubmit({
       date,
@@ -206,11 +225,7 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   const opponentLabel = `${sport.terminology.opponentLabel}`;
   const opponentPlaceholder = `${sport.icon} Enter ${sport.terminology.opponentLabel.toLowerCase()}`;
   const matchLabel = sport.terminology.matchLabel;
-  const locationLabel = hasVenueOptions
-    ? sport.category === "racket"
-      ? "Court Surface"
-      : "Venue"
-    : "Venue Detail";
+  const locationLabel = getVenueLabel(sport);
 
   useEffect(() => {
     if (hasVenueOptions) {
@@ -226,8 +241,37 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
     }
   }, [hasVenueOptions, sport]);
 
+  const handleOpponentChange = (value: string) => {
+    setOpponent(value);
+    if (formErrors.opponent) {
+      setFormErrors((prev) => ({ ...prev, opponent: undefined }));
+    }
+  };
+
+  const handlePartnerChange = (value: string) => {
+    setPartner(value);
+    if (formErrors.partner) {
+      setFormErrors((prev) => ({ ...prev, partner: undefined }));
+    }
+  };
+
+  const handleSetsChange = (newSets: SetScore[]) => {
+    setSets(newSets);
+    if (formErrors.score || formErrors.sets) {
+      setFormErrors((prev) => ({ ...prev, score: undefined, sets: undefined }));
+    }
+  };
+
+  const handleUniversalPlayerScoreChange = (val: string) => {
+    setUniversalPlayerScore(val);
+    setSets([{ playerScore: val, opponentScore: universalOpponentScore, playerTiebreak: "", opponentTiebreak: "" }]);
+    if (formErrors.score) {
+      setFormErrors((prev) => ({ ...prev, score: undefined }));
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {/* Date & Opponent Section */}
       <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
         <div className="flex items-center gap-3 mb-6">
@@ -268,9 +312,10 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
           <div className="space-y-3">
             <OpponentInput
               value={opponent}
-              onChange={setOpponent}
+              onChange={handleOpponentChange}
               label={opponentLabel}
               placeholder={opponentPlaceholder}
+              validationError={formErrors.opponent}
             />
           </div>
         </div>
@@ -308,11 +353,21 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
             </Label>
             <Input
               value={partner}
-              onChange={(e) => setPartner(e.target.value)}
+              onChange={(e) => handlePartnerChange(e.target.value)}
               placeholder={`Enter ${sport.terminology.partnerLabel?.toLowerCase() || "partner"} name`}
               list="partner-suggestions"
-              className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-amber-200/50 hover:border-amber-400 transition-all duration-300"
+              aria-invalid={!!formErrors.partner}
+              className={`w-full rounded-2xl bg-white/80 backdrop-blur-sm border-2 transition-all duration-300 ${
+                formErrors.partner
+                  ? "border-red-400 bg-red-50/50"
+                  : "border-amber-200/50 hover:border-amber-400"
+              }`}
             />
+            {formErrors.partner && (
+              <p className="text-sm text-red-500" data-field-error="partner">
+                {formErrors.partner}
+              </p>
+            )}
             {partnerSuggestions.length > 0 && (
               <datalist id="partner-suggestions">
                 {partnerSuggestions.map((name) => (
@@ -367,23 +422,26 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
         {isSetBasedSport ? (
           <ScoreInput
             sets={sets}
-            onSetsChange={setSets}
+            onSetsChange={handleSetsChange}
             isBestOfFive={isBestOfFive}
             onBestOfFiveChange={setIsBestOfFive}
             onIsWinChange={setIsWin}
             onFinalSetTiebreakChange={setFinalSetTiebreak}
             sport={sport}
+            setErrors={formErrors.sets}
+            scoreError={formErrors.score}
           />
         ) : (
           <div className="space-y-6">
+            {formErrors.score && (
+              <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl border border-red-200" data-field-error="score">
+                {formErrors.score}
+              </p>
+            )}
             <UniversalScoreInput
               format={scoreFormat}
               value={universalPlayerScore}
-              onChange={(val) => {
-                setUniversalPlayerScore(val);
-                // Auto-update sets for backend compatibility
-                setSets([{ playerScore: val, opponentScore: universalOpponentScore, playerTiebreak: "", opponentTiebreak: "" }]);
-              }}
+              onChange={handleUniversalPlayerScoreChange}
               label={`Your ${scoreFormat.type === "time" ? "Time" : scoreFormat.type === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
             />
             {scoreFormat.type !== "time" && scoreFormat.type !== "distance" && scoreFormat.type !== "numeric" && (
@@ -392,7 +450,7 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
                 value={universalOpponentScore}
                 onChange={(val) => {
                   setUniversalOpponentScore(val);
-                  setSets([{ playerScore: universalPlayerScore, opponentScore: val, playerTiebreak: "", opponentTiebreak: "" }]);
+                  handleSetsChange([{ playerScore: universalPlayerScore, opponentScore: val, playerTiebreak: "", opponentTiebreak: "" }]);
                 }}
                 label={`Opponent ${(scoreFormat.type as string) === "time" ? "Time" : (scoreFormat.type as string) === "distance" ? "Distance" : scoreFormat.type === "rounds" ? "Result" : "Score"}`}
               />

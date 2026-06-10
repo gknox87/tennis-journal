@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { EventDialog } from "@/components/calendar/EventDialog";
 import { MobileCalendarView } from "@/components/calendar/MobileCalendarView";
 import { useDataFetching } from "@/hooks/useDataFetching";
@@ -14,10 +12,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { eachDayOfInterval, parseISO, format } from "date-fns";
 import type { ScheduledEvent } from "@/types/calendar";
-import { Header } from "@/components/Header";
 
 const Calendar = () => {
-  const navigate = useNavigate();
   const { fetchScheduledEvents } = useDataFetching();
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [showEventDialog, setShowEventDialog] = useState(false);
@@ -110,7 +106,11 @@ const Calendar = () => {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
-<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <CalendarIcon className="h-6 w-6 text-purple-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Training Planner</h1>
+        </div>
 
       <div className="bg-background rounded-lg shadow p-2 sm:p-4">
         {isMobile ? (

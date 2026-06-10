@@ -30,7 +30,7 @@ export const UpcomingEvents = ({ events }: UpcomingEventsProps) => {
           <h2 className="text-xl md:text-2xl font-bold gradient-text">What's Next?</h2>
         </div>
         <button
-          onClick={() => navigate('/calendar')}
+          onClick={() => navigate('/planner')}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
         >
           View Full Calendar →
@@ -44,7 +44,7 @@ export const UpcomingEvents = ({ events }: UpcomingEventsProps) => {
             <Card
               key={event.id}
               className={`p-4 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-r ${colors.bg} ${colors.border} border-2 group`}
-              onClick={() => navigate('/calendar')}
+              onClick={() => navigate('/planner')}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center justify-between">

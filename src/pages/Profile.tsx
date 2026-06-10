@@ -14,10 +14,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useSubscription } from "@/hooks/useSubscription";
-import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download } from "lucide-react";
+import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download, AlertCircle } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
+import { Progress } from "@/components/ui/progress";
+import {
+  getClubLabel,
+  getClubPlaceholder,
+  getVenueLabel,
+  getRankingLabel,
+  getRankingPlaceholder,
+} from "@/utils/sportLabels";
+import { getProfileCompletion } from "@/utils/profileCompletion";
 
 interface ProfileData {
   full_name: string | null;
@@ -187,12 +196,22 @@ const Profile = () => {
 
       toast({ title: "Success", description: "Profile updated successfully" });
       setIsEditing(false);
+      await fetchProfile();
     } catch (err) {
       console.error("Error in handleSave:", err);
       toast({ title: "Error", description: "An unexpected error occurred", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const profileCompletion = getProfileCompletion(profileData, sport);
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      fetchProfile();
+    }
+    setIsEditing(!isEditing);
   };
 
   return (
@@ -209,7 +228,7 @@ const Profile = () => {
             </p>
           </div>
           <Button
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={handleEditToggle}
             variant={isEditing ? "outline" : "default"}
             className="shadow-md hover:shadow-lg transition-all duration-200"
             size="default"
@@ -218,6 +237,39 @@ const Profile = () => {
             {isEditing ? "Cancel" : "Edit"}
           </Button>
         </div>
+
+        {!profileCompletion.isComplete && !isEditing && (
+          <Card className="p-4 mb-6 border-2 border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <h3 className="font-semibold text-gray-800">Complete your profile</h3>
+                  <span className="text-sm font-medium text-amber-700">
+                    {profileCompletion.percent}%
+                  </span>
+                </div>
+                <Progress value={profileCompletion.percent} className="h-2 mb-2" />
+                <p className="text-sm text-gray-600">
+                  Add {profileCompletion.missingFields.slice(0, 3).join(", ")}
+                  {profileCompletion.missingFields.length > 3
+                    ? ` and ${profileCompletion.missingFields.length - 3} more`
+                    : ""}{" "}
+                  to personalise your {sport.shortName} experience.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 border-amber-300 hover:bg-amber-100"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit3 className="mr-2 h-3 w-3" />
+                  Complete profile
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="space-y-6">
           {/* Profile Picture Section */}
@@ -413,32 +465,32 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="club" className="text-gray-700 font-medium">{sport.name} Club</Label>
+                  <Label htmlFor="club" className="text-gray-700 font-medium">{getClubLabel(sport)}</Label>
                   <Input
                     id="club"
                     value={profileData.club || ""}
                     onChange={(e) => setProfileData({ ...profileData, club: e.target.value })}
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                    placeholder={`Enter your ${sport.name.toLowerCase()} club`}
+                    placeholder={getClubPlaceholder(sport)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ranking" className="text-gray-700 font-medium">Current Ranking</Label>
+                  <Label htmlFor="ranking" className="text-gray-700 font-medium">{getRankingLabel(sport)}</Label>
                   <Input
                     id="ranking"
                     value={profileData.ranking || ""}
                     onChange={(e) => setProfileData({ ...profileData, ranking: e.target.value })}
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                    placeholder="e.g., 4.5, Advanced, etc."
+                    placeholder={getRankingPlaceholder(sport)}
                   />
                 </div>
 
                 {sport.venueOptions && sport.venueOptions.length > 0 && (
                   <div className="space-y-2">
-                    <Label htmlFor="surface" className="text-gray-700 font-medium">Preferred Venue</Label>
+                    <Label htmlFor="surface" className="text-gray-700 font-medium">{getVenueLabel(sport)}</Label>
                     <Select
                       value={profileData.preferred_surface || ""}
                       onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
@@ -543,12 +595,12 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
-              <p className="text-sm opacity-90">Matches Won</p>
+              <p className="text-sm opacity-90">{sport.terminology.matchLabel}s Won</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.trainingSessions}</p>
-              <p className="text-sm opacity-90">Training Sessions</p>
+              <p className="text-sm opacity-90">{sport.terminology.trainingLabel}s</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-purple-500 to-purple-600 text-white">
               <User className="h-8 w-8 mx-auto mb-2" />

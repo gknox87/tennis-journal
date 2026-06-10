@@ -49,7 +49,8 @@ export interface WeeklyLoadMetrics {
   trainingStrain: number;
   acuteLoad: number;
   chronicLoad: number;
-  acwr: number;
+  acwr: number | null;
+  acwrReliable: boolean;
 }
 
 export interface RPEDescriptor {
@@ -82,7 +83,7 @@ export interface DailyLoadData {
 
 export interface ACWRDataPoint {
   date: string;
-  acwr: number;
+  acwr: number | null;
   acuteLoad: number;
   chronicLoad: number;
 }

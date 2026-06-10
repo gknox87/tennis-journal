@@ -16,6 +16,7 @@ interface OpponentInputProps {
   onChange: (value: string) => void;
   label?: string;
   placeholder?: string;
+  validationError?: string;
 }
 
 export const OpponentInput = ({
@@ -23,6 +24,7 @@ export const OpponentInput = ({
   onChange,
   label = "Who did you play against?",
   placeholder = "Enter opponent name",
+  validationError,
 }: OpponentInputProps) => {
   const [suggestions, setSuggestions] = useState<Opponent[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +115,12 @@ export const OpponentInput = ({
           onFocus={() => setShowSuggestions(true)}
           onBlur={handleInputBlur}
           placeholder={cleanedPlaceholder}
-          className="w-full h-12 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-200/50 hover:border-purple-400 focus:border-purple-500 transition-all duration-300 text-base font-medium pl-4"
+          aria-invalid={!!validationError}
+          className={`w-full h-12 rounded-2xl bg-white/80 backdrop-blur-sm border-2 transition-all duration-300 text-base font-medium pl-4 ${
+            validationError
+              ? "border-red-400 bg-red-50/50 focus:border-red-500"
+              : "border-purple-200/50 hover:border-purple-400 focus:border-purple-500"
+          }`}
         />
         {showSuggestions && filteredSuggestions.length > 0 && (
           <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-sm border-2 border-purple-200/50 rounded-2xl shadow-2xl overflow-hidden">
@@ -141,6 +148,12 @@ export const OpponentInput = ({
         </div>
       )}
       
+      {validationError && (
+        <p className="text-sm text-red-500" data-field-error="opponent">
+          {validationError}
+        </p>
+      )}
+
       {error && (
         <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl border border-red-200">
           {error}

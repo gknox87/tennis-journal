@@ -25,6 +25,8 @@ interface ScoreInputProps {
   onFinalSetTiebreakChange?: (value: boolean) => void;
   sport: SportMetadata;
   activeFormat?: ScoreFormat;
+  setErrors?: Record<number, string>;
+  scoreError?: string;
 }
 
 export const ScoreInput = ({
@@ -36,6 +38,8 @@ export const ScoreInput = ({
   onFinalSetTiebreakChange,
   sport,
   activeFormat,
+  setErrors,
+  scoreError,
 }: ScoreInputProps) => {
   const format = activeFormat ?? sport.defaultScoreFormat;
   const isSetBased = format.type === "sets";
@@ -422,7 +426,15 @@ export const ScoreInput = ({
         </div>
       )}
 
-      <Card className="p-6 rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/30 backdrop-blur-sm border-2 border-orange-200/30">
+      {scoreError && (
+        <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl border border-red-200" data-field-error="score">
+          {scoreError}
+        </p>
+      )}
+
+      <Card className={`p-6 rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/30 backdrop-blur-sm border-2 ${
+        scoreError || setErrors ? "border-red-300/60" : "border-orange-200/30"
+      }`}>
         <div className="space-y-6">
           {visibleSets.map((set, index) => (
             <div key={index} className="space-y-4">
@@ -450,7 +462,12 @@ export const ScoreInput = ({
                       }
                     }}
                     onFocus={(e) => e.target.select()}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-blue-200/50 focus:border-blue-400 transition-all duration-300 hover:shadow-lg"
+                    aria-invalid={!!setErrors?.[index]}
+                    className={`h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 transition-all duration-300 hover:shadow-lg ${
+                      setErrors?.[index]
+                        ? "border-red-400 bg-red-50/50 focus:border-red-500"
+                        : "border-blue-200/50 focus:border-blue-400"
+                    }`}
                     placeholder="0"
                     aria-label={`Your score for ${unitLabel} ${index + 1}`}
                   />
@@ -472,12 +489,23 @@ export const ScoreInput = ({
                       }
                     }}
                     onFocus={(e) => e.target.select()}
-                    className="h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 border-red-200/50 focus:border-red-400 transition-all duration-300 hover:shadow-lg"
+                    aria-invalid={!!setErrors?.[index]}
+                    className={`h-12 text-xl font-bold text-center rounded-2xl bg-white/90 border-2 transition-all duration-300 hover:shadow-lg ${
+                      setErrors?.[index]
+                        ? "border-red-400 bg-red-50/50 focus:border-red-500"
+                        : "border-red-200/50 focus:border-red-400"
+                    }`}
                     placeholder="0"
                     aria-label={`Opponent score for ${unitLabel} ${index + 1}`}
                   />
                 </div>
               </div>
+
+              {setErrors?.[index] && (
+                <p className="text-sm text-red-500 text-center" data-field-error={`set-${index}`}>
+                  {setErrors[index]}
+                </p>
+              )}
 
               {/* Tiebreak inputs when scores are 6-6 */}
               {needsTiebreak(set) && (

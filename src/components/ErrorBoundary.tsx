@@ -1,28 +1,36 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
+  /** Route to navigate to when recovering from an error. */
+  recoveryRoute?: string;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  resetKey: number;
 }
 
+type ErrorBoundaryContentProps = ErrorBoundaryProps & {
+  navigate: ReturnType<typeof useNavigate>;
+  location: ReturnType<typeof useLocation>;
+};
+
 class ErrorBoundaryContent extends React.Component<
-  ErrorBoundaryProps & { navigate: ReturnType<typeof useNavigate> },
+  ErrorBoundaryContentProps,
   ErrorBoundaryState
 > {
-  constructor(props: ErrorBoundaryProps & { navigate: ReturnType<typeof useNavigate> }) {
+  constructor(props: ErrorBoundaryContentProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, resetKey: 0 };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true, error };
   }
 
@@ -30,12 +38,27 @@ class ErrorBoundaryContent extends React.Component<
     console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
+  recover = (targetPath: string) => {
+    this.setState(
+      (prev) => ({
+        hasError: false,
+        error: null,
+        resetKey: prev.resetKey + 1,
+      }),
+      () => {
+        if (this.props.location.pathname !== targetPath) {
+          this.props.navigate(targetPath, { replace: true });
+        }
+      }
+    );
+  };
+
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    this.recover(this.props.recoveryRoute ?? "/dashboard");
   };
 
   handleGoToDashboard = () => {
-    this.props.navigate("/dashboard");
+    this.recover("/dashboard");
   };
 
   render() {
@@ -72,13 +95,18 @@ class ErrorBoundaryContent extends React.Component<
       );
     }
 
-    return this.props.children;
+    return (
+      <React.Fragment key={this.state.resetKey}>
+        {this.props.children}
+      </React.Fragment>
+    );
   }
 }
 
 function ErrorBoundaryWithNavigate(props: ErrorBoundaryProps) {
   const navigate = useNavigate();
-  return <ErrorBoundaryContent {...props} navigate={navigate} />;
+  const location = useLocation();
+  return <ErrorBoundaryContent {...props} navigate={navigate} location={location} />;
 }
 
 export function ErrorBoundary(props: ErrorBoundaryProps) {

@@ -140,7 +140,7 @@ const PerformanceDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Performance Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Visual intelligence for your tennis journey</p>
+              <p className="text-sm text-muted-foreground">Visual intelligence for your {sport.name.toLowerCase()} journey</p>
             </div>
             <button
               onClick={fetchWeeklyDigest}

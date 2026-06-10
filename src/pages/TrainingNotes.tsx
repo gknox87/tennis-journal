@@ -8,10 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { TrainingNote } from "@/types/training";
 import { Plus, ArrowLeft, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown, Zap, Activity, ArrowRight } from "lucide-react";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
+import { getRiskZone, getRiskZoneLabel } from "@/utils/trainingLoadCalc";
 import { TrainingNoteCard } from "@/components/training/TrainingNoteCard";
 import { TrainingNoteDialog } from "@/components/training/TrainingNoteDialog";
 import { format } from "date-fns";
 import { useSport } from "@/context/SportContext";
+import { getTrainingNotesSubtitle } from "@/utils/sportLabels";
 import { Header } from "@/components/Header";
 
 const TrainingNotes = () => {
@@ -111,7 +113,7 @@ const TrainingNotes = () => {
                 {sport.icon} {sport.terminology.trainingLabel}
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                Track your progress and reflect on sport-specific sessions for {sport.shortName}.
+                {getTrainingNotesSubtitle(sport)}
               </p>
             </div>
           </div>
@@ -141,7 +143,12 @@ const TrainingNotes = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Training Load Journals</p>
-                  <p className="text-xs text-white/70">{sessions.length} sessions logged · ACWR: {metrics.acwr.toFixed(2)}</p>
+                  <p className="text-xs text-white/70">
+                    {sessions.length} sessions logged · ACWR:{" "}
+                    {metrics.acwrReliable && metrics.acwr !== null
+                      ? `${metrics.acwr.toFixed(2)} (${getRiskZoneLabel(getRiskZone(metrics.acwr))})`
+                      : "Not enough data"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

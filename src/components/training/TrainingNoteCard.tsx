@@ -5,6 +5,7 @@ import { TrainingNote } from "@/types/training";
 import { format } from "date-fns";
 import { Edit2, Trash2, Calendar, Clock, User2, Target, ThumbsUp, ThumbsDown } from "lucide-react";
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
+import { formatCoachDisplay } from "@/utils/coachName";
 
 interface TrainingNoteCardProps {
   note: TrainingNote;
@@ -71,7 +72,7 @@ export const TrainingNoteCard = ({ note, onEdit, onDelete }: TrainingNoteCardPro
           {note.coach_name && (
             <div className="flex items-center gap-1">
               <User2 className="h-4 w-4" />
-              <span>Coach {note.coach_name}</span>
+              <span>{formatCoachDisplay(note.coach_name)}</span>
             </div>
           )}
         </div>
