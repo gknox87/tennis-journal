@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, Plus, ArrowLeft } from "lucide-react";
@@ -39,8 +38,8 @@ const Goals = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 overflow-y-auto pb-24 pt-16">
-<div className="container mx-auto px-4 py-8 pb-24 max-w-4xl pt-16">
+      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
+        <div className="container mx-auto px-4 py-6 max-w-4xl">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
@@ -53,8 +52,8 @@ const Goals = () => {
 
   if (error) {
     return (
-      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-16">
-<div className="container mx-auto px-4 py-8 pb-24 max-w-4xl text-center">
+      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
+        <div className="container mx-auto px-4 py-6 max-w-4xl text-center">
           <Target className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-red-500">{error}</p>
         </div>
@@ -69,8 +68,8 @@ const Goals = () => {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-16">
-<div className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
         <Button variant="ghost" className="mb-4" onClick={() => navigate("/dashboard")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>

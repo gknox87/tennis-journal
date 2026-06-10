@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSmartNotifications, ReminderPreferences } from "@/hooks/useSmartNotifications";
-import { Bell, Clock, BellRing, MapPin, Brain, ChevronRight, Save } from "lucide-react";
-import { Header } from "@/components/Header";
+import { Bell, Clock, BellRing, MapPin, Brain, Save, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface DayOption {
   value: string;
@@ -73,8 +73,9 @@ function TimeInput({ value, onChange }: TimeInputProps) {
 }
 
 export default function NotificationSettings() {
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const { preferences, isLoading, updatePreferences, refreshPreferences } = useSmartNotifications();
+  const { preferences, isLoading, updatePreferences } = useSmartNotifications();
 
   const [localPrefs, setLocalPrefs] = useState<Partial<ReminderPreferences>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -145,23 +146,33 @@ export default function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-y-auto pb-24 pt-16">
-        <Header title="Notification Settings" showBack backTo="/profile" />
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="container mx-auto px-4 py-6 max-w-2xl">
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 pb-24 pt-16">
-      <Header title="Notification Settings" showBack backTo="/profile" />
-
+    <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div
         className="container mx-auto px-4 py-6 max-w-2xl space-y-6"
         onChange={() => setHasChanges(true)}
       >
+        <Button variant="ghost" className="mb-2 -ml-2" onClick={() => navigate("/dashboard")}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+
+        <div>
+          <h1 className="text-2xl font-bold">Reminders</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Journaling, wellness check-ins, and activity nudges
+          </p>
+        </div>
         {/* Time-Based Reminders */}
         <Card className="p-5">
           <div className="flex items-center gap-3 mb-4">

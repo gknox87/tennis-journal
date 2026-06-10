@@ -33,6 +33,9 @@ const PROTECTED_ROUTES = [
   "/injury-tracker",
   "/training-load",
   "/notifications",
+  "/challenges",
+  "/goals",
+  "/notification-settings",
 ];
 
 export function shouldShowBottomNav(pathname: string): boolean {

@@ -20,8 +20,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download, AlertCircle } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Header } from "@/components/Header";
 import { Progress } from "@/components/ui/progress";
+import { DeleteAccountSection } from "@/components/profile/DeleteAccountSection";
 import {
   getClubLabel,
   getClubPlaceholder,
@@ -682,6 +682,8 @@ const Profile = () => {
               </div>
             </Card>
           )}
+
+          <DeleteAccountSection />
 
           {/* Live Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
