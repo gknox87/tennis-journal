@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingSession, WeeklyLoadMetrics } from "@/types/trainingLoad";
 import { WellnessEntry } from "@/types/wellness";
+import { Match } from "@/types/match";
 import { getDailyLoadChartData, getACWRChartData, getWeeklyTotals, getActivityDistribution } from "@/utils/trainingLoadCalc";
 import { getLoadWellnessTimeline, generateLoadInterpretations } from "@/utils/loadWellnessCalc";
 import { LoadMetricCards } from "./LoadMetricCards";
@@ -17,6 +18,7 @@ interface LoadDashboardProps {
   sessions: TrainingSession[];
   metrics: WeeklyLoadMetrics;
   wellnessEntries?: WellnessEntry[];
+  matches?: Pick<Match, 'date' | 'pre_arousal' | 'pre_confidence'>[];
   canAccessInsights?: boolean;
 }
 
@@ -24,6 +26,7 @@ export const LoadDashboard = ({
   sessions,
   metrics,
   wellnessEntries = [],
+  matches = [],
   canAccessInsights = false,
 }: LoadDashboardProps) => {
   const dailyData = useMemo(() => getDailyLoadChartData(sessions), [sessions]);
@@ -31,8 +34,8 @@ export const LoadDashboard = ({
   const weeklyTotals = useMemo(() => getWeeklyTotals(sessions), [sessions]);
   const activityDist = useMemo(() => getActivityDistribution(sessions), [sessions]);
   const loadWellnessTimeline = useMemo(
-    () => getLoadWellnessTimeline(sessions, wellnessEntries),
-    [sessions, wellnessEntries]
+    () => getLoadWellnessTimeline(sessions, wellnessEntries, 14, matches),
+    [sessions, wellnessEntries, matches]
   );
   const interpretations = useMemo(
     () => generateLoadInterpretations(sessions, metrics, wellnessEntries),

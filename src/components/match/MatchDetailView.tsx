@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin, Trophy, Target, FileText, Clock } from "lucide-react";
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
 import { formatScore } from "@/utils/scoreDisplay";
-import { MatchReflectionSection } from "@/components/match/MatchReflectionSection";
+import { MatchReflectionSection, hasReflectionData } from "@/components/match/MatchReflectionSection";
 import { PreMatchStateCard, hasMatchPreMatchData } from "@/components/match/PreMatchStateCard";
-import { isGuidedReflection } from "@/utils/reflectionNotes";
+import { isGuidedReflection, parseReflectionNotes } from "@/utils/reflectionNotes";
+import { EmotionTagChips } from "@/components/mental/EmotionTagPicker";
 
 interface MatchDetailViewProps {
   match: Match;
@@ -45,7 +46,12 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
   };
 
   const showPreMatch = hasMatchPreMatchData(match);
-  const showReflection = Boolean(match.notes?.trim());
+  const showReflection = hasReflectionData(match);
+  const guidedEntries = match.notes?.trim() ? parseReflectionNotes(match.notes) : [];
+  const useGuidedSection =
+    showReflection &&
+    isGuidedReflection(match) &&
+    (guidedEntries.length > 0 || Boolean(match.post_emotion_tags?.length));
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -75,7 +81,7 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
       {/* Mental game data — above score/details */}
       {showPreMatch && <PreMatchStateCard match={match} />}
 
-      {showReflection && isGuidedReflection(match) ? (
+      {showReflection && useGuidedSection ? (
         <MatchReflectionSection match={match} />
       ) : showReflection ? (
         <Card className="bg-white/90 backdrop-blur-sm shadow-xl border border-white/50">
@@ -87,12 +93,22 @@ export const MatchDetailView = ({ match }: MatchDetailViewProps) => {
               <span className="text-base sm:text-xl">Match Notes</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base text-left max-w-prose">
-                {match.notes}
-              </p>
-            </div>
+          <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
+            {match.post_emotion_tags && match.post_emotion_tags.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  Post-match emotions
+                </p>
+                <EmotionTagChips tags={match.post_emotion_tags} />
+              </div>
+            )}
+            {match.notes?.trim() && (
+              <div className="p-4 sm:p-6 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
+                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium text-sm sm:text-base text-left max-w-prose">
+                  {match.notes}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : null}

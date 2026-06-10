@@ -42,12 +42,16 @@ function NervesBadge({ rating }: { rating: number }) {
   );
 }
 
+export function hasReflectionData(match: Match): boolean {
+  const hasNotes = Boolean(match.notes?.trim());
+  const hasEmotions = Boolean(match.post_emotion_tags?.length);
+  return hasNotes || hasEmotions;
+}
+
 export const MatchReflectionSection = ({ match }: MatchReflectionSectionProps) => {
-  if (!match.notes?.trim()) return null;
+  if (!hasReflectionData(match)) return null;
 
-  const entries = parseReflectionNotes(match.notes);
-  if (entries.length === 0) return null;
-
+  const entries = match.notes?.trim() ? parseReflectionNotes(match.notes) : [];
   const isGuided = isGuidedReflection(match);
   const levelLabel = getReflectionLevelLabel(match.reflection_prompt_level);
 
@@ -80,6 +84,13 @@ export const MatchReflectionSection = ({ match }: MatchReflectionSectionProps) =
               Post-match emotions
             </p>
             <EmotionTagChips tags={match.post_emotion_tags} />
+          </div>
+        )}
+        {entries.length === 0 && match.notes?.trim() && (
+          <div className="p-4 sm:p-5 rounded-lg sm:rounded-xl bg-gradient-to-r from-teal-50/80 to-emerald-50/80 border border-teal-100">
+            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+              {match.notes}
+            </p>
           </div>
         )}
         {entries.map((entry, index) => {

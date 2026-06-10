@@ -12,6 +12,8 @@ import { JournalingStreak } from "@/components/dashboard/JournalingStreak";
 import { MilestoneCelebration } from "@/components/dashboard/MilestoneCelebration";
 import { TrainingLoadWidget } from "@/components/dashboard/TrainingLoadWidget";
 import { WellnessWidget } from "@/components/dashboard/WellnessWidget";
+import { MindsetWidget } from "@/components/dashboard/MindsetWidget";
+import { hasMatchPreMatchData } from "@/components/match/PreMatchStateCard";
 import { InjuryWidget } from "@/components/dashboard/InjuryWidget";
 import { PeriodGoalsSection } from "@/components/goals/PeriodGoalsSection";
 import { BadgeWidget } from "@/components/badges/BadgeWidget";
@@ -57,10 +59,12 @@ export const DashboardContent = ({
   const { metrics: wellnessMetrics } = useWellness();
   const { activeInjuries } = useInjuryReports();
   
-  const hasWellnessData = 
-    sessions.length > 0 || 
-    wellnessMetrics.todayScore !== null || 
-    activeInjuries.length > 0;
+  const hasMindsetData = matches.some(hasMatchPreMatchData);
+  const hasWellnessData =
+    sessions.length > 0 ||
+    wellnessMetrics.todayScore !== null ||
+    activeInjuries.length > 0 ||
+    hasMindsetData;
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -264,7 +268,7 @@ export const DashboardContent = ({
             <Heart className="h-5 w-5 text-rose-500" />
             Body & Wellness
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Suspense fallback={
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -278,6 +282,13 @@ export const DashboardContent = ({
               </div>
             }>
               <WellnessWidget />
+            </Suspense>
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              </div>
+            }>
+              <MindsetWidget matches={matches} />
             </Suspense>
           </div>
           <div className="mt-4">

@@ -1,6 +1,7 @@
 import { MatchCard } from "@/components/MatchCard";
 import { useNavigate } from "react-router-dom";
 import { Match } from "@/types/match";
+import { hasReflectionData } from "@/components/match/MatchReflectionSection";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 interface MatchListProps {
@@ -51,6 +52,9 @@ export const MatchList = ({
             sportId={match.sport_id}
             sportName={match.sport_name}
             processGoal={match.process_goal}
+            preConfidence={match.pre_confidence}
+            preArousal={match.pre_arousal}
+            hasReflection={hasReflectionData(match)}
             onDelete={onMatchDelete}
             onEdit={() => handleEditMatch(match.id)}
           />

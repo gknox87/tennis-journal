@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MatchForm } from "@/components/match/MatchForm";
@@ -12,6 +12,8 @@ import { Header } from "@/components/Header";
 const EditMatch = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const focusReflection = searchParams.get("reflect") === "1";
   const { match, isLoading, fetchMatch, handleSubmit } = useMatchEdit(id!);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const EditMatch = () => {
         <h1 className="text-2xl font-bold mb-6">Edit Match</h1>
 
       <MatchForm
+        focusReflection={focusReflection}
         onSubmit={handleSubmit}
         initialData={{
           date: new Date(match.date),

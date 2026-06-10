@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScheduledEvent, getSessionTypeDashboardColors, getSessionTypeLabel } from "@/types/calendar";
-import { format, differenceInHours, isFuture } from "date-fns";
-import { Calendar, Clock, Sparkles, Brain } from "lucide-react";
+import { format, differenceInHours, isFuture, isToday } from "date-fns";
+import { Calendar, Clock, Sparkles, Brain, Wind } from "lucide-react";
+import { MentalSkillsSessionDialog } from "@/components/mental/MentalSkillsSessionDialog";
+import { parseMentalSessionLog } from "@/utils/mentalSessionLog";
 import { useNavigate } from "react-router-dom";
 import { PreMatchStateDialog } from "@/components/mental/PreMatchStateDialog";
 import { saveScheduledPreMatchState } from "@/utils/preMatchState";
@@ -19,6 +21,7 @@ interface UpcomingEventsProps {
 export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps) => {
   const navigate = useNavigate();
   const [dialogEvent, setDialogEvent] = useState<ScheduledEvent | null>(null);
+  const [mentalSkillsEvent, setMentalSkillsEvent] = useState<ScheduledEvent | null>(null);
 
   if (!events.length) {
     return null;
@@ -29,6 +32,11 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
     const start = new Date(event.start_time);
     if (!isFuture(start)) return false;
     return differenceInHours(start, new Date()) <= 24;
+  };
+
+  const isMentalSkillsToday = (event: ScheduledEvent) => {
+    if (event.session_type !== 'mental_skills') return false;
+    return isToday(new Date(event.start_time));
   };
 
   const handleSavePreMatch = async (state: PreMatchState) => {
@@ -56,8 +64,10 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
         {events.map((event, index) => {
           const colors = getSessionTypeDashboardColors(event.session_type);
           const showPreMatchCta = isMatchWithin24h(event);
+          const showMentalSkillsCta = isMentalSkillsToday(event);
           const preState = scheduledStateToPreMatchState(event.pre_match_state);
           const hasLogged = hasPreMatchData(preState);
+          const hasMentalLog = Boolean(parseMentalSessionLog(event.notes));
 
           return (
             <Card
@@ -103,6 +113,20 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
                       {hasLogged ? 'Update pre-match' : 'Log pre-match state'}
                     </Button>
                   )}
+                  {showMentalSkillsCta && (
+                    <Button
+                      size="sm"
+                      variant={hasMentalLog ? "outline" : "default"}
+                      className="text-xs h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMentalSkillsEvent(event);
+                      }}
+                    >
+                      <Wind className="w-3 h-3 mr-1" />
+                      {hasMentalLog ? 'Continue session' : 'Start session'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
@@ -117,6 +141,17 @@ export const UpcomingEvents = ({ events, onPreMatchSaved }: UpcomingEventsProps)
           eventTitle={dialogEvent.title}
           initialState={scheduledStateToPreMatchState(dialogEvent.pre_match_state)}
           onSave={handleSavePreMatch}
+        />
+      )}
+
+      {mentalSkillsEvent && (
+        <MentalSkillsSessionDialog
+          open={Boolean(mentalSkillsEvent)}
+          onOpenChange={(open) => !open && setMentalSkillsEvent(null)}
+          eventId={mentalSkillsEvent.id}
+          eventTitle={mentalSkillsEvent.title}
+          existingNotes={mentalSkillsEvent.notes}
+          onSaved={onPreMatchSaved}
         />
       )}
     </div>

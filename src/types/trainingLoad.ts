@@ -95,11 +95,18 @@ export interface ActivityDistributionData {
   totalLoad: number;
 }
 
+export type WellnessOverlayMetric = 'mood' | 'confidence' | 'stress' | 'totalWellness';
+
 export interface LoadWellnessTimelinePoint {
   date: string;
   dateLabel: string;
   load: number;
   mood: number | null;
+  confidence: number | null;
+  stress: number | null;
+  totalWellness: number | null;
+  matchArousal: number | null;
+  matchConfidence: number | null;
 }
 
 export interface LoadInterpretation {

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Match } from "@/types/match";
 import { MatchDetailView } from "@/components/match/MatchDetailView";
@@ -12,8 +12,15 @@ import { Header } from "@/components/Header";
 const MatchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [match, setMatch] = useState<Match | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (searchParams.get("reflect") === "1" && id) {
+      navigate(`/edit-match/${id}?reflect=1`, { replace: true });
+    }
+  }, [searchParams, id, navigate]);
 
   useEffect(() => {
     const fetchMatch = async () => {

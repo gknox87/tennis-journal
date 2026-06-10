@@ -9,6 +9,7 @@ import { WellnessQuestionnaire } from "@/components/wellness/WellnessQuestionnai
 import { WellnessTrendChart, WellnessBreakdownChart } from "@/components/wellness/WellnessTrendChart";
 import { PerformanceMindsetSection } from "@/components/mental/ArousalTrendChart";
 import { useArousalTrend } from "@/hooks/useArousalTrend";
+import { useConfidenceTrend } from "@/hooks/useConfidenceTrend";
 import { getWellnessZone, getWellnessZoneColor, getWellnessZoneLabel } from "@/utils/wellnessCalc";
 import { WELLNESS_MAX_SCORE } from "@/types/wellness";
 import { Plus, Heart, Trash2, AlertTriangle, AlertCircle, Info, Flame } from "lucide-react";
@@ -32,6 +33,7 @@ const Wellness = () => {
   const { sport } = useSport();
   const { entries, isLoading, submitEntry, deleteEntry, todayEntry, metrics } = useWellness();
   const { data: arousalData, isLoading: arousalLoading } = useArousalTrend();
+  const { data: confidenceData, isLoading: confidenceLoading } = useConfidenceTrend();
   const [showDialog, setShowDialog] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -222,7 +224,12 @@ const Wellness = () => {
               <WellnessTrendChart data={metrics.trend} />
             </Card>
 
-            <PerformanceMindsetSection data={arousalData} isLoading={arousalLoading} />
+            <PerformanceMindsetSection
+              data={arousalData}
+              confidenceData={confidenceData}
+              isLoading={arousalLoading}
+              confidenceLoading={confidenceLoading}
+            />
 
             <Card className="p-5 mb-8 bg-gradient-to-br from-slate-50/50 to-white border-slate-200">
               <div className="flex items-center gap-2 mb-4">

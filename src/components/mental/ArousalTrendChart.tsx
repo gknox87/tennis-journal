@@ -17,6 +17,9 @@ import {
   formatArousalTrendChartData,
 } from '@/utils/arousalTrendCalc';
 import { Card } from '@/components/ui/card';
+import { ConfidenceTrendChart } from '@/components/mental/ConfidenceTrendChart';
+import { ArousalPerformanceScatter } from '@/components/mental/ArousalPerformanceScatter';
+import { ConfidenceDataPoint } from '@/utils/confidenceTrendCalc';
 
 interface ArousalTrendChartProps {
   data: ArousalDataPoint[];
@@ -116,26 +119,55 @@ export function ArousalTrendChart({ data }: ArousalTrendChartProps) {
 
 interface PerformanceMindsetSectionProps {
   data: ArousalDataPoint[];
+  confidenceData?: ConfidenceDataPoint[];
   isLoading?: boolean;
+  confidenceLoading?: boolean;
 }
 
-export function PerformanceMindsetSection({ data, isLoading }: PerformanceMindsetSectionProps) {
-  if (isLoading) {
+export function PerformanceMindsetSection({
+  data,
+  confidenceData = [],
+  isLoading,
+  confidenceLoading,
+}: PerformanceMindsetSectionProps) {
+  if (isLoading || confidenceLoading) {
     return (
       <Card className="p-4 mb-6 animate-pulse h-64" />
     );
   }
 
   return (
-    <Card className="p-4 mb-6">
-      <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
-        <Brain className="h-4 w-4 text-purple-600" />
-        Performance mindset
-      </h2>
-      <p className="text-xs text-muted-foreground mb-3">
-        Arousal trends from pre-match logs and training sessions — discover your individual zone of optimal functioning.
-      </p>
-      <ArousalTrendChart data={data} />
+    <Card className="p-4 mb-6 space-y-6">
+      <div>
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
+          <Brain className="h-4 w-4 text-purple-600" />
+          Performance mindset
+        </h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Confidence and arousal trends — discover your individual zone of optimal functioning.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+          Confidence over time
+        </h3>
+        <ConfidenceTrendChart data={confidenceData} />
+      </div>
+
+      <div>
+        <h3 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+          Arousal trend
+        </h3>
+        <ArousalTrendChart data={data} />
+      </div>
+
+      <div>
+        <h3 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+          Arousal vs performance
+        </h3>
+        <ArousalPerformanceScatter data={data} />
+      </div>
     </Card>
   );
 }

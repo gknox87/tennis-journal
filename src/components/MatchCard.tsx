@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Calendar, Target, TrendingUp, TrendingDown } from "lucide-react";
+import { Trophy, Calendar, TrendingUp, TrendingDown, Brain, Sparkles } from "lucide-react";
 import { DEFAULT_SPORT_ID, SPORTS, type SupportedSportId } from "@/constants/sports";
 import { formatScore } from "@/utils/scoreDisplay";
 
@@ -16,6 +16,9 @@ interface MatchCardProps {
   sportId?: string | null;
   sportName?: string | null;
   processGoal?: string | null;
+  preConfidence?: number | null;
+  preArousal?: number | null;
+  hasReflection?: boolean;
   onDelete: () => void;
   onEdit: () => void;
 }
@@ -29,6 +32,9 @@ export const MatchCard = ({
   sportId,
   sportName,
   processGoal,
+  preConfidence,
+  preArousal,
+  hasReflection,
   onDelete,
   onEdit 
 }: MatchCardProps) => {
@@ -106,7 +112,28 @@ export const MatchCard = ({
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0 pb-6">
+      <CardContent className="pt-0 pb-6 space-y-2">
+        {(preConfidence != null || preArousal != null || hasReflection) && (
+          <div className="flex flex-wrap gap-1.5">
+            {preConfidence != null && (
+              <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
+                <Brain className="h-2.5 w-2.5 mr-1" />
+                Conf {preConfidence}/10
+              </Badge>
+            )}
+            {preArousal != null && (
+              <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
+                Arousal {preArousal}/10
+              </Badge>
+            )}
+            {hasReflection && (
+              <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-700 border-teal-200">
+                <Sparkles className="h-2.5 w-2.5 mr-1" />
+                Reflection
+              </Badge>
+            )}
+          </div>
+        )}
         {processGoal?.trim() && (
           <p className="text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2 italic truncate">
             Goal: {processGoal}

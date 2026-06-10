@@ -1,5 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Match } from "@/types/match";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/Header";
@@ -20,7 +22,30 @@ const TrainingLoad = () => {
   const { entries: wellnessEntries } = useWellness({ fetchDays: 56 });
   const { canAccessWellnessLoadInsights } = useSubscription();
   const [showDialog, setShowDialog] = useState(false);
+  const [mentalMatches, setMentalMatches] = useState<
+    Pick<Match, 'date' | 'pre_arousal' | 'pre_confidence'>[]
+  >([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const since = fourteenDaysAgo.toISOString().split('T')[0];
+
+      const { data } = await supabase
+        .from('matches')
+        .select('date, pre_arousal, pre_confidence')
+        .eq('user_id', session.user.id)
+        .gte('date', since);
+
+      setMentalMatches(data ?? []);
+    };
+    void fetchMatches();
+  }, []);
 
   // Recent sessions (last 7 days)
   const recentSessions = sessions.slice(-20).reverse();
@@ -80,6 +105,7 @@ const TrainingLoad = () => {
               sessions={sessions}
               metrics={metrics}
               wellnessEntries={wellnessEntries}
+              matches={mentalMatches}
               canAccessInsights={canAccessWellnessLoadInsights()}
             />
 

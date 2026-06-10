@@ -55,6 +55,7 @@ interface MatchFormProps {
   onSubmit: (formData: MatchFormData) => Promise<void>;
   isSubmitting?: boolean;
   initialData?: MatchFormData;
+  focusReflection?: boolean;
 }
 
 const venueGradientMap: Record<string, string> = {
@@ -70,7 +71,12 @@ const venueGradientMap: Record<string, string> = {
   "Carpet Court": "from-blue-500 to-indigo-600",
 };
 
-export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: MatchFormProps) => {
+export const MatchForm = ({
+  onSubmit,
+  initialData,
+  isSubmitting = false,
+  focusReflection = false,
+}: MatchFormProps) => {
   const { sport } = useSport();
   const scoreFormat = sport.defaultScoreFormat;
   const isSetBasedSport = scoreFormat.type === "sets" || scoreFormat.type === "rally" || scoreFormat.type === "games";
@@ -104,7 +110,14 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
   );
   const [postEmotionTags, setPostEmotionTags] = useState<string[]>(initialData?.postEmotionTags ?? []);
   const [scheduledEventId, setScheduledEventId] = useState<string | null>(initialData?.scheduledEventId ?? null);
+  const reflectionSectionRef = useRef<HTMLDivElement>(null);
   const hasVenueOptions = Boolean(sport.venueOptions?.length);
+
+  useEffect(() => {
+    if (focusReflection && reflectionSectionRef.current) {
+      reflectionSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [focusReflection]);
   
   // Partner suggestions state
   const [partnerSuggestions, setPartnerSuggestions] = useState<string[]>([]);
@@ -565,7 +578,14 @@ export const MatchForm = ({ onSubmit, initialData, isSubmitting = false }: Match
       </Card>
 
       {/* Match Settings & Notes */}
-      <Card className="p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 border-white/30 shadow-xl">
+      <Card
+        ref={reflectionSectionRef}
+        id="match-reflection-section"
+        className={cn(
+          "p-6 rounded-3xl bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm border-2 shadow-xl",
+          focusReflection ? "border-teal-300 ring-2 ring-teal-200" : "border-white/30"
+        )}
+      >
         <MatchSettings
           notes={notes}
           onNotesChange={(newNotes, answers, promptUsed) => {

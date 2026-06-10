@@ -20,6 +20,7 @@ interface JournalingPreferences {
   wellness_reminder_time?: string;
   wellness_reminder_days?: string[];
   pre_match_reminder?: boolean;
+  after_match_reminder?: boolean;
 }
 
 function isWithinReminderWindow(reminderTime: string, currentHour: number, currentMinute: number): boolean {
@@ -64,6 +65,11 @@ Deno.serve(async (req: Request) => {
     const journalReminders: { userId: string }[] = [];
     const wellnessReminders: { userId: string }[] = [];
     const preMatchReminders: { userId: string; eventId: string; eventTitle: string }[] = [];
+    const matchReflectionReminders: {
+      userId: string;
+      matchId: string;
+      opponentName: string;
+    }[] = [];
 
     for (const profile of profiles || []) {
       const prefs = profile.journaling_preferences as JournalingPreferences | null;
@@ -162,6 +168,47 @@ Deno.serve(async (req: Request) => {
           }
         }
       }
+
+      // Post-match reflection reminders (~1 hour after logging, no reflection yet)
+      if (prefs.after_match_reminder !== false) {
+        const windowStart = new Date(now.getTime() - 75 * 60 * 1000).toISOString();
+        const windowEnd = new Date(now.getTime() - 45 * 60 * 1000).toISOString();
+
+        const { data: recentMatches } = await supabase
+          .from("matches")
+          .select("id, opponent_name, notes, post_emotion_tags, opponents(name)")
+          .eq("user_id", profile.id)
+          .gte("created_at", windowStart)
+          .lte("created_at", windowEnd);
+
+        for (const match of recentMatches || []) {
+          const hasNotes = Boolean(match.notes?.trim());
+          const emotionTags = match.post_emotion_tags as string[] | null;
+          const hasEmotions = Array.isArray(emotionTags) && emotionTags.length > 0;
+          if (hasNotes || hasEmotions) continue;
+
+          const { data: existingReminder } = await supabase
+            .from("notifications")
+            .select("id")
+            .eq("user_id", profile.id)
+            .eq("type", "match_reflection_reminder")
+            .ilike("body", `%match:${match.id}%`)
+            .limit(1);
+
+          if (existingReminder && existingReminder.length > 0) continue;
+
+          const opponentName =
+            (match.opponents as { name?: string } | null)?.name ||
+            match.opponent_name ||
+            "your opponent";
+
+          matchReflectionReminders.push({
+            userId: profile.id,
+            matchId: match.id,
+            opponentName,
+          });
+        }
+      }
     }
 
     const notificationInserts = [
@@ -189,6 +236,14 @@ Deno.serve(async (req: Request) => {
         link: "/planner",
         read: false,
       })),
+      ...matchReflectionReminders.map((rm) => ({
+        user_id: rm.userId,
+        type: "match_reflection_reminder",
+        title: "Add your match reflection",
+        body: `While it's fresh — add a quick reflection vs ${rm.opponentName} (match:${rm.matchId}).`,
+        link: `/edit-match/${rm.matchId}?reflect=1`,
+        read: false,
+      })),
     ];
 
     if (notificationInserts.length > 0) {
@@ -200,7 +255,7 @@ Deno.serve(async (req: Request) => {
         console.error("Error inserting notifications:", insertError);
       } else {
         console.log(
-          `Sent ${journalReminders.length} journal, ${wellnessReminders.length} wellness, and ${preMatchReminders.length} pre-match reminder notifications`
+          `Sent ${journalReminders.length} journal, ${wellnessReminders.length} wellness, ${preMatchReminders.length} pre-match, and ${matchReflectionReminders.length} match reflection reminder notifications`
         );
       }
     }
@@ -211,6 +266,7 @@ Deno.serve(async (req: Request) => {
         journalRemindersSent: journalReminders.length,
         wellnessRemindersSent: wellnessReminders.length,
         preMatchRemindersSent: preMatchReminders.length,
+        matchReflectionRemindersSent: matchReflectionReminders.length,
         timestamp: now.toISOString(),
       }),
       {

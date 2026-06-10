@@ -30,8 +30,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScheduledEvent, SessionType } from "@/types/calendar";
 import { SESSION_TYPES, getSessionTypeConfig } from "@/types/calendar";
-import { format, parse, isValid, isFuture } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Brain } from "lucide-react";
+import { format, parse, isValid, isFuture, isToday } from "date-fns";
+import { Calendar as CalendarIcon, Clock, Brain, Sparkles } from "lucide-react";
+import { MentalSkillsSessionDialog } from "@/components/mental/MentalSkillsSessionDialog";
+import {
+  parseMentalSessionLog,
+  getUserNotesFromEvent,
+  serializeMentalSessionLog,
+  formatMentalSessionSummary,
+} from "@/utils/mentalSessionLog";
 import { cn } from "@/lib/utils";
 import { PreMatchStateDialog } from "@/components/mental/PreMatchStateDialog";
 import { saveScheduledPreMatchState } from "@/utils/preMatchState";
@@ -86,11 +93,15 @@ export const EventDialog = ({
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPreMatchDialog, setShowPreMatchDialog] = useState(false);
+  const [showMentalSkillsDialog, setShowMentalSkillsDialog] = useState(false);
   const { toast } = useToast();
   const sessionTypeConfig = getSessionTypeConfig(sessionType);
   const isUpcomingMatch =
     sessionType === 'match' && isFuture(new Date(event.start_time));
   const preMatchState = scheduledStateToPreMatchState(event.pre_match_state);
+  const mentalSessionLog = parseMentalSessionLog(event.notes);
+  const isMentalSkillsSession = sessionType === 'mental_skills';
+  const isSessionToday = startDate ? isToday(startDate) : isToday(new Date(event.start_time));
 
   const handleSavePreMatch = async (state: PreMatchState) => {
     if (!event.id || isNew) return;
@@ -113,7 +124,7 @@ export const EventDialog = ({
       setEndTime(end.timeStr);
       setTitle(event.title || '');
       setSessionType(event.session_type);
-      setNotes(event.notes || '');
+      setNotes(getUserNotesFromEvent(event.notes));
     }
   }, [event, isOpen]);
 
@@ -184,6 +195,19 @@ export const EventDialog = ({
         throw new Error("No authenticated user");
       }
 
+      let notesToSave = notes;
+      if (sessionType === 'mental_skills' && mentalSessionLog) {
+        notesToSave = serializeMentalSessionLog(
+          {
+            breathing: mentalSessionLog.breathing,
+            imagery: mentalSessionLog.imagery,
+            self_talk: mentalSessionLog.self_talk,
+            completed_at: mentalSessionLog.completed_at,
+          },
+          notes
+        );
+      }
+
       if (isNew) {
         const { error } = await supabase
           .from('scheduled_events')
@@ -192,7 +216,7 @@ export const EventDialog = ({
             start_time: startDateTimeStr,
             end_time: endDateTimeStr,
             session_type: sessionType,
-            notes,
+            notes: notesToSave,
             user_id: session.user.id
           });
 
@@ -205,7 +229,7 @@ export const EventDialog = ({
             start_time: startDateTimeStr,
             end_time: endDateTimeStr,
             session_type: sessionType,
-            notes,
+            notes: notesToSave,
             user_id: session.user.id
           })
           .eq('id', event.id);
@@ -477,6 +501,22 @@ export const EventDialog = ({
                 <Brain className="h-4 w-4" />
                 Pre-match mental state
               </p>
+              {hasPreMatchData(preMatchState) && (
+                <div className="text-xs text-purple-800 bg-white/60 rounded-lg px-3 py-2 space-y-1">
+                  {preMatchState.confidence != null && (
+                    <p>Confidence: {preMatchState.confidence}/10</p>
+                  )}
+                  {preMatchState.arousal != null && (
+                    <p>Arousal: {preMatchState.arousal}/10</p>
+                  )}
+                  {preMatchState.nerves != null && (
+                    <p>Nerves: {preMatchState.nerves}/10</p>
+                  )}
+                  {preMatchState.process_goal && (
+                    <p className="italic">"{preMatchState.process_goal}"</p>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-purple-700">
                 {hasPreMatchData(preMatchState)
                   ? 'Pre-match state logged — update before you play.'
@@ -490,6 +530,35 @@ export const EventDialog = ({
               >
                 {hasPreMatchData(preMatchState) ? 'Update pre-match log' : 'Log pre-match state'}
               </Button>
+            </div>
+          )}
+
+          {isMentalSkillsSession && !isNew && (
+            <div className="p-4 rounded-lg border border-indigo-200 bg-indigo-50/50 space-y-2">
+              <p className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Mental skills session
+              </p>
+              {mentalSessionLog && (
+                <p className="text-xs text-indigo-800 bg-white/60 rounded-lg px-3 py-2">
+                  {formatMentalSessionSummary(mentalSessionLog)}
+                </p>
+              )}
+              <p className="text-xs text-indigo-700">
+                {mentalSessionLog
+                  ? 'Session completed — run another round or review your log.'
+                  : 'Guided breathing, imagery, and self-talk exercises.'}
+              </p>
+              {isSessionToday && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMentalSkillsDialog(true)}
+                >
+                  {mentalSessionLog ? 'Run session again' : 'Start session'}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -545,6 +614,17 @@ export const EventDialog = ({
         eventTitle={title || event.title}
         initialState={preMatchState}
         onSave={handleSavePreMatch}
+      />
+    )}
+
+    {!isNew && event.id && (
+      <MentalSkillsSessionDialog
+        open={showMentalSkillsDialog}
+        onOpenChange={setShowMentalSkillsDialog}
+        eventId={event.id}
+        eventTitle={title || event.title}
+        existingNotes={event.notes}
+        onSaved={onSave}
       />
     )}
     </>

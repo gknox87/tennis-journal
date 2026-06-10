@@ -6,6 +6,7 @@ import {
   LoadInterpretation,
 } from "@/types/trainingLoad";
 import { WellnessEntry } from "@/types/wellness";
+import { Match } from "@/types/match";
 import { format, subDays, eachDayOfInterval, startOfDay, parseISO } from "date-fns";
 
 export function getWeekOverWeekLoadChange(sessions: TrainingSession[]): number | null {
@@ -64,13 +65,20 @@ export function getMoodRollingAverages(entries: WellnessEntry[]): {
 export function getLoadWellnessTimeline(
   sessions: TrainingSession[],
   wellnessEntries: WellnessEntry[],
-  days: number = 14
+  days: number = 14,
+  matches: Pick<Match, 'date' | 'pre_arousal' | 'pre_confidence'>[] = []
 ): LoadWellnessTimelinePoint[] {
   const today = startOfDay(new Date());
   const startDate = subDays(today, days - 1);
   const interval = eachDayOfInterval({ start: startDate, end: today });
 
-  const moodByDate = new Map(wellnessEntries.map((e) => [e.entry_date, e.mood]));
+  const wellnessByDate = new Map(wellnessEntries.map((e) => [e.entry_date, e]));
+  const matchesByDate = new Map<string, Pick<Match, 'pre_arousal' | 'pre_confidence'>[]>();
+  for (const match of matches) {
+    const existing = matchesByDate.get(match.date) ?? [];
+    existing.push(match);
+    matchesByDate.set(match.date, existing);
+  }
 
   return interval.map((day) => {
     const dayStr = format(day, "yyyy-MM-dd");
@@ -78,11 +86,22 @@ export function getLoadWellnessTimeline(
       .filter((s) => s.session_date === dayStr)
       .reduce((sum, s) => sum + s.training_load, 0);
 
+    const wellness = wellnessByDate.get(dayStr);
+    const dayMatches = matchesByDate.get(dayStr) ?? [];
+    const matchWithMental = dayMatches.find(
+      (m) => m.pre_arousal != null || m.pre_confidence != null
+    );
+
     return {
       date: dayStr,
       dateLabel: format(day, "MMM dd"),
       load,
-      mood: moodByDate.get(dayStr) ?? null,
+      mood: wellness?.mood ?? null,
+      confidence: wellness?.performance_confidence ?? null,
+      stress: wellness?.stress_level ?? null,
+      totalWellness: wellness?.total_wellness_score ?? null,
+      matchArousal: matchWithMental?.pre_arousal ?? null,
+      matchConfidence: matchWithMental?.pre_confidence ?? null,
     };
   });
 }
