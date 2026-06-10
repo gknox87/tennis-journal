@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { isMarketingHost, appUrl } from "@/lib/hostMode";
 
 export const LandingHeader = () => {
   const navigate = useNavigate();
@@ -25,12 +24,6 @@ export const LandingHeader = () => {
   };
 
   const handleNavClick = (path: string) => {
-    // When on the marketing host, auth/app paths live on the hub subdomain.
-    if (isMarketingHost() && (path === "/login" || path === "/register" || path.startsWith("/dashboard"))) {
-      window.location.href = appUrl(path);
-      setIsMobileMenuOpen(false);
-      return;
-    }
     navigate(path);
     setIsMobileMenuOpen(false);
   };

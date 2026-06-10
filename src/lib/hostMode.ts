@@ -1,6 +1,17 @@
 // Host-aware routing helper.
-// Marketing site lives on the apex (sportsjournal.app).
-// The actual app lives on hub.sportsjournal.app, on preview/localhost, and inside Capacitor.
+// Production serves the full SPA on sportsjournal.app (hub redirects to apex).
+// Marketing pages (landing, blog, etc.) use a flat layout; auth/app routes use the app shell.
+
+const MARKETING_PATHS = new Set([
+  "/",
+  "/features",
+  "/pricing",
+  "/demo",
+  "/help",
+  "/contact",
+  "/privacy",
+  "/blog",
+]);
 
 const MARKETING_HOSTS = new Set([
   "sportsjournal.app",
@@ -31,8 +42,20 @@ export function isAppHost(): boolean {
   return !isMarketingHost();
 }
 
-/** Absolute URL to a path on the app host (used by marketing CTAs). */
+export function isMarketingPath(pathname: string): boolean {
+  if (MARKETING_PATHS.has(pathname)) return true;
+  return pathname.startsWith("/blog/");
+}
+
+/** Use flat marketing layout (landing pages) vs app shell with header/nav. */
+export function shouldUseMarketingLayout(pathname: string): boolean {
+  if (!isMarketingHost()) return false;
+  return isMarketingPath(pathname);
+}
+
+/** Link to auth/app paths from marketing CTAs. Stays on apex in production. */
 export function appUrl(path: string = "/"): string {
   const p = path.startsWith("/") ? path : `/${path}`;
+  if (isMarketingHost()) return p;
   return `${APP_ORIGIN}${p}`;
 }

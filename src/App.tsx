@@ -11,7 +11,7 @@ import "./App.css";
 import { SportProvider } from "@/context/SportContext";
 import { BottomNavigationWrapper, shouldShowBottomNav, isAuthRoute } from "@/components/BottomNavigationWrapper";
 import { Header } from "@/components/Header";
-import { isMarketingHost, appUrl } from "@/lib/hostMode";
+import { shouldUseMarketingLayout } from "@/lib/hostMode";
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -64,22 +64,20 @@ const PageLoader = () => (
 );
 
 interface AppLayoutProps {
-  marketing: boolean;
   session: Session | null;
   loading: boolean;
 }
 
-function AppLayout({ marketing, session, loading }: AppLayoutProps) {
+function AppLayout({ session, loading }: AppLayoutProps) {
   const location = useLocation();
+
+  if (session && location.pathname === "/") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const marketing = shouldUseMarketingLayout(location.pathname);
   const showBottomNav = !marketing && shouldShowBottomNav(location.pathname);
   const authRoute = isAuthRoute(location.pathname);
-
-  const RedirectToApp = () => {
-    if (typeof window !== "undefined") {
-      window.location.replace(appUrl(window.location.pathname + window.location.search));
-    }
-    return null;
-  };
 
   const marketingRoutes = (
     <Routes>
@@ -92,7 +90,6 @@ function AppLayout({ marketing, session, loading }: AppLayoutProps) {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
-      <Route path="*" element={<RedirectToApp />} />
     </Routes>
   );
 
@@ -214,12 +211,10 @@ function App() {
     return <PageLoader />;
   }
 
-  const marketing = isMarketingHost();
-
   return (
     <SportProvider>
       <Router>
-        <AppLayout marketing={marketing} session={session} loading={false} />
+        <AppLayout session={session} loading={false} />
       </Router>
     </SportProvider>
   );

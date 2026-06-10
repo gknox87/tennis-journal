@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPostBySlug, getRelatedPosts, type BlogPost as BlogPostType } from "./blogData";
+import { appUrl } from "@/lib/hostMode";
 import { Calendar, Clock, ArrowLeft, BookOpen, TrendingUp, Share2, ArrowRight } from "lucide-react";
 
 const SPORT_IMAGES: Record<string, string> = {
@@ -279,7 +280,7 @@ function BlogPost() {
             Join athletes who track, reflect, and improve with Sports Journal.
           </p>
           <a
-            href="https://hub.sportsjournal.app/register"
+            href={appUrl("/register")}
             className="inline-flex items-center px-6 py-3 bg-white text-[#3b82f6] rounded-xl font-bold hover:bg-[#f8fafc] transition shadow-lg"
           >
             Get started free — no card needed
