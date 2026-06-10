@@ -28,6 +28,7 @@ import {
   getVenueLabel,
   getRankingLabel,
   getRankingPlaceholder,
+  getMatchesWonLabel,
 } from "@/utils/sportLabels";
 import { getProfileCompletion } from "@/utils/profileCompletion";
 
@@ -687,7 +688,7 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
-              <p className="text-sm opacity-90">{displaySport.terminology.matchLabel}s Won</p>
+              <p className="text-sm opacity-90">{getMatchesWonLabel(displaySport)}</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />

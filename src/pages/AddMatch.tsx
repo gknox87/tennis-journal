@@ -15,6 +15,22 @@ import { SetScore } from "@/types/match";
 import { VoiceMatchEntry } from "@/components/voice/VoiceMatchEntry";
 import { analytics } from "@/lib/analytics";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return "Failed to save match. Please try again.";
+}
+
+function isMissingColumnError(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    Boolean(error.message?.includes("does not exist"))
+  );
+}
+
 const AddMatch = () => {
   const { sport } = useSport();
   const navigate = useNavigate();
@@ -50,37 +66,54 @@ const AddMatch = () => {
         })
         .join(", ");
 
-      // Handle partner_id for doubles matches
+      // Partner tracking requires the padel migration (partners table + match columns).
       let partnerId: string | null = null;
       if (formData.matchType === 'doubles' && formData.partner) {
-        const { data: partnerData } = await supabase
+        const { data: partnerData, error: partnerError } = await supabase
           .rpc('get_or_create_partner', {
             p_name: formData.partner,
             p_user_id: session.user.id,
             p_sport_id: sport.id
           });
-        partnerId = partnerData;
+        if (!partnerError) {
+          partnerId = partnerData;
+        }
       }
 
-      const { data: matchData, error: matchError } = await supabase
+      const baseInsert = {
+        date: formData.date.toISOString().split('T')[0],
+        opponent_id: null,
+        score,
+        is_win: formData.isWin,
+        notes: formData.notes || null,
+        user_id: session.user.id,
+        final_set_tiebreak: formData.finalSetTiebreak,
+        court_type: formData.courtType || null,
+        sport_id: sport.id,
+        reflection_prompt_used: formData.reflectionPromptUsed || null,
+        reflection_prompt_level: formData.reflectionPromptLevel || null,
+      };
+
+      const extendedInsert = {
+        ...baseInsert,
+        match_type: formData.matchType || 'singles',
+        partner_id: partnerId,
+      };
+
+      let { data: matchData, error: matchError } = await supabase
         .from('matches')
-        .insert({
-          date: formData.date.toISOString().split('T')[0],
-          opponent_id: null,
-          score,
-          is_win: formData.isWin,
-          notes: formData.notes || null,
-          user_id: session.user.id,
-          final_set_tiebreak: formData.finalSetTiebreak,
-          court_type: formData.courtType || null,
-          sport_id: sport.id,
-          reflection_prompt_used: formData.reflectionPromptUsed || null,
-          reflection_prompt_level: formData.reflectionPromptLevel || null,
-          match_type: formData.matchType || 'singles',
-          partner_id: partnerId,
-        })
+        .insert(extendedInsert)
         .select()
         .single();
+
+      // Fall back when padel partner migration has not been applied yet.
+      if (matchError && isMissingColumnError(matchError)) {
+        ({ data: matchData, error: matchError } = await supabase
+          .from('matches')
+          .insert(baseInsert)
+          .select()
+          .single());
+      }
 
       if (matchError) throw matchError;
 
@@ -135,7 +168,7 @@ const AddMatch = () => {
       navigate(`/match/${matchData.id}`);
     } catch (error: unknown) {
       console.error('Error saving match:', error);
-      const message = error instanceof Error ? error.message : "Failed to save match. Please try again.";
+      const message = getErrorMessage(error);
       const isPermissionError = message.toLowerCase().includes('policy') ||
         message.toLowerCase().includes('permission') ||
         message.toLowerCase().includes('rls') ||

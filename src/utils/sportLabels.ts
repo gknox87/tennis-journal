@@ -1,5 +1,18 @@
 import type { SportMetadata } from "@/types/sport";
 
+/** Pluralise sport terminology labels (e.g. Match → Matches, not Matchs). */
+export function pluralizeTermLabel(label: string): string {
+  if (label === "Match") return "Matches";
+  if (label === "Race") return "Races";
+  if (label === "Bout") return "Bouts";
+  return `${label}s`;
+}
+
+/** Stat card label for wins, e.g. "Matches Won" or "Races Won". */
+export function getMatchesWonLabel(sport: SportMetadata): string {
+  return `${pluralizeTermLabel(sport.terminology.matchLabel)} Won`;
+}
+
 /** Label for the user's club / gym / team field on profile and match forms. */
 export function getClubLabel(sport: SportMetadata): string {
   switch (sport.category) {
