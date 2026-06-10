@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { BADGES } from '@/constants/badges';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ============================================
 // TYPES
@@ -59,6 +62,7 @@ export interface UserBadge {
   id: string;
   user_id: string;
   badge_id: string;
+  tier?: number;
   earned_at: string;
   badge?: Badge;
 }
@@ -160,6 +164,26 @@ export function useChallenges(): UseChallengesReturn {
     return challengesWithProgress;
   }, []);
 
+  const resolveBadgeDefinition = useCallback((badgeId: string, tier: number): Badge => {
+    const constantDef = BADGES.find((b) => b.id === badgeId);
+    const tierDef = constantDef?.tiers.find((t) => t.tier === tier) ?? constantDef?.tiers[0];
+
+    return {
+      id: badgeId,
+      name: constantDef?.name ?? 'Achievement',
+      description: constantDef?.description ?? null,
+      icon: tierDef?.icon ?? constantDef?.icon ?? '🏅',
+      criteria_type: constantDef?.category ?? 'achievement',
+      criteria_value: tierDef?.requirement ?? 0,
+      tier,
+      tier_label: tierDef?.label ?? null,
+      tier_color: tierDef?.color ?? null,
+      category: constantDef?.category ?? 'achievement',
+      sport_id: null,
+      created_at: new Date().toISOString(),
+    };
+  }, []);
+
   const fetchUserBadges = useCallback(async (): Promise<BadgeWithDefinition[]> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return [];
@@ -168,17 +192,44 @@ export function useChallenges(): UseChallengesReturn {
 
     const { data: earnedBadges, error: badgesError } = await supabase
       .from('user_badges')
-      .select('*, badge:badges(*)')
+      .select('id, user_id, badge_id, tier, earned_at')
       .eq('user_id', userId)
       .order('earned_at', { ascending: false });
 
     if (badgesError) throw badgesError;
+    if (!earnedBadges?.length) return [];
 
-    return (earnedBadges || []).map(ub => ({
-      ...ub,
-      badge: ub.badge as Badge,
-    }));
-  }, []);
+    const uuidBadgeIds = earnedBadges
+      .map((ub) => ub.badge_id)
+      .filter((id) => UUID_REGEX.test(id));
+
+    const dbBadgeMap = new Map<string, Badge>();
+    if (uuidBadgeIds.length > 0) {
+      const { data: dbBadges, error: dbBadgesError } = await supabase
+        .from('badges')
+        .select('*')
+        .in('id', uuidBadgeIds);
+
+      if (dbBadgesError) throw dbBadgesError;
+      for (const badge of dbBadges || []) {
+        dbBadgeMap.set(badge.id, badge as Badge);
+      }
+    }
+
+    return earnedBadges.map((ub) => {
+      const tier = ub.tier ?? 1;
+      const badge =
+        UUID_REGEX.test(ub.badge_id) && dbBadgeMap.has(ub.badge_id)
+          ? dbBadgeMap.get(ub.badge_id)!
+          : resolveBadgeDefinition(ub.badge_id, tier);
+
+      return {
+        ...ub,
+        tier,
+        badge,
+      };
+    });
+  }, [resolveBadgeDefinition]);
 
   const refreshChallenges = useCallback(async () => {
     try {

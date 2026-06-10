@@ -176,27 +176,37 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
   }, [refreshPreferences, refreshUnreadCount]);
 
   useEffect(() => {
-    const { data: { session } } = supabase.auth.getSession();
-    if (!session?.user) return;
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channel = supabase
-      .channel('notification_count_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        () => {
-          void refreshUnreadCount();
-        }
-      )
-      .subscribe();
+    const setupSubscription = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled || !session?.user) return;
+
+      channel = supabase
+        .channel('notification_count_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          () => {
+            void refreshUnreadCount();
+          }
+        )
+        .subscribe();
+    };
+
+    void setupSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [refreshUnreadCount]);
 
