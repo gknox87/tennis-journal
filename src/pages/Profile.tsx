@@ -12,6 +12,9 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
+import { SPORTS, type SupportedSportId } from "@/constants/sports";
+import type { SportMetadata } from "@/types/sport";
+import { SportGoalSelector } from "@/components/onboarding/SportGoalSelector";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download, AlertCircle } from "lucide-react";
@@ -44,8 +47,26 @@ interface LiveStats {
   keyOpponents: number;
 }
 
+function toVenueSlug(venue: string): string {
+  return venue.toLowerCase().replace(/\s+/g, "_");
+}
+
+function resolvePreferredSurface(
+  preferredSurface: string | null,
+  targetSport: SportMetadata
+): string | null {
+  if (!targetSport.venueOptions?.length) {
+    return null;
+  }
+  if (!preferredSurface?.trim()) {
+    return null;
+  }
+  const validSlugs = targetSport.venueOptions.map(toVenueSlug);
+  return validSlugs.includes(preferredSurface) ? preferredSurface : null;
+}
+
 const Profile = () => {
-  const { sport } = useSport();
+  const { sport, sportId, goalId, setPreferences } = useSport();
   const { roles, isCoach, isAdmin } = useUserRoles();
   const { plan, isFreePlan, isTrial, trialDaysLeft, aiUsageThisMonth, aiLimit, keyOpponentCount, keyOpponentLimit } = useSubscription();
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -64,9 +85,16 @@ const Profile = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editSportId, setEditSportId] = useState<SupportedSportId>(sportId);
   const [isDobPickerOpen, setIsDobPickerOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isEditing) {
+      setEditSportId(sportId);
+    }
+  }, [sportId, isEditing]);
 
   useEffect(() => {
     fetchProfile();
@@ -174,6 +202,17 @@ const Profile = () => {
         return;
       }
 
+      const targetSport = SPORTS[editSportId];
+      const preferredSurface = resolvePreferredSurface(
+        profileData.preferred_surface,
+        targetSport
+      );
+      const sportChanged = editSportId !== sportId;
+
+      if (sportChanged) {
+        await setPreferences(editSportId, goalId);
+      }
+
       const { error } = await supabase
         .from("profiles")
         .upsert({
@@ -181,7 +220,7 @@ const Profile = () => {
           full_name: profileData.full_name,
           club: profileData.club,
           ranking: profileData.ranking,
-          preferred_surface: profileData.preferred_surface,
+          preferred_surface: preferredSurface,
           avatar_url: profileData.avatar_url,
           date_of_birth: profileData.date_of_birth || null,
           show_menstrual_tracking: profileData.show_menstrual_tracking,
@@ -194,7 +233,17 @@ const Profile = () => {
         return;
       }
 
-      toast({ title: "Success", description: "Profile updated successfully" });
+      setProfileData((prev) => ({
+        ...prev,
+        preferred_surface: preferredSurface || "",
+      }));
+
+      toast({
+        title: "Success",
+        description: sportChanged
+          ? `Active sport updated to ${targetSport.name}`
+          : "Profile updated successfully",
+      });
       setIsEditing(false);
       await fetchProfile();
     } catch (err) {
@@ -205,13 +254,31 @@ const Profile = () => {
     }
   };
 
-  const profileCompletion = getProfileCompletion(profileData, sport);
+  const displaySport = isEditing ? SPORTS[editSportId] : sport;
+  const profileCompletion = getProfileCompletion(profileData, displaySport);
 
   const handleEditToggle = () => {
     if (isEditing) {
+      setEditSportId(sportId);
       fetchProfile();
+    } else {
+      setEditSportId(sportId);
     }
     setIsEditing(!isEditing);
+  };
+
+  const startEditing = () => {
+    setEditSportId(sportId);
+    setIsEditing(true);
+  };
+
+  const handleEditSportChange = (nextSportId: SupportedSportId) => {
+    setEditSportId(nextSportId);
+    setProfileData((prev) => ({
+      ...prev,
+      preferred_surface:
+        resolvePreferredSurface(prev.preferred_surface, SPORTS[nextSportId]) || "",
+    }));
   };
 
   return (
@@ -224,7 +291,7 @@ const Profile = () => {
               Your Profile
             </h1>
             <p className="text-gray-600 mt-2 text-base sm:text-lg font-medium">
-              Manage Your {sport.name} Profile & Preferences
+              Manage Your {displaySport.name} Profile & Preferences
             </p>
           </div>
           <Button
@@ -255,13 +322,13 @@ const Profile = () => {
                   {profileCompletion.missingFields.length > 3
                     ? ` and ${profileCompletion.missingFields.length - 3} more`
                     : ""}{" "}
-                  to personalise your {sport.shortName} experience.
+                  to personalise your {displaySport.shortName} experience.
                 </p>
                 <Button
                   size="sm"
                   variant="outline"
                   className="mt-3 border-amber-300 hover:bg-amber-100"
-                  onClick={() => setIsEditing(true)}
+                  onClick={startEditing}
                 >
                   <Edit3 className="mr-2 h-3 w-3" />
                   Complete profile
@@ -295,7 +362,7 @@ const Profile = () => {
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  {profileData.full_name || `${sport.name} Player`}
+                  {profileData.full_name || `${displaySport.name} Player`}
                 </h2>
                 {/* Role Badges */}
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
@@ -328,10 +395,10 @@ const Profile = () => {
                       <span>Rank: {profileData.ranking}</span>
                     </div>
                   )}
-                  {profileData.preferred_surface && sport.venueOptions?.length && (
+                  {profileData.preferred_surface && displaySport.venueOptions?.length && (
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{sport.venueOptions.find(v => v.toLowerCase().replace(/\s+/g, '_') === profileData.preferred_surface) || profileData.preferred_surface}</span>
+                      <span>{displaySport.venueOptions.find(v => v.toLowerCase().replace(/\s+/g, '_') === profileData.preferred_surface) || profileData.preferred_surface}</span>
                     </div>
                   )}
                 </div>
@@ -403,6 +470,31 @@ const Profile = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {!isEditing && (
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="text-gray-700 font-medium">Active Sport</Label>
+                    <div className="flex h-12 items-center gap-3 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 text-gray-900 shadow-sm">
+                      <span className="text-2xl" aria-hidden="true">{sport.icon}</span>
+                      <span className="font-medium">{sport.name}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Your app experience is personalised for this sport. Edit to switch.
+                    </p>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="sm:col-span-2">
+                    <SportGoalSelector
+                      sportId={editSportId}
+                      onSportChange={handleEditSportChange}
+                      goalId={goalId}
+                      onGoalChange={() => {}}
+                      showGoals={false}
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-gray-700 font-medium">Full Name</Label>
                   <Input
@@ -465,32 +557,32 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="club" className="text-gray-700 font-medium">{getClubLabel(sport)}</Label>
+                  <Label htmlFor="club" className="text-gray-700 font-medium">{getClubLabel(displaySport)}</Label>
                   <Input
                     id="club"
                     value={profileData.club || ""}
                     onChange={(e) => setProfileData({ ...profileData, club: e.target.value })}
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                    placeholder={getClubPlaceholder(sport)}
+                    placeholder={getClubPlaceholder(displaySport)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ranking" className="text-gray-700 font-medium">{getRankingLabel(sport)}</Label>
+                  <Label htmlFor="ranking" className="text-gray-700 font-medium">{getRankingLabel(displaySport)}</Label>
                   <Input
                     id="ranking"
                     value={profileData.ranking || ""}
                     onChange={(e) => setProfileData({ ...profileData, ranking: e.target.value })}
                     disabled={!isEditing}
                     className="h-12 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white disabled:bg-gray-50 disabled:border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                    placeholder={getRankingPlaceholder(sport)}
+                    placeholder={getRankingPlaceholder(displaySport)}
                   />
                 </div>
 
-                {sport.venueOptions && sport.venueOptions.length > 0 && (
+                {displaySport.venueOptions && displaySport.venueOptions.length > 0 && (
                   <div className="space-y-2">
-                    <Label htmlFor="surface" className="text-gray-700 font-medium">{getVenueLabel(sport)}</Label>
+                    <Label htmlFor="surface" className="text-gray-700 font-medium">{getVenueLabel(displaySport)}</Label>
                     <Select
                       value={profileData.preferred_surface || ""}
                       onValueChange={(value) => setProfileData({ ...profileData, preferred_surface: value })}
@@ -500,7 +592,7 @@ const Profile = () => {
                         <SelectValue placeholder="Select a venue type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sport.venueOptions.map((venue) => (
+                        {displaySport.venueOptions.map((venue) => (
                           <SelectItem key={venue} value={venue.toLowerCase().replace(/\s+/g, '_')}>
                             {venue}
                           </SelectItem>
@@ -595,17 +687,17 @@ const Profile = () => {
             <Card className="p-4 text-center bg-gradient-to-r from-green-500 to-green-600 text-white">
               <Trophy className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.matchesWon}</p>
-              <p className="text-sm opacity-90">{sport.terminology.matchLabel}s Won</p>
+              <p className="text-sm opacity-90">{displaySport.terminology.matchLabel}s Won</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-blue-500 to-blue-600 text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.trainingSessions}</p>
-              <p className="text-sm opacity-90">{sport.terminology.trainingLabel}s</p>
+              <p className="text-sm opacity-90">{displaySport.terminology.trainingLabel}s</p>
             </Card>
             <Card className="p-4 text-center bg-gradient-to-r from-purple-500 to-purple-600 text-white">
               <User className="h-8 w-8 mx-auto mb-2" />
               <p className="text-2xl font-bold">{liveStats.keyOpponents}</p>
-              <p className="text-sm opacity-90">Key {sport.terminology.opponentLabel}s</p>
+              <p className="text-sm opacity-90">Key {displaySport.terminology.opponentLabel}s</p>
             </Card>
           </div>
         </div>

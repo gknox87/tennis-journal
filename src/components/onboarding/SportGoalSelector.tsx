@@ -39,6 +39,8 @@ interface SportGoalSelectorProps {
   goalId: string;
   onGoalChange: (goalId: string) => void;
   orientation?: "vertical" | "horizontal";
+  /** When false, hides the performance-goal picker (e.g. Profile sport switch). */
+  showGoals?: boolean;
 }
 
 export const SportGoalSelector = ({
@@ -47,6 +49,7 @@ export const SportGoalSelector = ({
   goalId,
   onGoalChange,
   orientation = "vertical",
+  showGoals = true,
 }: SportGoalSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"popular" | SportCategory>("popular");
@@ -114,7 +117,7 @@ export const SportGoalSelector = ({
     <div
       className={cn(
         "space-y-6",
-        orientation === "horizontal" && "md:grid md:grid-cols-2 md:gap-8 md:space-y-0"
+        showGoals && orientation === "horizontal" && "md:grid md:grid-cols-2 md:gap-8 md:space-y-0"
       )}
     >
       <div className="space-y-3">
@@ -167,37 +170,39 @@ export const SportGoalSelector = ({
         )}
       </div>
 
-      <div className="space-y-3">
-        <Label className="text-base">Select your focus</Label>
-        <div className="grid gap-3">
-          {GOAL_OPTIONS.map((goal) => {
-            const selected = goal.id === goalId;
-            return (
-              <button
-                key={goal.id}
-                type="button"
-                onClick={() => onGoalChange(goal.id)}
-                className={cn(
-                  "relative rounded-xl border px-4 py-3 text-left transition-all",
-                  selected
-                    ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-md"
-                    : "border-border hover:border-primary/50 hover:bg-muted/40 hover:shadow"
-                )}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <p className="font-semibold">{goal.label}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">{goal.description}</p>
-                  </div>
-                  {selected && (
-                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
+      {showGoals && (
+        <div className="space-y-3">
+          <Label className="text-base">Select your focus</Label>
+          <div className="grid gap-3">
+            {GOAL_OPTIONS.map((goal) => {
+              const selected = goal.id === goalId;
+              return (
+                <button
+                  key={goal.id}
+                  type="button"
+                  onClick={() => onGoalChange(goal.id)}
+                  className={cn(
+                    "relative rounded-xl border px-4 py-3 text-left transition-all",
+                    selected
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-md"
+                      : "border-border hover:border-primary/50 hover:bg-muted/40 hover:shadow"
                   )}
-                </div>
-              </button>
-            );
-          })}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="font-semibold">{goal.label}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">{goal.description}</p>
+                    </div>
+                    {selected && (
+                      <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
