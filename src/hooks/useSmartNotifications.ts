@@ -40,7 +40,7 @@ export interface UseSmartNotificationsReturn {
   refreshUnreadCount: () => Promise<void>;
 }
 
-const defaultPreferences: ReminderPreferences = {
+export const defaultReminderPreferences: ReminderPreferences = {
   reminder_enabled: true,
   reminder_time: '20:00',
   reminder_days: ['mon', 'tue', 'wed', 'thu', 'fri'],
@@ -76,18 +76,22 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
         .maybeSingle();
 
       if (fetchError) {
+        if (fetchError.code === '42703' || fetchError.code === 'PGRST204') {
+          console.warn('journaling_preferences column not found. Using defaults.');
+          return defaultReminderPreferences;
+        }
         console.error('Error fetching reminder preferences:', fetchError);
         throw fetchError;
       }
 
       if (data?.journaling_preferences) {
         return {
-          ...defaultPreferences,
+          ...defaultReminderPreferences,
           ...(data.journaling_preferences as Partial<ReminderPreferences>),
         };
       }
 
-      return defaultPreferences;
+      return defaultReminderPreferences;
     } catch (err) {
       console.error('Error in getReminderPreferences:', err);
       throw err;
@@ -101,24 +105,59 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
         throw new Error('No active session');
       }
 
-      setIsLoading(true);
       setError(null);
 
-      const current = await getReminderPreferences();
-      const updated: ReminderPreferences = {
-        ...defaultPreferences,
-        ...(current || {}),
-        ...prefs,
-      };
-
-      const { error: updateError } = await supabase
+      const { data: profile, error: fetchError } = await supabase
         .from('profiles')
-        .update({ journaling_preferences: updated })
-        .eq('id', session.user.id);
+        .select('journaling_preferences')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        if (fetchError.code === '42703' || fetchError.code === 'PGRST204') {
+          throw new Error('Reminder preferences are not available yet. Please try again later.');
+        }
+        throw fetchError;
+      }
+
+      const rawPrefs =
+        profile?.journaling_preferences &&
+        typeof profile.journaling_preferences === 'object' &&
+        !Array.isArray(profile.journaling_preferences)
+          ? (profile.journaling_preferences as Record<string, unknown>)
+          : {};
+
+      const updated = {
+        ...defaultReminderPreferences,
+        ...rawPrefs,
+        ...prefs,
+      } as ReminderPreferences;
+
+      const { data: updatedRows, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          journaling_preferences: updated,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', session.user.id)
+        .select('id');
 
       if (updateError) {
         console.error('Error updating preferences:', updateError);
         throw updateError;
+      }
+
+      if (!updatedRows?.length) {
+        const { error: insertError } = await supabase.from('profiles').insert({
+          id: session.user.id,
+          journaling_preferences: updated,
+          updated_at: new Date().toISOString(),
+        });
+
+        if (insertError) {
+          console.error('Error creating profile for preferences:', insertError);
+          throw insertError;
+        }
       }
 
       setPreferences(updated);
@@ -126,10 +165,8 @@ export function useSmartNotifications(): UseSmartNotificationsReturn {
       const message = err instanceof Error ? err.message : 'Failed to update preferences';
       setError(message);
       throw err;
-    } finally {
-      setIsLoading(false);
     }
-  }, [getReminderPreferences]);
+  }, []);
 
   const refreshPreferences = useCallback(async (): Promise<void> => {
     try {

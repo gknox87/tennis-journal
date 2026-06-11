@@ -55,17 +55,19 @@ export const DashboardContent = ({
   const previousStreakRef = useRef<number>(0);
   const celebratedMilestonesRef = useRef<Set<number>>(new Set());
   
-  // Check if any wellness data exists
-  const { sessions } = useTrainingLoad();
-  const { metrics: wellnessMetrics } = useWellness();
-  const { activeInjuries } = useInjuryReports();
-  
+  // Check if any wellness data exists — wait for hooks to finish before showing/hiding section
+  const { sessions, isLoading: trainingLoading } = useTrainingLoad();
+  const { metrics: wellnessMetrics, isLoading: wellnessLoading } = useWellness();
+  const { activeInjuries, isLoading: injuryLoading } = useInjuryReports();
+
+  const wellnessDataReady = !trainingLoading && !wellnessLoading && !injuryLoading;
   const hasMindsetData = matches.some(hasMatchPreMatchData);
   const hasWellnessData =
-    sessions.length > 0 ||
-    wellnessMetrics.todayScore !== null ||
-    activeInjuries.length > 0 ||
-    hasMindsetData;
+    wellnessDataReady &&
+    (sessions.length > 0 ||
+      wellnessMetrics.todayScore !== null ||
+      activeInjuries.length > 0 ||
+      hasMindsetData);
 
   const fetchUpcomingEvents = async () => {
     try {

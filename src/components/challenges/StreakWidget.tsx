@@ -1,212 +1,223 @@
 import { useState } from 'react';
-import { Flame, Trophy, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { Trophy, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useJournalingStreak } from '@/hooks/useJournalingStreak';
+import { normalizeDate } from '@/utils/streakCalculations';
+import { Card, CardContent } from '@/components/ui/card';
 
-interface StreakWidgetProps {
-  onTap?: () => void;
-}
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-export function StreakWidget({ onTap }: StreakWidgetProps) {
+export function StreakWidget() {
   const [expanded, setExpanded] = useState(false);
   const { streakData, journaledDates } = useJournalingStreak();
 
-  // Calculate this week's dots (Mon-Sun)
+  if (streakData.isLoading) {
+    return (
+      <Card className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 border-0 shadow-xl overflow-hidden rounded-2xl">
+        <CardContent className="px-5 py-5 relative z-10">
+          <div className="flex items-center gap-4 animate-pulse">
+            <div className="h-14 w-14 rounded-full bg-white/20" />
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="h-10 w-28 rounded-lg bg-white/20" />
+              <div className="h-4 w-48 rounded bg-white/15" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { currentStreak, longestStreak, totalJournalDays, weeklyConsistency } = streakData;
+
   const getWeekDots = () => {
     const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sunday
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7)); // Adjust to Monday
-    monday.setHours(0, 0, 0, 0);
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
 
-    const dots = [];
-    for (let i = 0; i < 7; i++) {
+    return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      const isJournaled = journaledDates.has(dateStr);
-      const isToday = date.toDateString() === today.toDateString();
-      const isFuture = date > today;
-      dots.push({ date, dateStr, isJournaled, isToday, isFuture });
-    }
-    return dots;
+      const dateStr = normalizeDate(date);
+      return {
+        dateStr,
+        isJournaled: journaledDates.has(dateStr),
+        isToday: date.getTime() === today.getTime(),
+        isFuture: date > today,
+      };
+    });
   };
 
-  const weekDots = getWeekDots();
-
-  // Generate last 12 weeks for contribution graph
   const getContributionWeeks = () => {
     const weeks = [];
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const currentWeekStart = new Date(today);
     const dayOfWeek = today.getDay();
     currentWeekStart.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-    currentWeekStart.setHours(0, 0, 0, 0);
 
     for (let w = 11; w >= 0; w--) {
       const weekStart = new Date(currentWeekStart);
-      weekStart.setDate(currentWeekStart.getDate() - (w * 7));
-      const days = [];
-      for (let d = 0; d < 7; d++) {
+      weekStart.setDate(currentWeekStart.getDate() - w * 7);
+      const days = Array.from({ length: 7 }, (_, d) => {
         const date = new Date(weekStart);
         date.setDate(weekStart.getDate() + d);
-        const dateStr = date.toISOString().split('T')[0];
-        days.push({
-          date,
+        const dateStr = normalizeDate(date);
+        return {
           dateStr,
           isJournaled: journaledDates.has(dateStr),
           isFuture: date > today,
-        });
-      }
-      weeks.push({ start: weekStart, days });
+        };
+      });
+      weeks.push(days);
     }
     return weeks;
   };
 
+  const weekDots = getWeekDots();
   const contributionWeeks = getContributionWeeks();
+  const weekJournaledCount = weekDots.filter((d) => d.isJournaled && !d.isFuture).length;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Main header - always visible */}
+    <Card className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 border-0 shadow-xl overflow-hidden rounded-2xl">
+      <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.8)_0%,transparent_50%)]" />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+
       <button
-        className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-        onClick={() => {
-          setExpanded(!expanded);
-          if (!expanded && onTap) onTap();
-        }}
+        type="button"
+        className="w-full text-left relative z-10"
+        onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
       >
-        <div className="flex items-center gap-3">
-          {/* Flame icon with streak count */}
-          <div className="relative">
-            <div
-              className={cn(
-                'w-12 h-12 rounded-full flex items-center justify-center',
-                streakData.currentStreak > 0
-                  ? 'bg-gradient-to-br from-orange-400 to-red-500'
-                  : 'bg-gray-100'
-              )}
-            >
-              <Flame
-                className={cn(
-                  'w-6 h-6',
-                  streakData.currentStreak > 0 ? 'text-white' : 'text-gray-400'
-                )}
-              />
-            </div>
-            {streakData.currentStreak > 0 && (
-              <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow">
-                {streakData.currentStreak > 99 ? '99+' : streakData.currentStreak}
+        <CardContent className="px-5 py-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="relative shrink-0">
+                <div
+                  className={cn(
+                    'w-14 h-14 rounded-full flex items-center justify-center text-3xl',
+                    currentStreak > 0 ? 'bg-white/20' : 'bg-white/10'
+                  )}
+                >
+                  🔥
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-900">
-                {streakData.currentStreak}
-              </span>
-              <span className="text-sm text-gray-500">day streak</span>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-extrabold text-white tracking-tight">
+                    {currentStreak}
+                  </span>
+                  <span className="text-sm font-semibold text-white/80 uppercase tracking-wide">
+                    day{currentStreak !== 1 ? 's' : ''} streak
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-white/75">
+                  <span className="flex items-center gap-1">
+                    <Trophy className="w-3.5 h-3.5" />
+                    Best: {longestStreak}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {totalJournalDays} total days
+                  </span>
+                  <span>{weeklyConsistency}% this week</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3 text-xs text-gray-400">
-              <span className="flex items-center gap-1">
-                <Trophy className="w-3 h-3" />
-                Best: {streakData.longestStreak}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {streakData.totalJournalDays} total days
-              </span>
+
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <div className="flex items-center gap-1">
+                {weekDots.map((dot, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'w-2 h-2 rounded-full',
+                      dot.isFuture
+                        ? 'bg-white/20'
+                        : dot.isJournaled
+                        ? 'bg-white'
+                        : 'bg-white/30',
+                      dot.isToday && 'ring-1 ring-white ring-offset-1 ring-offset-orange-500'
+                    )}
+                    title={dot.dateStr}
+                  />
+                ))}
+              </div>
+              {expanded ? (
+                <ChevronUp className="w-5 h-5 text-white/70" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-white/70" />
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* This week dots */}
-          <div className="hidden sm:flex items-center gap-1 mr-2">
-            {weekDots.map((dot, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'w-2 h-2 rounded-full transition-colors',
-                  dot.isFuture
-                    ? 'bg-gray-100'
-                    : dot.isJournaled
-                    ? 'bg-green-500'
-                    : 'bg-gray-200',
-                  dot.isToday && 'ring-1 ring-purple-500 ring-offset-1'
-                )}
-              />
-            ))}
-          </div>
-
-          {expanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </div>
+        </CardContent>
       </button>
 
-      {/* Expanded content */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-gray-100">
-          {/* Streak calendar view (GitHub-style contribution graph) */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-gray-600">Journaling Activity</span>
-              <div className="flex items-center gap-1 text-xs text-gray-400">
-                <span>Less</span>
-                <div className="w-2 h-2 rounded-sm bg-gray-100" />
-                <div className="w-2 h-2 rounded-sm bg-green-200" />
-                <div className="w-2 h-2 rounded-sm bg-green-400" />
-                <div className="w-2 h-2 rounded-sm bg-green-600" />
-                <span>More</span>
+        <div className="px-5 pb-5 relative z-10 border-t border-white/20">
+          <div className="pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-white/90 uppercase tracking-wide">
+                Journaling activity
+              </span>
+              <span className="text-xs text-white/70">
+                This week: {weekJournaledCount}/7
+              </span>
+            </div>
+
+            <div className="overflow-x-auto pb-1">
+              <div className="flex gap-1 min-w-max">
+                <div className="flex flex-col gap-1 pt-0.5 pr-1">
+                  {DAY_LABELS.map((label, i) => (
+                    <div
+                      key={i}
+                      className="h-3 flex items-center text-[10px] font-medium text-white/60"
+                    >
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-1">
+                  {contributionWeeks.map((week, wi) => (
+                    <div key={wi} className="flex flex-col gap-1">
+                      {week.map((day, di) => (
+                        <div
+                          key={di}
+                          className={cn(
+                            'w-3 h-3 rounded-sm',
+                            day.isFuture
+                              ? 'bg-white/10'
+                              : day.isJournaled
+                              ? 'bg-white'
+                              : 'bg-white/25'
+                          )}
+                          title={`${day.dateStr}: ${day.isJournaled ? 'Journaled' : 'No entry'}`}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Week labels */}
-            <div className="flex gap-1 mb-1">
-              {['M', '', 'W', '', 'F', '', 'S'].map((day, i) => (
-                <div key={i} className="w-3 text-xs text-gray-400 text-center">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Contribution grid */}
-            <div className="flex gap-0.5">
-              {contributionWeeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col gap-0.5">
-                  {week.days.map((day, di) => (
-                    <div
-                      key={di}
-                      className={cn(
-                        'w-3 h-3 rounded-sm transition-colors',
-                        day.isFuture
-                          ? 'bg-gray-50'
-                          : day.isJournaled
-                          ? streakData.currentStreak > 90
-                            ? 'bg-green-600'
-                            : streakData.currentStreak > 30
-                            ? 'bg-green-400'
-                            : 'bg-green-200'
-                          : 'bg-gray-100'
-                      )}
-                      title={`${day.dateStr}: ${day.isJournaled ? 'Journaled' : 'No entry'}`}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-              <span>{streakData.totalJournalDays} total journal days</span>
-              <span>This week: {weekDots.filter(d => d.isJournaled && !d.isFuture).length}/7</span>
+            <div className="flex items-center justify-between mt-3 text-xs text-white/70">
+              <span>Last 12 weeks</span>
+              <div className="flex items-center gap-1.5">
+                <span>Less</span>
+                <div className="w-2.5 h-2.5 rounded-sm bg-white/10" />
+                <div className="w-2.5 h-2.5 rounded-sm bg-white/25" />
+                <div className="w-2.5 h-2.5 rounded-sm bg-white" />
+                <span>More</span>
+              </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

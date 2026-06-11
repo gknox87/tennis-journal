@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Plus, ArrowLeft } from "lucide-react";
+import { Target, Plus } from "lucide-react";
+import { useSport } from "@/context/SportContext";
 import { usePeriodGoals } from "@/hooks/usePeriodGoals";
 import { GoalCard } from "@/components/goals/GoalCard";
 import { GoalCreationDialog } from "@/components/goals/GoalCreationDialog";
 import { useToast } from "@/hooks/use-toast";
 
 const Goals = () => {
-  const navigate = useNavigate();
+  const { sport } = useSport();
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
@@ -38,24 +39,18 @@ const Goals = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        </div>
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
-        <div className="container mx-auto px-4 py-6 max-w-4xl text-center">
-          <Target className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-red-500">{error}</p>
+      <div className="min-h-full bg-gradient-to-br from-purple-50 via-white to-pink-50">
+        <div className="container mx-auto px-4 py-6 max-w-7xl text-center">
+          <Target className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-destructive">{error}</p>
         </div>
       </div>
     );
@@ -68,70 +63,62 @@ const Goals = () => {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <Button variant="ghost" className="mb-4" onClick={() => navigate("/dashboard")}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
-        </Button>
-
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-600">
-              <Target className="w-6 h-6 text-white" />
-            </div>
+    <div className="min-h-full bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-2xl font-bold">Goals</h1>
-              <p className="text-sm text-gray-500">
-                {activeGoals.length} active · {completedGoals.length} completed · {expiredGoals.length} expired
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Target className="h-6 w-6 text-purple-500" /> Goals
+              </h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Track process and outcome goals for {sport.shortName}
+                {goals.length > 0 && (
+                  <> · {activeGoals.length} active · {completedGoals.length} completed · {expiredGoals.length} expired</>
+                )}
               </p>
             </div>
           </div>
-          <Button
-            className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white"
-            onClick={() => setShowCreateDialog(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Goal
-          </Button>
+          <div className="flex gap-2 mt-3">
+            <Button onClick={() => setShowCreateDialog(true)} size="lg" className="shadow-lg">
+              <Plus className="mr-2 h-5 w-5" /> New Goal
+            </Button>
+          </div>
         </div>
 
         {goals.length === 0 ? (
-          <div className="text-center py-12 bg-white/70 rounded-2xl border border-dashed">
-            <Target className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No goals yet</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+          <Card className="p-8 sm:p-12 text-center bg-gradient-to-r from-purple-50 to-pink-50">
+            <Target className="h-12 w-12 mx-auto mb-4 text-purple-500 opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No Goals Yet</h3>
+            <p className="text-muted-foreground mb-6 text-sm max-w-md mx-auto">
               Set process goals like weekly training sessions or wellness check-ins — progress updates automatically from your journal. Outcome goals like win rate are tracked too.
             </p>
-            <Button
-              className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white"
-              onClick={() => setShowCreateDialog(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Goal
+            <Button onClick={() => setShowCreateDialog(true)} size="lg">
+              <Plus className="mr-2 h-5 w-5" /> Create Your First Goal
             </Button>
-          </div>
+          </Card>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="rounded-xl mb-6">
-              <TabsTrigger value="active" className="rounded-lg">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="active" className="flex-1">
                 Active ({activeGoals.length})
               </TabsTrigger>
-              <TabsTrigger value="completed" className="rounded-lg">
+              <TabsTrigger value="completed" className="flex-1">
                 Completed ({completedGoals.length})
               </TabsTrigger>
-              <TabsTrigger value="expired" className="rounded-lg">
+              <TabsTrigger value="expired" className="flex-1">
                 Expired ({expiredGoals.length})
               </TabsTrigger>
             </TabsList>
 
-            {["active", "completed", "expired"].map((tab) => (
-              <TabsContent key={tab} value={tab} className="space-y-3">
-                {goalsByTab[tab as keyof typeof goalsByTab].length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    No {tab} goals
-                  </div>
+            {(["active", "completed", "expired"] as const).map((tab) => (
+              <TabsContent key={tab} value={tab} className="mt-4 space-y-3">
+                {goalsByTab[tab].length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <p className="text-muted-foreground">No {tab} goals</p>
+                  </Card>
                 ) : (
-                  goalsByTab[tab as keyof typeof goalsByTab].map((goal) => (
+                  goalsByTab[tab].map((goal) => (
                     <GoalCard
                       key={goal.id}
                       goal={goal}

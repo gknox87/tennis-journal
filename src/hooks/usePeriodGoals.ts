@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
 import type {
@@ -73,10 +73,16 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
   >({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
+  const hasSyncedRef = useRef(false);
 
-  const fetchGoals = useCallback(async () => {
+  const fetchGoals = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? hasLoadedRef.current;
+
     try {
-      setIsLoading(true);
+      if (!silent) {
+        setIsLoading(true);
+      }
       setError(null);
 
       const { data: sessionData } = await supabase.auth.getSession();
@@ -110,6 +116,7 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
       setError(message);
       console.error("Error fetching goals:", err);
     } finally {
+      hasLoadedRef.current = true;
       setIsLoading(false);
     }
   }, []);
@@ -508,18 +515,17 @@ export function usePeriodGoals(): UsePeriodGoalsReturn {
   }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasSyncedRef.current || goals.length === 0) return;
+
+    hasSyncedRef.current = true;
 
     const runSync = async () => {
-      if (goals.length > 0) {
-        await syncGoalProgress(goals);
-        await fetchGoals();
-      }
+      await syncGoalProgress(goals);
+      await fetchGoals({ silent: true });
     };
 
-    runSync();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+    void runSync();
+  }, [isLoading, goals, syncGoalProgress, fetchGoals]);
 
   useEffect(() => {
     if (!isLoading && goals.length > 0) {

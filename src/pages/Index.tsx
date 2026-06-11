@@ -3,53 +3,15 @@ import { useState, useEffect } from "react";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useNotesData } from "@/hooks/useNotesData";
-import { Header } from "@/components/Header";
-import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
-import type { Database } from "@/integrations/supabase/types";
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<Profile | null>(null);
-  const { sport } = useSport();
-
-  // Fetch user profile (auth is already guaranteed by ProtectedRoute)
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-          console.error('Error fetching profile:', error);
-        } else {
-          setUserProfile(profile);
-        }
-      } catch (error) {
-        console.error('Profile fetch error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  const [isDataReady, setIsDataReady] = useState(false);
+  const { isLoading: sportLoading } = useSport();
 
   const {
     matches,
     filteredMatches,
-    setFilteredMatches,
     refreshMatches
   } = useMatchesData();
 
@@ -59,33 +21,32 @@ const Index = () => {
     handleDeleteNote
   } = useNotesData();
 
-  // Initial data load - fetch ALL matches (not filtered by sport) so user can see all their data
+  // Wait for sport preferences, then load dashboard data in one pass
   useEffect(() => {
+    if (sportLoading) return;
+
+    let cancelled = false;
+
     const loadInitialData = async () => {
       try {
-        // Fetch all matches without sport filter to show all user data
-        // Stats will be filtered by sport in StatsSection component
         await Promise.all([refreshMatches(undefined), refreshNotes()]);
       } catch (error) {
         console.error('Error loading initial data:', error);
+      } finally {
+        if (!cancelled) {
+          setIsDataReady(true);
+        }
       }
     };
 
-    // Wait for both auth and sport context to be ready
-    if (!isLoading) {
-      loadInitialData();
-    }
-  }, [refreshMatches, refreshNotes, isLoading]);
+    loadInitialData();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshMatches, refreshNotes, sportLoading]);
 
-  // Initialize filteredMatches with all matches when matches are loaded
-  useEffect(() => {
-    if (matches.length > 0) {
-      setFilteredMatches(matches);
-    }
-  }, [matches, setFilteredMatches]);
-
-  if (isLoading) {
+  if (sportLoading || !isDataReady) {
     return (
       <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

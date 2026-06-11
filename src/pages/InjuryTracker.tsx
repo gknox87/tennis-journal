@@ -162,14 +162,12 @@ const InjuryTracker = () => {
         )}
 
         {/* Report dialog */}
-        {selectedRegion && (
-          <InjuryReportDialog
-            open={showDialog}
-            onOpenChange={setShowDialog}
-            onSubmit={createReport}
-            selectedRegion={selectedRegion}
-          />
-        )}
+        <InjuryReportDialog
+          open={showDialog}
+          onOpenChange={setShowDialog}
+          onSubmit={createReport}
+          selectedRegion={selectedRegion}
+        />
       </div>
     </div>
   );

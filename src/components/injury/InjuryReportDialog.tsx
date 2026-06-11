@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -41,13 +41,13 @@ interface InjuryReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateInjuryInput) => Promise<void>;
-  selectedRegion: BodyRegion;
+  selectedRegion: BodyRegion | null;
 }
 
-type Step = "body_part" | "pain" | "details" | "actions";
+type Step = "region" | "body_part" | "pain" | "details" | "actions";
 
-const STEPS: Step[] = ["body_part", "pain", "details", "actions"];
 const STEP_LABELS: Record<Step, string> = {
+  region: "Body Region",
   body_part: "Location",
   pain: "Pain Level",
   details: "Characteristics",
@@ -60,7 +60,9 @@ export const InjuryReportDialog = ({
   onSubmit,
   selectedRegion,
 }: InjuryReportDialogProps) => {
-  const [step, setStep] = useState<Step>("body_part");
+  const [region, setRegion] = useState<BodyRegion | null>(selectedRegion);
+  const [includeRegionStep, setIncludeRegionStep] = useState(!selectedRegion);
+  const [step, setStep] = useState<Step>(selectedRegion ? "body_part" : "region");
   const [bodyPart, setBodyPart] = useState("");
   const [painLevel, setPainLevel] = useState(3);
   const [painTypes, setPainTypes] = useState<PainType[]>([]);
@@ -74,16 +76,33 @@ export const InjuryReportDialog = ({
   const [sharedWithCoach, setSharedWithCoach] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const regionDescriptor = BODY_REGIONS.find((r) => r.value === selectedRegion);
+  useEffect(() => {
+    if (!open) return;
+    setRegion(selectedRegion);
+    setIncludeRegionStep(!selectedRegion);
+    setStep(selectedRegion ? "body_part" : "region");
+  }, [open, selectedRegion]);
+
+  const steps = useMemo<Step[]>(
+    () =>
+      includeRegionStep
+        ? ["region", "body_part", "pain", "details", "actions"]
+        : ["body_part", "pain", "details", "actions"],
+    [includeRegionStep]
+  );
+
+  const regionDescriptor = BODY_REGIONS.find((r) => r.value === region);
   const bodyParts = regionDescriptor?.bodyParts || [];
 
-  const stepIndex = STEPS.indexOf(step);
+  const stepIndex = steps.indexOf(step);
   const canGoBack = stepIndex > 0;
-  const canGoForward = stepIndex < STEPS.length - 1;
-  const isLastStep = stepIndex === STEPS.length - 1;
+  const canGoForward = stepIndex < steps.length - 1;
+  const isLastStep = stepIndex === steps.length - 1;
 
   const canProceed = () => {
     switch (step) {
+      case "region":
+        return region !== null;
       case "body_part":
         return bodyPart !== "";
       case "pain":
@@ -98,11 +117,16 @@ export const InjuryReportDialog = ({
   };
 
   const handleNext = () => {
-    if (canGoForward) setStep(STEPS[stepIndex + 1]);
+    if (canGoForward) setStep(steps[stepIndex + 1]);
   };
 
   const handleBack = () => {
-    if (canGoBack) setStep(STEPS[stepIndex - 1]);
+    if (canGoBack) setStep(steps[stepIndex - 1]);
+  };
+
+  const handleRegionSelect = (nextRegion: BodyRegion) => {
+    setRegion(nextRegion);
+    setBodyPart("");
   };
 
   const togglePainType = (pt: PainType) => {
@@ -112,10 +136,12 @@ export const InjuryReportDialog = ({
   };
 
   const handleSubmit = async () => {
+    if (!region) return;
+
     setIsSubmitting(true);
     try {
       await onSubmit({
-        body_region: selectedRegion,
+        body_region: region,
         body_part: bodyPart,
         pain_level: painLevel,
         impact_on_training: impactOnTraining,
@@ -136,7 +162,9 @@ export const InjuryReportDialog = ({
   };
 
   const resetForm = () => {
-    setStep("body_part");
+    setRegion(selectedRegion);
+    setIncludeRegionStep(!selectedRegion);
+    setStep(selectedRegion ? "body_part" : "region");
     setBodyPart("");
     setPainLevel(3);
     setPainTypes([]);
@@ -162,13 +190,13 @@ export const InjuryReportDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Report Injury — {getRegionLabel(selectedRegion)}
+            Report Injury{region ? ` — ${getRegionLabel(region)}` : ""}
           </DialogTitle>
         </DialogHeader>
 
         {/* Step indicator */}
         <div className="flex items-center gap-1 mb-2">
-          {STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-1 flex-1">
               <div
                 className={cn(
@@ -180,10 +208,31 @@ export const InjuryReportDialog = ({
           ))}
         </div>
         <p className="text-xs text-muted-foreground text-center mb-3">
-          Step {stepIndex + 1} of {STEPS.length}: {STEP_LABELS[step]}
+          Step {stepIndex + 1} of {steps.length}: {STEP_LABELS[step]}
         </p>
 
         <div className="space-y-4">
+          {/* Step 0: Body Region Selection (when not pre-selected from map) */}
+          {step === "region" && (
+            <div className="space-y-3">
+              <Label>Select body region</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {BODY_REGIONS.map((r) => (
+                  <Button
+                    key={r.value}
+                    type="button"
+                    variant={region === r.value ? "default" : "outline"}
+                    size="sm"
+                    className="justify-start text-left h-auto py-2 px-3"
+                    onClick={() => handleRegionSelect(r.value)}
+                  >
+                    {r.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Body Part Selection */}
           {step === "body_part" && (
             <div className="space-y-3">

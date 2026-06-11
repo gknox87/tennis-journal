@@ -9,10 +9,14 @@ export function JournalingStreak() {
 
   if (streakData.isLoading) {
     return (
-      <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200/50 shadow-lg rounded-2xl">
-        <CardContent className="px-6 py-6">
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 border-0 shadow-2xl overflow-hidden relative rounded-2xl">
+        <CardContent className="px-6 py-6 md:px-8 md:py-8 relative z-10">
+          <div className="flex items-center gap-4 md:gap-6 animate-pulse">
+            <div className="h-14 w-14 md:h-16 md:w-16 rounded-full bg-white/20" />
+            <div className="flex flex-col gap-2">
+              <div className="h-12 w-24 rounded-lg bg-white/20" />
+              <div className="h-4 w-40 rounded bg-white/15" />
+            </div>
           </div>
         </CardContent>
       </Card>

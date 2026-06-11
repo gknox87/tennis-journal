@@ -5,9 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useSmartNotifications, ReminderPreferences } from "@/hooks/useSmartNotifications";
-import { Bell, Clock, BellRing, MapPin, Brain, Save, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useSmartNotifications, ReminderPreferences, defaultReminderPreferences } from "@/hooks/useSmartNotifications";
+import { Bell, Clock, BellRing, MapPin, Brain, Save } from "lucide-react";
 
 interface DayOption {
   value: string;
@@ -31,7 +30,13 @@ interface TimeInputProps {
 }
 
 function TimeInput({ value, onChange }: TimeInputProps) {
-  const [hour, minute] = value.split(":").map(Number);
+  const [hourStr, minuteStr] = value.split(":");
+  const hour = Number(hourStr) || 0;
+  const minute = Number(minuteStr) || 0;
+  const minuteOptions = Array.from({ length: 12 }, (_, i) => i * 5);
+  const displayMinutes = minuteOptions.includes(minute)
+    ? minuteOptions
+    : [...minuteOptions, minute].sort((a, b) => a - b);
 
   const handleHourChange = (newHour: number) => {
     const h = Math.max(0, Math.min(23, newHour));
@@ -62,7 +67,7 @@ function TimeInput({ value, onChange }: TimeInputProps) {
         onChange={(e) => handleMinuteChange(Number(e.target.value))}
         className="border rounded px-2 py-1 text-center bg-white dark:bg-gray-800"
       >
-        {[0, 15, 30, 45].map((m) => (
+        {displayMinutes.map((m) => (
           <option key={m} value={m}>
             {m.toString().padStart(2, "0")}
           </option>
@@ -73,11 +78,10 @@ function TimeInput({ value, onChange }: TimeInputProps) {
 }
 
 export default function NotificationSettings() {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { preferences, isLoading, updatePreferences } = useSmartNotifications();
+  const { preferences, isLoading, error, updatePreferences, refreshPreferences } = useSmartNotifications();
 
-  const [localPrefs, setLocalPrefs] = useState<Partial<ReminderPreferences>>({});
+  const [localPrefs, setLocalPrefs] = useState<Partial<ReminderPreferences>>(defaultReminderPreferences);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -85,12 +89,20 @@ export default function NotificationSettings() {
   useEffect(() => {
     if (preferences) {
       setLocalPrefs(preferences);
+      setHasChanges(false);
     }
   }, [preferences]);
 
+  const reminderEnabled = localPrefs.reminder_enabled ?? true;
+  const wellnessReminderEnabled = localPrefs.wellness_reminder_enabled ?? true;
+  const smartNudgeEnabled = localPrefs.smart_nudge_enabled ?? true;
+  const locationTrackingEnabled = localPrefs.location_tracking_enabled ?? false;
+
   const handleToggle = (field: keyof ReminderPreferences) => {
-    const newValue = !localPrefs[field as keyof Partial<ReminderPreferences>];
-    setLocalPrefs((prev) => ({ ...prev, [field]: newValue }));
+    const current = localPrefs[field];
+    const defaultValue = defaultReminderPreferences[field];
+    const resolved = typeof current === "boolean" ? current : (defaultValue as boolean);
+    setLocalPrefs((prev) => ({ ...prev, [field]: !resolved }));
     setHasChanges(true);
   };
 
@@ -146,11 +158,19 @@ export default function NotificationSettings() {
 
   if (isLoading) {
     return (
+      <div className="min-h-full bg-background flex items-center justify-center overflow-y-auto">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (error && !preferences) {
+    return (
       <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="container mx-auto px-4 py-6 max-w-2xl">
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
-          </div>
+        <div className="container mx-auto px-4 py-6 max-w-7xl text-center space-y-4">
+          <Bell className="w-12 h-12 text-muted-foreground mx-auto" />
+          <p className="text-destructive">{error}</p>
+          <Button onClick={() => void refreshPreferences()}>Try again</Button>
         </div>
       </div>
     );
@@ -158,21 +178,21 @@ export default function NotificationSettings() {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div
-        className="container mx-auto px-4 py-6 max-w-2xl space-y-6"
-        onChange={() => setHasChanges(true)}
-      >
-        <Button variant="ghost" className="mb-2 -ml-2" onClick={() => navigate("/dashboard")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
-        <div>
-          <h1 className="text-2xl font-bold">Reminders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+            <Bell className="h-6 w-6 text-blue-500" /> Reminders
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
             Journaling, wellness check-ins, and activity nudges
           </p>
         </div>
+
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
         {/* Time-Based Reminders */}
         <Card className="p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -196,13 +216,13 @@ export default function NotificationSettings() {
               </div>
               <Switch
                 id="reminder_enabled"
-                checked={localPrefs.reminder_enabled ?? true}
+                checked={reminderEnabled}
                 onCheckedChange={() => handleToggle("reminder_enabled")}
               />
             </div>
 
             {/* Time picker */}
-            {localPrefs.reminder_enabled && (
+            {reminderEnabled && (
               <>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="reminder_time" className="cursor-pointer">
@@ -264,12 +284,12 @@ export default function NotificationSettings() {
               </div>
               <Switch
                 id="wellness_reminder_enabled"
-                checked={localPrefs.wellness_reminder_enabled ?? true}
+                checked={wellnessReminderEnabled}
                 onCheckedChange={() => handleToggle("wellness_reminder_enabled")}
               />
             </div>
 
-            {localPrefs.wellness_reminder_enabled !== false && (
+            {wellnessReminderEnabled && (
               <>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="wellness_reminder_time" className="cursor-pointer">
@@ -401,12 +421,12 @@ export default function NotificationSettings() {
               </div>
               <Switch
                 id="smart_nudge"
-                checked={localPrefs.smart_nudge_enabled ?? true}
+                checked={smartNudgeEnabled}
                 onCheckedChange={() => handleToggle("smart_nudge_enabled")}
               />
             </div>
 
-            {localPrefs.smart_nudge_enabled && (
+            {smartNudgeEnabled && (
               <div className="pl-6 text-sm text-muted-foreground">
                 Sends a friendly reminder when you haven't logged in for{' '}
                 <span className="font-medium text-foreground">
@@ -440,12 +460,12 @@ export default function NotificationSettings() {
               </div>
               <Switch
                 id="location_tracking"
-                checked={localPrefs.location_tracking_enabled ?? false}
+                checked={locationTrackingEnabled}
                 onCheckedChange={() => handleToggle("location_tracking_enabled")}
               />
             </div>
 
-            {localPrefs.location_tracking_enabled && (
+            {locationTrackingEnabled && (
               <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm">
                 <p className="text-orange-800">
                   <strong>Coming soon:</strong> We'll detect when you're at a tennis or padel court
@@ -455,7 +475,7 @@ export default function NotificationSettings() {
               </div>
             )}
 
-            {!localPrefs.location_tracking_enabled && (
+            {!locationTrackingEnabled && (
               <div className="text-sm text-muted-foreground">
                 When enabled, we can detect when you visit a tennis/padel club and remind you to log your play.
               </div>
@@ -463,22 +483,23 @@ export default function NotificationSettings() {
           </div>
         </Card>
 
-        {/* Save button */}
         {hasChanges && (
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full h-12 text-base font-medium"
-          >
-            {isSaving ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Preferences
-              </>
-            )}
-          </Button>
+          <div className="sticky bottom-[calc(var(--app-shell-bottom,0px)+0.75rem)] z-10">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full h-12 text-base font-medium shadow-lg"
+            >
+              {isSaving ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Preferences
+                </>
+              )}
+            </Button>
+          </div>
         )}
       </div>
     </div>

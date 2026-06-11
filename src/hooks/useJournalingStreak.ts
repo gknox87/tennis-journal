@@ -31,6 +31,7 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
   });
 
   const isFetchingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const refreshStreakRef = useRef<() => Promise<void>>(async () => undefined);
   const channelNameRef = useRef(`streak_changes_${crypto.randomUUID()}`);
@@ -108,7 +109,9 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
       isFetchingRef.current = true;
       abortControllerRef.current = new AbortController();
 
-      setStreakData(prev => ({ ...prev, isLoading: true, error: null }));
+      if (!hasLoadedRef.current) {
+        setStreakData(prev => ({ ...prev, isLoading: true, error: null }));
+      }
 
       const dates = await fetchJournalingDates();
       
@@ -121,6 +124,7 @@ export function useJournalingStreak(): UseJournalingStreakReturn {
 
       // Longest streak is calculated from journaling dates only
 
+      hasLoadedRef.current = true;
       setStreakData({
         ...calculated,
         weeklyConsistency,
