@@ -19,7 +19,6 @@ import {
   LoadWellnessTimelinePoint,
   WellnessOverlayMetric,
 } from "@/types/trainingLoad";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { Heart, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -99,19 +98,7 @@ export const LoadWellnessChart = ({
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-muted-foreground mt-3 text-center">
-          Pro unlocks 14-day trends, confidence/stress overlays, and match-day markers.
-        </p>
-        <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/pricing')}>
-          Upgrade for full mind–body insights
-        </Button>
       </Card>
-    );
-  }
-
-  if (!canAccessInsights) {
-    return (
-      <UpgradePrompt message="Log training and wellness check-ins to preview how your mood tracks with load. Upgrade for the full 14-day mind–body timeline." />
     );
   }
 

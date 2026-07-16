@@ -76,7 +76,6 @@ const Landing = () => {
             <a href="#how-it-works" className="hover:text-white/80">How It Works</a>
             <a href="#features" className="hover:text-white/80">Features</a>
             <a href="#sports" className="hover:text-white/80">Sports</a>
-            <a href="#pricing" className="hover:text-white/80">Pricing</a>
             <a href="/blog" className="hover:text-white/80">Blog</a>
           </div>
 
@@ -101,7 +100,6 @@ const Landing = () => {
             <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How It Works</a>
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#sports" onClick={() => setMenuOpen(false)}>Sports</a>
-            <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
             <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
           </div>
         )}
@@ -537,79 +535,36 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ============ SECTION 9 — PRICING ============ */}
+      {/* ============ SECTION 9 — ALL FEATURES FREE ============ */}
       <section id="pricing" className="bg-white px-4 sm:px-6 py-20 sm:py-24">
-        <div className="max-w-[900px] mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-violet-600 font-bold uppercase tracking-wider text-sm mb-4">Pricing</p>
-            <h2 className="font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-5xl leading-tight mb-6">
-              Start free. Upgrade when you're ready.
-            </h2>
-            <p className="text-gray-500 text-lg leading-relaxed max-w-[560px] mx-auto">
-              No credit card. No commitment. Just start logging and see the difference it makes.
-            </p>
+        <div className="max-w-[700px] mx-auto text-center">
+          <p className="text-violet-600 font-bold uppercase tracking-wider text-sm mb-4">Pricing</p>
+          <h2 className="font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-5xl leading-tight mb-6">
+            Everything's included. Free.
+          </h2>
+          <p className="text-gray-500 text-lg leading-relaxed mb-10">
+            No subscriptions, no paywalls, no hidden fees. Every feature is available to every user, forever.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left mb-10">
+            {[
+              "Unlimited match & session logging",
+              "AI-powered pattern analysis",
+              "Opponent intelligence database",
+              "Advanced training load analytics",
+              "Coach sharing & collaboration",
+              "All 55+ badges unlocked",
+              "Data export (CSV + PDF)",
+              "Wellness & injury tracking",
+            ].map((f) => (
+              <div key={f} className="flex items-start gap-2 text-sm text-gray-700">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>{f}</span>
+              </div>
+            ))}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Free */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col">
-              <h3 className="font-extrabold text-2xl text-gray-900 mb-1">Free</h3>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-black text-gray-900">£0</span>
-                <span className="text-gray-500 text-sm">/forever</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-6">Everything you need to get started</p>
-              <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  "Match journal — unlimited entries",
-                  "Performance stats & win rate",
-                  "Goals & milestone tracking",
-                  "Streak tracking & core badges",
-                  "Body & wellness check-ins",
-                ].map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <SignupLink className="block text-center w-full px-6 py-3 bg-white border-2 border-violet-700 text-violet-700 rounded-xl font-bold hover:bg-violet-50 transition">
-                Get started free
-              </SignupLink>
-            </div>
-
-            {/* Pro */}
-            <div className="relative bg-violet-50 rounded-2xl border-2 border-violet-700 shadow-md p-8 flex flex-col">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-violet-700 text-white px-4 py-1 rounded-full text-xs font-bold">
-                <Zap className="w-3 h-3" /> COMING SOON
-              </div>
-              <h3 className="font-extrabold text-2xl text-gray-900 mb-1">Pro</h3>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-black text-gray-900">£6</span>
-                <span className="text-gray-500 text-sm">/month</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-6">For athletes who want the full edge</p>
-              <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  "Everything in Free",
-                  "AI-powered pattern analysis",
-                  "Opponent intelligence database",
-                  "Advanced training load analytics",
-                  "Coach sharing & collaboration",
-                  "All 55+ badges unlocked",
-                  "Priority support",
-                ].map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <SignupLink className="block text-center w-full px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800 transition">
-                Join the waitlist →
-              </SignupLink>
-            </div>
-          </div>
+          <SignupLink className="inline-block px-8 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800 transition">
+            Get started free →
+          </SignupLink>
         </div>
       </section>
 

@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSport } from "@/context/SportContext";
-import { useSubscription } from "@/hooks/useSubscription";
 import { Match } from "@/types/match";
 import { WellnessEntry } from "@/types/wellness";
 import { TrainingSession } from "@/types/trainingLoad";
@@ -26,7 +25,6 @@ interface UseAthletePatternsOptions {
 export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
   const { autoRefresh = false, matchCount = 0 } = options;
   const { sport } = useSport();
-  const { canAccessPatternInsights } = useSubscription();
 
   const [patterns, setPatterns] = useState<AthletePattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,7 +123,7 @@ export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
 
   const refreshPatterns = useCallback(
     async (force = false) => {
-      if (!canAccessPatternInsights()) return;
+      // Pattern insights always accessible
       if (!unlockProgress.unlocked) return;
       if (!force && !canRefreshNow()) return;
 
@@ -192,7 +190,6 @@ export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
       }
     },
     [
-      canAccessPatternInsights,
       unlockProgress.unlocked,
       canRefreshNow,
       fetchDetectionData,
@@ -225,7 +222,7 @@ export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
   }, [fetchPatterns]);
 
   useEffect(() => {
-    if (!autoRefresh || !canAccessPatternInsights() || isLoading) return;
+    if (!autoRefresh || isLoading) return;
     if (!unlockProgress.unlocked) return;
 
     const isStale =
@@ -239,7 +236,6 @@ export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
     }
   }, [
     autoRefresh,
-    canAccessPatternInsights,
     isLoading,
     unlockProgress.unlocked,
     patterns,
@@ -252,7 +248,7 @@ export function useAthletePatterns(options: UseAthletePatternsOptions = {}) {
     isLoading,
     isRefreshing,
     unlockProgress,
-    canAccessPatternInsights: canAccessPatternInsights(),
+    canAccessPatternInsights: true,
     canRefreshNow: canRefreshNow(),
     refreshPatterns,
     dismissPattern,

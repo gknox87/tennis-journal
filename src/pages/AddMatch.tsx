@@ -9,7 +9,6 @@ import { MatchForm } from "@/components/match/MatchForm";
 import type { MatchFormData } from "@/components/match/MatchForm";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/hooks/useSubscription";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Mic, PenTool } from "lucide-react";
 import { SetScore } from "@/types/match";
@@ -36,7 +35,6 @@ const AddMatch = () => {
   const { sport } = useSport();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { canUseAI } = useSubscription();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -142,7 +140,7 @@ const AddMatch = () => {
         }
       }
 
-      if (formData.notes && canUseAI()) {
+      if (formData.notes) {
         supabase.functions.invoke('analyze-match-notes', {
           body: { notes: formData.notes, sport_id: sport.id }
         }).then(({ data: aiResponse, error: aiError }) => {

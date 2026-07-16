@@ -85,12 +85,6 @@ export const LandingHeader = () => {
               >
                 Testimonials
               </button>
-              <button
-                onClick={() => handleNavClick("/pricing")}
-                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-              >
-                Pricing
-              </button>
             </nav>
 
             {/* Right Section - Auth Buttons */}
@@ -191,12 +185,6 @@ export const LandingHeader = () => {
                   className="w-full text-left px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors"
                 >
                   Testimonials
-                </button>
-                <button
-                  onClick={() => handleNavClick("/pricing")}
-                  className="w-full text-left px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors"
-                >
-                  Pricing
                 </button>
               </nav>
 

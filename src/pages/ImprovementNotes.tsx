@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Circle, RefreshCw, Sparkles } from "lucide-react";
 import { PatternInsightCard } from "@/components/PatternInsightCard";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { useAthletePatterns } from "@/hooks/useAthletePatterns";
 import { useSport } from "@/context/SportContext";
 import { MIN_MATCHES_FOR_PATTERNS } from "@/types/athletePattern";
@@ -37,7 +36,6 @@ const ImprovementNotes = () => {
     isLoading: patternsLoading,
     isRefreshing,
     unlockProgress,
-    canAccessPatternInsights,
     canRefreshNow,
     refreshPatterns,
     dismissPattern,
@@ -161,13 +159,8 @@ const ImprovementNotes = () => {
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-purple-500" />
                 Patterns
-                {!canAccessPatternInsights && (
-                  <span className="text-xs font-normal text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
-                    Pro
-                  </span>
-                )}
               </h2>
-              {canAccessPatternInsights && unlockProgress.unlocked && (
+              {unlockProgress.unlocked && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -182,9 +175,7 @@ const ImprovementNotes = () => {
               )}
             </div>
 
-            {!canAccessPatternInsights ? (
-              <UpgradePrompt message="Unlock pattern detection — see what your data reveals. Spot trends like three-setter struggles or mood dips after heavy load." />
-            ) : patternsLoading ? (
+            {patternsLoading ? (
               <Card className="p-6">
                 <div className="flex items-center justify-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500" />

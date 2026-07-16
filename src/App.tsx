@@ -45,6 +45,7 @@ const Demo = React.lazy(() => import("@/pages/Demo"));
 const HelpCenter = React.lazy(() => import("@/pages/HelpCenter"));
 const Contact = React.lazy(() => import("@/pages/Contact"));
 const Privacy = React.lazy(() => import("@/pages/Privacy"));
+const Terms = React.lazy(() => import("@/pages/Terms"));
 const InjuryTracker = React.lazy(() => import("@/pages/InjuryTracker"));
 const AdminDashboard = React.lazy(() => import("@/pages/AdminDashboard"));
 const AdminUsers = React.lazy(() => import("@/pages/AdminUsers"));
@@ -89,6 +90,7 @@ function AppLayout({ session, loading }: AppLayoutProps) {
       <Route path="/help" element={<HelpCenter />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
     </Routes>
@@ -106,6 +108,7 @@ function AppLayout({ session, loading }: AppLayoutProps) {
                 <Route path="/help" element={<HelpCenter />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="/blog" element={<BlogIndex />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/dashboard" element={<ProtectedRoute session={session} isLoading={loading}><Index /></ProtectedRoute>} />

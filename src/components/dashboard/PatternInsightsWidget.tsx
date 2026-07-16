@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PatternInsightCard } from "@/components/PatternInsightCard";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { useAthletePatterns } from "@/hooks/useAthletePatterns";
 import { MIN_MATCHES_FOR_PATTERNS } from "@/types/athletePattern";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -18,7 +17,6 @@ export const PatternInsightsWidget = ({ matchCount }: PatternInsightsWidgetProps
     patterns,
     isLoading,
     unlockProgress,
-    canAccessPatternInsights,
   } = useAthletePatterns({ matchCount });
 
   if (matchCount < MIN_MATCHES_FOR_PATTERNS) {
@@ -32,18 +30,6 @@ export const PatternInsightsWidget = ({ matchCount }: PatternInsightsWidgetProps
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500" />
         </div>
       </Card>
-    );
-  }
-
-  if (!canAccessPatternInsights) {
-    return (
-      <section>
-        <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-500" />
-          Pattern Insights
-        </h2>
-        <UpgradePrompt message="Unlock pattern detection — see what your data reveals after 5+ matches. Spot trends like three-setter struggles or mood dips after heavy load." />
-      </section>
     );
   }
 

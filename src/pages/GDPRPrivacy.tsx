@@ -102,11 +102,15 @@ const GDPRPrivacy = () => {
         return;
       }
 
-      // Note: Full account deletion requires server-side action
-      // This shows the user the process
+      const { data, error } = await supabase.functions.invoke("delete-account");
+
+      if (error || data?.error) {
+        throw new Error(error?.message || data?.error || "Failed to delete account");
+      }
+
       toast({
-        title: "Deletion Request Submitted",
-        description: "Please contact privacy@sportsjournal.app to complete account deletion."
+        title: "Account Deleted",
+        description: "Your account and all associated data have been permanently removed."
       });
 
       setShowDeleteConfirm(false);
@@ -114,7 +118,11 @@ const GDPRPrivacy = () => {
       navigate('/');
     } catch (error) {
       console.error('Delete error:', error);
-      toast({ title: "Error", description: "Failed to process deletion", variant: "destructive" });
+      toast({
+        title: "Could not delete account",
+        description: error instanceof Error ? error.message : "Please try again or contact support.",
+        variant: "destructive"
+      });
     } finally {
       setIsDeleting(false);
     }

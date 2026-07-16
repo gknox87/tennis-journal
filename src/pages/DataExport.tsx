@@ -441,18 +441,26 @@ const DataExport = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Delete user data (would need server-side handling for full account deletion)
-      await supabase.auth.deleteUser(session.user.id);
+      const { data, error } = await supabase.functions.invoke("delete-account");
+
+      if (error || data?.error) {
+        throw new Error(error?.message || data?.error || "Failed to delete account");
+      }
 
       toast({
-        title: "Account Deletion Requested",
-        description: "Please contact support@sportsjournal.com to complete account deletion."
+        title: "Account Deleted",
+        description: "Your account and all associated data have been permanently removed."
       });
 
+      await supabase.auth.signOut();
       navigate('/');
     } catch (error) {
       console.error('Delete account error:', error);
-      toast({ title: "Error", description: "Failed to process deletion request", variant: "destructive" });
+      toast({
+        title: "Could not delete account",
+        description: error instanceof Error ? error.message : "Please try again or contact support.",
+        variant: "destructive"
+      });
     }
   };
 

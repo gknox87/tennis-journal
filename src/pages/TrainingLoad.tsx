@@ -8,7 +8,6 @@ import { Header } from "@/components/Header";
 import { useSport } from "@/context/SportContext";
 import { useTrainingLoad } from "@/hooks/useTrainingLoad";
 import { useWellness } from "@/hooks/useWellness";
-import { useSubscription } from "@/hooks/useSubscription";
 import { LogSessionDialog } from "@/components/training/LogSessionDialog";
 import { LoadDashboard } from "@/components/training/LoadDashboard";
 import { Plus, Zap, Trash2 } from "lucide-react";
@@ -20,7 +19,6 @@ const TrainingLoad = () => {
   const { sport } = useSport();
   const { sessions, isLoading, logSession, deleteSession, metrics } = useTrainingLoad();
   const { entries: wellnessEntries } = useWellness({ fetchDays: 56 });
-  const { canAccessWellnessLoadInsights } = useSubscription();
   const [showDialog, setShowDialog] = useState(false);
   const [mentalMatches, setMentalMatches] = useState<
     Pick<Match, 'date' | 'pre_arousal' | 'pre_confidence'>[]
@@ -106,7 +104,7 @@ const TrainingLoad = () => {
               metrics={metrics}
               wellnessEntries={wellnessEntries}
               matches={mentalMatches}
-              canAccessInsights={canAccessWellnessLoadInsights()}
+              canAccessInsights={true}
             />
 
             {/* Recent sessions */}

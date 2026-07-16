@@ -16,8 +16,7 @@ import { SPORTS, type SupportedSportId } from "@/constants/sports";
 import type { SportMetadata } from "@/types/sport";
 import { SportGoalSelector } from "@/components/onboarding/SportGoalSelector";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { useSubscription } from "@/hooks/useSubscription";
-import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Crown, Download, AlertCircle } from "lucide-react";
+import { ArrowLeft, User, MapPin, Trophy, Calendar, Save, Edit3, Camera, Shield, Calendar as CalendarIcon, Download, AlertCircle } from "lucide-react";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -69,7 +68,6 @@ function resolvePreferredSurface(
 const Profile = () => {
   const { sport, sportId, goalId, setPreferences } = useSport();
   const { roles, isCoach, isAdmin } = useUserRoles();
-  const { plan, isFreePlan, isTrial, trialDaysLeft, aiUsageThisMonth, aiLimit, keyOpponentCount, keyOpponentLimit } = useSubscription();
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",
     club: "",
@@ -367,15 +365,6 @@ const Profile = () => {
                 </h2>
                 {/* Role Badges */}
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
-                  {/* Plan badge */}
-                  <Badge className={`capitalize border ${
-                    plan === 'team' ? 'bg-purple-500/30 text-white border-purple-300' :
-                    plan === 'pro' ? 'bg-blue-500/30 text-white border-blue-300' :
-                    'bg-white/20 text-white border-white/30'
-                  }`}>
-                    <Crown className="h-3 w-3 mr-1" />
-                    {plan} plan
-                  </Badge>
                   {roles.map((role) => (
                     <Badge key={role} className="capitalize bg-white/20 text-white border-white/30">
                       <Shield className="h-3 w-3 mr-1" />
@@ -654,34 +643,6 @@ const Profile = () => {
               )}
             </div>
           </Card>
-
-          {/* Plan & Usage Stats */}
-          {isFreePlan && (
-            <Card className="p-4 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800">Free Plan Usage</h3>
-                <Button
-                  size="sm"
-                  onClick={() => navigate("/pricing")}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                >
-                  <Crown className="mr-1 h-3 w-3" /> Upgrade
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-2 bg-white rounded-lg">
-                  <p className="text-gray-500">AI analyses this month</p>
-                  <p className="font-bold text-gray-800">
-                    {isFreePlan ? `${aiUsageThisMonth} / ${aiLimit}` : "Unlimited"}
-                  </p>
-                </div>
-                <div className="p-2 bg-white rounded-lg">
-                  <p className="text-gray-500">Key opponents</p>
-                  <p className="font-bold text-gray-800">{isFreePlan ? `${keyOpponentCount} / ${keyOpponentLimit}` : keyOpponentCount}</p>
-                </div>
-              </div>
-            </Card>
-          )}
 
           <DeleteAccountSection />
 

@@ -360,16 +360,8 @@ const Demo = () => {
               Start Free Journey
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("/pricing")}
-              className="border-2 border-white text-white hover:bg-white/10 px-10 py-7 text-xl font-semibold rounded-2xl transition-all duration-300"
-            >
-              View Pricing
-            </Button>
           </div>
-          <p className="text-sm mt-6 opacity-80">No credit card required • Free forever core features</p>
+          <p className="text-sm mt-6 opacity-80">All features included • Free forever</p>
         </div>
       </section>
     </div>

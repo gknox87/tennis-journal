@@ -13,8 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Match } from "@/types/match";
-import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { formatScore } from "@/utils/scoreDisplay";
 
 interface MatchShareButtonsProps {
@@ -26,17 +24,6 @@ export const MatchShareButtons = ({ match, onEmailShare }: MatchShareButtonsProp
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [isSharing, setIsSharing] = useState(false);
-  const { canShareWithCoach } = useSubscription();
-
-  if (!canShareWithCoach()) {
-    return (
-      <UpgradePrompt
-        message="Coach sharing is available on Pro and Team plans. Upgrade to share match details with your coach."
-        className="mt-6"
-      />
-    );
-  }
-
   const shareViaWhatsApp = () => {
     const text = `Match Details:\n
 Opponent: ${match.opponent_name}\n

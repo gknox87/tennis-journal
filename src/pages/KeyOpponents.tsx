@@ -10,8 +10,6 @@ import { OpponentList } from "@/components/opponents/OpponentList";
 import { DeleteOpponentDialog } from "@/components/opponents/DeleteOpponentDialog";
 import type { Opponent } from "@/types/opponents";
 import { Header } from "@/components/Header";
-import { useSubscription } from "@/hooks/useSubscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 const KeyOpponents = () => {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ const KeyOpponents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteOpponentId, setDeleteOpponentId] = useState<string | null>(null);
   const { toast } = useToast();
-  const { canAddKeyOpponent, keyOpponentCount, keyOpponentLimit, isFreePlan, isLoading: subLoading } = useSubscription();
 
   const fetchOpponents = async () => {
     try {
@@ -66,15 +63,6 @@ const KeyOpponents = () => {
   }, []);
 
   const handleAddOpponent = async (name: string) => {
-    if (!canAddKeyOpponent()) {
-      toast({
-        title: "Opponent limit reached",
-        description: `Free plan allows ${keyOpponentLimit} key opponents. Upgrade for unlimited.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -147,20 +135,6 @@ const KeyOpponents = () => {
   return (
     <div className="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-y-auto">
 <div className="container mx-auto px-4 py-8">
-        {/* Usage indicator for free users */}
-        {isFreePlan && !subLoading && (
-          <div className="mb-4 text-sm text-gray-600 text-center">
-            {keyOpponentCount} of {keyOpponentLimit} key opponents used
-          </div>
-        )}
-
-        {!canAddKeyOpponent() && !subLoading && (
-          <UpgradePrompt
-            message={`You've reached your free plan limit of ${keyOpponentLimit} key opponents. Upgrade to Pro for unlimited.`}
-            className="mb-4"
-          />
-        )}
-
         <OpponentSearchSection
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

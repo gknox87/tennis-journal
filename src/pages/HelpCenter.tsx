@@ -64,7 +64,7 @@ const HelpCenter = () => {
         },
         {
           question: "What is opponent tracking?",
-          answer: "Opponent tracking lets you build detailed profiles for every player you compete against. For each opponent, you can record their playing style (aggressive baseliner, serve-and-volley, etc.), note specific strengths and weaknesses, and view your complete head-to-head match history. Before a rematch, review your opponent's profile to refresh your tactical game plan. Free accounts include up to 5 opponent profiles, while Pro accounts offer unlimited profiles with additional scouting fields."
+          answer: "Opponent tracking lets you build detailed profiles for every player you compete against. For each opponent, you can record their playing style (aggressive baseliner, serve-and-volley, etc.), note specific strengths and weaknesses, and view your complete head-to-head match history. Before a rematch, review your opponent's profile to refresh your tactical game plan. You can create unlimited opponent profiles with full scouting fields — all completely free."
         },
         {
           question: "How do I share data with my coach?",
@@ -72,7 +72,7 @@ const HelpCenter = () => {
         },
         {
           question: "Can I export my data?",
-          answer: "Pro users can export their complete match history, analytics, and performance insights in CSV or PDF format. Navigate to Settings > Export Data to choose your format and date range. CSV exports are great for custom analysis in spreadsheets, while PDF exports produce polished reports perfect for sharing with coaches or keeping as personal records. Your data always belongs to you, and exports include all match details, scores, notes, and calculated metrics."
+          answer: "You can export your complete match history, analytics, and performance insights in CSV or PDF format. Navigate to Settings > Export Data to choose your format and date range. CSV exports are great for custom analysis in spreadsheets, while PDF exports produce polished reports perfect for sharing with coaches or keeping as personal records. Your data always belongs to you, and exports include all match details, scores, notes, and calculated metrics."
         }
       ]
     },
@@ -102,25 +102,21 @@ const HelpCenter = () => {
     },
     {
       id: "billing",
-      title: "Billing & Pricing",
+      title: "Pricing & Plans",
       icon: BarChart3,
-      description: "Understand pricing and subscription options",
+      description: "Everything you need to know about access and features",
       articles: [
         {
-          question: "What's included in the Free plan?",
-          answer: "The Free plan gives you everything you need to get started: unlimited match logging across all six supported sports, basic analytics with win rate and trend tracking, up to 5 opponent profiles, full mobile access, and offline match logging that syncs when you reconnect. There are no time limits or trial periods — free means free, forever. You'll only need to upgrade if you want advanced features like AI coaching insights, unlimited opponent profiles, or detailed export options."
+          question: "Is Sports Journal really free?",
+          answer: "Yes! Every feature in Sports Journal is completely free for all users. There are no subscriptions, no paywalls, and no hidden fees. You get unlimited match logging, AI-powered analysis, opponent tracking, coach sharing, data export, advanced analytics, and all badges — all at no cost. We believe every athlete should have access to professional-grade tools without barriers."
         },
         {
-          question: "How do I upgrade to Pro?",
-          answer: "Click the 'Upgrade' button in your dashboard sidebar or visit the Pricing page from the main menu. Select the plan that fits your needs, enter your payment details, and all Pro features unlock instantly — no waiting, no restart required. Your existing data and settings carry over seamlessly. We accept all major credit cards and offer both monthly and annual billing, with a discount for annual subscriptions."
+          question: "Are there any paid plans or upgrades?",
+          answer: "No. All features are available to every user from day one. There's no Pro tier, no trial period, and no premium upgrade. Simply create your free account and you'll have access to everything Sports Journal offers."
         },
         {
-          question: "Can I cancel my subscription?",
-          answer: "Yes, you can cancel anytime with no penalties or hidden fees. Go to Settings > Billing > Cancel Subscription to initiate the process. You'll continue to have full access to all Pro features until the end of your current billing period. After that, your account automatically reverts to the Free plan — you keep all your match data and can still log matches, but advanced features like AI insights and unlimited exports will be locked."
-        },
-        {
-          question: "Do you offer refunds?",
-          answer: "We offer a 30-day money-back guarantee on all paid plans, no questions asked. If you're not satisfied for any reason, simply email support@sportsjournal.com within 30 days of your purchase and we'll process a full refund, typically within 3–5 business days. We want you to feel confident trying Pro features risk-free."
+          question: "Will you add paid features in the future?",
+          answer: "Our commitment is to keep the core Sports Journal experience free for all athletes. If we ever introduce optional premium features, existing users will always retain access to everything they currently enjoy at no cost."
         }
       ]
     },
