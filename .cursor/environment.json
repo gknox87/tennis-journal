@@ -1,0 +1,17 @@
+{
+  "name": "Sports Journal",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev",
+      "description": "Vite dev server for the Sports Journal web app on port 8989."
+    }
+  ],
+  "ports": [
+    {
+      "name": "Vite dev server",
+      "port": 8989
+    }
+  ]
+}
